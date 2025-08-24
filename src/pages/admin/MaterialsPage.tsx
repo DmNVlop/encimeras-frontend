@@ -8,6 +8,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import type { GridColDef } from "@mui/x-data-grid";
+import { esES } from "@mui/x-data-grid/locales";
 
 // Define la estructura de datos real del material
 interface Material {
@@ -52,6 +53,10 @@ const MaterialsPage: React.FC = () => {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [open, setOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 10,
+  });
   const [currentMaterial, setCurrentMaterial] = useState<MaterialFormData>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -206,7 +211,15 @@ const MaterialsPage: React.FC = () => {
         </Box>
       </Box>
       <Box sx={{ height: 600, width: "100%" }}>
-        <DataGrid rows={materials} columns={columns} pageSize={10} rowsPerPageOptions={[10]} getRowId={(row) => row._id} />
+        <DataGrid
+          rows={materials}
+          columns={columns}
+          pageSizeOptions={[10, 25, 50]}
+          paginationModel={paginationModel}
+          onPaginationModelChange={setPaginationModel}
+          getRowId={(row) => row._id}
+          localeText={esES.components.MuiDataGrid.defaultProps.localeText}
+        />
       </Box>
 
       <Modal open={open} onClose={handleClose}>

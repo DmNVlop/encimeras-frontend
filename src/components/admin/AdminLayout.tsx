@@ -2,9 +2,12 @@
 import React from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { AppBar, Toolbar, Typography, Button, Box, Drawer, List, ListItem, ListItemText, ListItemIcon } from "@mui/material";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import StoneIcon from "@mui/icons-material/SquareFoot"; // Icono para materiales
 import { logout } from "../../services/authService";
+
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import StoneIcon from "@mui/icons-material/SquareFoot";
+import CarpenterIcon from "@mui/icons-material/Carpenter";
+import EdgesensorLowIcon from "@mui/icons-material/EdgesensorLow";
 
 const drawerWidth = 240;
 
@@ -19,6 +22,8 @@ const AdminLayout: React.FC = () => {
   const menuItems = [
     { text: "Dashboard", icon: <DashboardIcon />, path: "/admin/dashboard" },
     { text: "Materiales", icon: <StoneIcon />, path: "/admin/materials" },
+    { text: "Cantos", icon: <EdgesensorLowIcon />, path: "/admin/edges" },
+    { text: "Cortes", icon: <CarpenterIcon />, path: "/admin/cutouts" },
     // Añadir más items aquí (Cantos, Cortes, etc.)
   ];
 
