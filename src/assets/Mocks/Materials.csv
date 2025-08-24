@@ -1,0 +1,52 @@
+name;description;imageUrl;pricePerSquareMeter;thicknesses;finishes;category;isActive
+Melamina Roble Hamilton;Diseño de madera natural con textura sincronizada.;;45.50;16, 19;Poro Sincro, Mate;Melaminas;true
+Fenix NTM Negro Ingo;Superficie ultramate, antihuellas y reparable térmicamente.;;180.75;10, 19, 21;Supermate, Seda;Fenix;true
+MDF Crudo Hidrófugo;Tablero de fibras de densidad media resistente a la humedad.;;22.30;10, 16, 19, 30;Lijado;Crudos;true
+Rechapado Nogal Americano;Chapa de madera natural sobre base de tablero.;;95.00;19;Poro Abierto, Satinado;Rechapados;true
+Melamina Blanco Seda;Acabado liso y sedoso de alta durabilidad.;;35.90;16, 19, 21;Seda, Mate;Melaminas;true
+Fenix NTM Blanco Kos;El blanco más puro con tecnología antihuellas.;;195.50;10, 19;Supermate;Fenix;true
+Aglomerado Crudo;Tablero estándar de partículas para uso general.;;20.50;10, 16, 19, 30;Bruto;Crudos;false
+Rechapado Roble Rústico;Chapa de madera con nudos y vetas marcadas.;;88.20;19, 30;Cepillado, Natural;Rechapados;true
+Melamina Gris Antracita;Color sólido y moderno con acabado mate.;;42.80;16, 19;Mate, Texturizado;Melaminas;true
+Melamina Lino Cancún;Diseño textil que aporta calidez y textura.;;51.00;19;Textil;Melaminas;true
+Fenix NTM Grigio Londra;Tonalidad gris media, elegante y versátil.;;185.00;10, 19, 21;Seda;Fenix;true
+MDF Crudo Ignífugo;Tablero de fibras con tratamiento resistente al fuego.;;35.75;16, 19;Lijado;Crudos;true
+Rechapado Fresno Olivo;Chapa con veta similar al olivo, muy decorativa.;;110.40;19;Satinado;Rechapados;false
+Melamina Mármol Calacatta;Imitación de mármol de alta definición y realismo.;;65.30;19, 21;Alto Brillo, Pulido;Melaminas;true
+Fenix NTA Acero Hamilton;Efecto metálico con las propiedades de Fenix.;;250.00;10;Metalizado;Fenix;true
+Contrachapado de Abedul;Tablero multicapa de alta resistencia y cantos vistos.;;75.90;16, 19, 21;Natural;Crudos;true
+Rechapado Eucalipto Fumé;Chapa de madera ahumada con tonalidades oscuras.;;125.60;19;Mate;Rechapados;true
+Melamina Cemento Oscuro;Diseño industrial de aspecto cemento pulido.;;58.25;19;Pétreo, Mate;Melaminas;true
+Melamina Roble Halifax;Diseño de roble con grietas y nudos muy marcados.;;62.10;19, 30;Poro Sincro;Melaminas;true
+Fenix NTM Verde Comodoro;Color verde oscuro sofisticado y actual.;;190.80;10, 19;Seda, Supermate;Fenix;false
+MDF Crudo Negro Tintado;Tablero de fibras tintado en masa de color negro.;;45.50;19;Lijado;Crudos;true
+Rechapado de Bambú;Chapa de bambú prensado, sostenible y resistente.;;85.00;19, 30;Natural;Rechapados;true
+Melamina Óxido Cobre;Efecto metálico oxidado para un look industrial.;;68.70;19;Metalizado, Mate;Melaminas;true
+Fenix NTM Blu Fes;Tonalidad azul intensa y profunda.;;192.30;10, 19, 21;Supermate;Fenix;true
+Aglomerado Hidrófugo;Tablero de partículas resistente a la humedad.;;28.40;16, 19, 30;Bruto;Crudos;true
+Rechapado Tilo;Chapa de madera clara y de veta muy fina.;;92.15;19;Satinado;Rechapados;false
+Melamina Negro Mate;Acabado negro profundo antihuellas.;;48.90;16, 19;Supermate;Melaminas;true
+Melamina Haya Vaporizada;Diseño clásico de madera de haya, tono rosado.;;41.20;19;Poro, Mate;Melaminas;true
+Fenix NTM Rosso Jaipur;Color rojo terroso, cálido y exótico.;;210.00;10, 19;Seda;Fenix;true
+MDF Crudo Delgado;Tablero de fibras de bajo espesor para traseras.;;21.80;10;Lijado;Crudos;true
+Rechapado Wengué;Chapa de madera tropical muy oscura y veta marcada.;;130.50;19;Poro Abierto;Rechapados;true
+Melamina Terrazzo Clásico;Diseño que imita el terrazo tradicional.;;55.60;19;Pétreo;Melaminas;false
+Fenix NTM Grigio Bromo;Gris oscuro y cálido, casi un topo.;;188.90;10, 19, 21;Supermate, Seda;Fenix;true
+Melamina Olmo Tostado;Diseño de madera de olmo con tonalidad media.;;49.80;19;Poro;Melaminas;true
+MDF Crudo flexible;Tablero ranurado que permite crear formas curvas.;;60.20;10;Lijado;Crudos;true
+Rechapado Arce Americano;Chapa de madera muy clara y luminosa.;;105.00;19;Satinado, Natural;Rechapados;true
+Melamina Azul Océano;Color azul vivo y enérgico.;;44.75;16, 19;Mate, Seda;Melaminas;true
+Fenix NTM Giallo Kashmir;Tonalidad amarilla suave y elegante.;;205.40;10;Seda;Fenix;false
+Melamina Nogal Canaletto;Imitación de madera de nogal con veta lineal.;;53.90;19;Poro, Mate;Melaminas;true
+Rechapado Cerezo;Chapa de madera clásica con tonalidad rojiza.;;98.50;19;Satinado;Rechapados;true
+MDF Crudo lacado 1 cara;Tablero de fibras con una cara pre-lacada en blanco.;;38.80;16, 19;Laca Blanca;Crudos;true
+Melamina Verde Salvia;Tonalidad verde pastel, muy de tendencia.;;46.20;19;Seda, Mate;Melaminas;true
+Fenix NTM Cacao Orinoco;Color marrón oscuro, similar al chocolate.;;198.00;10, 19;Supermate;Fenix;true
+Rechapado Pino Soria;Chapa de pino con nudos y veta característica.;;82.30;19, 30;Natural;Rechapados;false
+Melamina Piedra de Luna;Diseño de piedra abstracta en tonos grises.;;59.90;19;Pétreo;Melaminas;true
+Aglomerado Ignífugo;Tablero de partículas con tratamiento ignífugo.;;40.10;16, 19;Bruto;Crudos;true
+Fenix NTM Beige Arizona;Color arena cálido y neutro.;;182.60;10, 19, 21;Seda;Fenix;true
+Rechapado Roble Blanqueado;Chapa de roble tratada para un acabado blanquecino.;;94.70;19;Poro Abierto;Rechapados;true
+Melamina Textil Gris;Diseño de tejido en tonos grises para un look acogedor.;;52.40;19;Textil;Melaminas;true
+MDF Crudo de alta densidad;Tablero de fibras compacto, ideal para mecanizar.;;33.90;19, 30;Lijado;Crudos;true
+Fenix NTM Titanio Doha;Efecto titanio con un acabado metálico suave.;;265.00;10;Metalizado;Fenix;true
