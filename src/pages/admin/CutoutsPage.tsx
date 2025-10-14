@@ -1,21 +1,25 @@
 // src/pages/admin/CutoutsPage.tsx
-import React, { useState, useEffect, useRef } from "react";
-import { Box, Typography, Button, Modal, TextField, Select, MenuItem, InputLabel, FormControl } from "@mui/material";
-import { DataGrid, GridActionsCellItem } from "@mui/x-data-grid";
+import React, { useState, useEffect } from "react";
+import { Box, Typography, Button, Modal, TextField, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
+import { DataGrid, type GridColDef, GridActionsCellItem } from "@mui/x-data-grid";
+import { esES } from "@mui/x-data-grid/locales";
 import { get, create, update, remove } from "../../services/apiService";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
-import UploadFileIcon from "@mui/icons-material/UploadFile";
-import type { GridColDef } from "@mui/x-data-grid";
-import { esES } from "@mui/x-data-grid/locales";
 
-// Define la estructura del tipo Cutout
+// Interfaces
 interface Cutout {
   _id: string;
   name: string;
   price: number;
-  type: "SINK" | "HOB" | "OTHER";
+  type: string;
+}
+
+interface Attribute {
+  _id: string;
+  value: string;
+  label?: string;
 }
 
 const modalStyle = {
@@ -23,7 +27,7 @@ const modalStyle = {
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: 400,
+  width: 500,
   bgcolor: "background.paper",
   boxShadow: 24,
   p: 4,
@@ -34,24 +38,29 @@ const CutoutsPage: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentCutout, setCurrentCutout] = useState<Partial<Cutout>>({});
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
+
+  // 1. Nuevo estado para guardar los tipos de corte
+  const [cutoutTypes, setCutoutTypes] = useState<Attribute[]>([]);
 
   const loadCutouts = async () => {
-    try {
-      const data = await get<Cutout>("/cutouts");
-      setCutouts(data.map((c) => ({ ...c, id: c._id })));
-    } catch (error) {
-      alert(`Error al cargar los cortes: ${error}`);
-    }
+    const data = await get<Cutout>("/cutouts");
+    setCutouts(data);
   };
 
+  // 2. Cargamos los tipos de corte desde la API de atributos
   useEffect(() => {
     loadCutouts();
+    const loadCutoutTypes = async () => {
+      const types = await get<Attribute>("/attributes", { params: { type: "CUTOUT_TYPE" } });
+      setCutoutTypes(types);
+    };
+    loadCutoutTypes();
   }, []);
 
   const handleOpen = (cutout?: Cutout) => {
     setIsEditMode(!!cutout);
-    setCurrentCutout(cutout || { type: "OTHER" });
+    setCurrentCutout(cutout || {});
     setOpen(true);
   };
 
@@ -59,12 +68,8 @@ const CutoutsPage: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     if (window.confirm("¿Estás seguro de que quieres eliminar este corte?")) {
-      try {
-        await remove("/cutouts", id);
-        loadCutouts();
-      } catch (error) {
-        alert(`Error al eliminar: ${error}`);
-      }
+      await remove("/cutouts", [id]);
+      loadCutouts();
     }
   };
 
@@ -77,72 +82,26 @@ const CutoutsPage: React.FC = () => {
       type: formData.get("type"),
     };
 
-    try {
-      if (isEditMode) {
-        await update("/cutouts", currentCutout._id!, data);
-      } else {
-        await create("/cutouts", data);
-      }
-      loadCutouts();
-      handleClose();
-    } catch (error) {
-      alert(`Error al guardar: ${error}`);
+    if (isEditMode) {
+      await update("/cutouts", currentCutout._id!, data);
+    } else {
+      await create("/cutouts", data);
     }
+    loadCutouts();
+    handleClose();
   };
 
-  const handleImportClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const text = e.target?.result as string;
-      const lines = text.split("\n").filter((line) => line.trim() !== "");
-      const header = lines.shift()?.trim().split(";") || [];
-
-      const cutoutsToCreate = [];
-      for (const line of lines) {
-        const values = line.trim().split(";");
-        const cutoutData: any = {};
-        header.forEach((key, index) => {
-          const value = values[index];
-          if (key === "price") {
-            cutoutData[key] = Number(value.replace(",", "."));
-          } else {
-            cutoutData[key] = value;
-          }
-        });
-        cutoutsToCreate.push(create("/cutouts", cutoutData));
-      }
-
-      try {
-        await Promise.all(cutoutsToCreate);
-        alert(`${cutoutsToCreate.length} cortes importados con éxito.`);
-        loadCutouts();
-      } catch (error) {
-        alert("Hubo un error al importar. Revisa la consola.");
-        console.error("Error en la importación:", error);
-      }
-    };
-    reader.readAsText(file);
-    event.target.value = "";
-  };
-
-  const columns: GridColDef[] = [
-    { field: "name", headerName: "Nombre", width: 350 },
+  const columns: GridColDef<Cutout>[] = [
+    { field: "name", headerName: "Nombre", width: 300 },
     { field: "price", headerName: "Precio (€)", type: "number", width: 150 },
-    { field: "type", headerName: "Tipo", width: 150 },
+    { field: "type", headerName: "Tipo", width: 200 },
     {
       field: "actions",
       type: "actions",
       headerName: "Acciones",
       width: 100,
       getActions: (params) => [
-        <GridActionsCellItem icon={<EditIcon />} label="Editar" onClick={() => handleOpen(params.row as Cutout)} />,
+        <GridActionsCellItem icon={<EditIcon />} label="Editar" onClick={() => handleOpen(params.row)} />,
         <GridActionsCellItem icon={<DeleteIcon />} label="Eliminar" onClick={() => handleDelete(params.id as string)} />,
       ],
     },
@@ -152,15 +111,9 @@ const CutoutsPage: React.FC = () => {
     <Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
         <Typography variant="h4">Gestión de Cortes y Acabados</Typography>
-        <Box>
-          <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} style={{ display: "none" }} />
-          <Button variant="outlined" startIcon={<UploadFileIcon />} onClick={handleImportClick} sx={{ mr: 1 }}>
-            Importar CSV
-          </Button>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpen()}>
-            Añadir Corte
-          </Button>
-        </Box>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpen()}>
+          Añadir Corte
+        </Button>
       </Box>
       <Box sx={{ height: 600, width: "100%" }}>
         <DataGrid
@@ -168,9 +121,8 @@ const CutoutsPage: React.FC = () => {
           columns={columns}
           getRowId={(row) => row._id}
           localeText={esES.components.MuiDataGrid.defaultProps.localeText}
-          initialState={{
-            pagination: { paginationModel: { pageSize: 10 } },
-          }}
+          paginationModel={paginationModel}
+          onPaginationModelChange={setPaginationModel}
           pageSizeOptions={[10, 25, 50]}
         />
       </Box>
@@ -180,14 +132,19 @@ const CutoutsPage: React.FC = () => {
           <Typography variant="h6">{isEditMode ? "Editar" : "Añadir"} Corte</Typography>
           <TextField margin="normal" required fullWidth name="name" label="Nombre" defaultValue={currentCutout.name} />
           <TextField margin="normal" required fullWidth name="price" label="Precio (€)" type="number" defaultValue={currentCutout.price} />
-          <FormControl fullWidth margin="normal">
-            <InputLabel id="type-select-label">Tipo</InputLabel>
-            <Select labelId="type-select-label" name="type" label="Tipo" defaultValue={currentCutout.type || "OTHER"}>
-              <MenuItem value="SINK">Fregadero (SINK)</MenuItem>
-              <MenuItem value="HOB">Vitrocerámica (HOB)</MenuItem>
-              <MenuItem value="OTHER">Otro (OTHER)</MenuItem>
+
+          {/* 3. Reemplazamos el TextField por un Select */}
+          <FormControl fullWidth margin="normal" required>
+            <InputLabel id="cutout-type-label">Tipo</InputLabel>
+            <Select labelId="cutout-type-label" name="type" defaultValue={currentCutout.type || ""} label="Tipo">
+              {cutoutTypes.map((type) => (
+                <MenuItem key={type._id} value={type.value}>
+                  {type.label || type.value}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
+
           <Button type="submit" fullWidth variant="contained" sx={{ mt: 2 }}>
             Guardar
           </Button>

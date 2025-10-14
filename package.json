@@ -5,7 +5,7 @@
   "author": "Damian Vidal",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --port 80 --host localhost",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"

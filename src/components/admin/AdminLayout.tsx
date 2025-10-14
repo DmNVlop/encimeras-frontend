@@ -1,13 +1,16 @@
 // src/components/admin/AdminLayout.tsx
 import React from "react";
-import { Outlet, useNavigate } from "react-router-dom";
-import { AppBar, Toolbar, Typography, Button, Box, Drawer, List, ListItem, ListItemText, ListItemIcon } from "@mui/material";
-import { logout } from "../../services/authService";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 
-import DashboardIcon from "@mui/icons-material/Dashboard";
+import { AppBar, Toolbar, Typography, Button, Box, Drawer, List, ListItem, ListItemText, ListItemIcon, ListItemButton } from "@mui/material";
+import PriceCheckIcon from "@mui/icons-material/PriceCheck";
+import SettingsIcon from "@mui/icons-material/Tune";
 import StoneIcon from "@mui/icons-material/SquareFoot";
 import CarpenterIcon from "@mui/icons-material/Carpenter";
 import EdgesensorLowIcon from "@mui/icons-material/EdgesensorLow";
+
+import { logout } from "../../services/authService";
+import DashboardIcon from "@mui/icons-material/Dashboard";
 
 const drawerWidth = 240;
 
@@ -23,7 +26,9 @@ const AdminLayout: React.FC = () => {
     { text: "Dashboard", icon: <DashboardIcon />, path: "/admin/dashboard" },
     { text: "Materiales", icon: <StoneIcon />, path: "/admin/materials" },
     { text: "Cantos", icon: <EdgesensorLowIcon />, path: "/admin/edges" },
-    { text: "Cortes", icon: <CarpenterIcon />, path: "/admin/cutouts" },
+    { text: "Trabajos", icon: <CarpenterIcon />, path: "/admin/cutouts" },
+    { text: "Configuraciones", path: "/admin/attributes", icon: <SettingsIcon /> },
+    { text: "Precios", icon: <PriceCheckIcon />, path: "/admin/price-configs" },
     // Añadir más items aquí (Cantos, Cortes, etc.)
   ];
 
@@ -50,9 +55,12 @@ const AdminLayout: React.FC = () => {
         <Box sx={{ overflow: "auto" }}>
           <List>
             {menuItems.map((item) => (
-              <ListItem button key={item.text} onClick={() => navigate(item.path)}>
-                <ListItemIcon>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.text} />
+              // 3. Usamos ListItem como contenedor y ListItemButton para la interacción
+              <ListItem key={item.text} disablePadding>
+                <ListItemButton component={NavLink} to={item.path}>
+                  <ListItemIcon>{item.icon}</ListItemIcon>
+                  <ListItemText primary={item.text} />
+                </ListItemButton>
               </ListItem>
             ))}
           </List>
@@ -60,7 +68,6 @@ const AdminLayout: React.FC = () => {
       </Drawer>
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
         <Toolbar />
-        {/* Aquí se renderizará el contenido de cada página (Dashboard, Materiales, etc.) */}
         <Outlet />
       </Box>
     </Box>

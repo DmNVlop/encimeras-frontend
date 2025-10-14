@@ -1,8 +1,8 @@
 // src/pages/admin/LoginPage.tsx
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { login } from "../../services/authService";
-import { Button, TextField, Container, Typography, Box } from "@mui/material";
+import { Button, TextField, Container, Typography, Box, Link } from "@mui/material";
 
 const LoginPage: React.FC = () => {
   const [username, setUsername] = useState("admin");
@@ -66,6 +66,11 @@ const LoginPage: React.FC = () => {
           <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
             Iniciar Sesión
           </Button>
+          <Box sx={{ textAlign: "center" }}>
+            <Link component={RouterLink} to="/presupuesto" variant="body2">
+              Ir al presupuestador público
+            </Link>
+          </Box>
         </Box>
       </Box>
     </Container>
