@@ -29,7 +29,7 @@ import { useQuoteState, useQuoteDispatch } from "../../../../context/QuoteContex
 import { post } from "../../../../services/apiService"; // Asumimos que tienes un método 'post' genérico
 import type { CalculationResponse } from "../../../../interfases/price.interfase";
 import { ApiErrorFeedback } from "../../common/ApiErrorFeedback";
-import { Countertop3DViewer } from "../../common/Countertop3DViewer";
+// import { Countertop3DViewer } from "../../common/Countertop3DViewer";
 
 // =============================================================================
 // COMPONENTE WizardStep5_Summary
@@ -38,7 +38,7 @@ import { Countertop3DViewer } from "../../common/Countertop3DViewer";
 export const WizardStep5_Summary: React.FC = () => {
   const theme = useTheme();
 
-  const { mainPieces, wizardTempMaterial, isCalculating, calculationResult, error } = useQuoteState();
+  const { mainPieces, isCalculating, calculationResult, error } = useQuoteState();
   const dispatch = useQuoteDispatch();
 
   // Estado local para el envío final
@@ -347,13 +347,14 @@ export const WizardStep5_Summary: React.FC = () => {
         </DialogTitle>
         <DialogContent dividers sx={{ p: 0, overflow: "hidden" }}>
           {/* Cargamos el visor solo si el modal está abierto para ahorrar recursos */}
-          {open3D && (
-            <Countertop3DViewer
-              mainPieces={mainPieces}
-              // Pasamos la imagen del material seleccionado en el paso 1
-              materialImage={(wizardTempMaterial as any)?.materialImage} // Asegúrate que tu type tenga imageUrl o usa 'any' temporalmente
-            />
-          )}
+          {/* open3D && (
+             <Countertop3DViewer
+               mainPieces={mainPieces}
+               // Pasamos la imagen del material seleccionado en el paso 1
+               materialImage={(wizardTempMaterial as any)?.materialImage} // Asegúrate que tu type tenga imageUrl o usa 'any' temporalmente
+             />
+           )
+          */}
         </DialogContent>
       </Dialog>
     </Box>

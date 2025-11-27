@@ -224,7 +224,7 @@ const AppliedComplementRow: React.FC<{
                 variant="outlined"
                 value={currentValue || ""}
                 onChange={(e) => {
-                  const val = parseFloat(e.target.value);
+                  // const val = parseFloat(e.target.value);
                   // Permitimos escribir (incluso si es inválido momentáneamente) para no bloquear al usuario
                   // La validación visual le dirá que lo corrija
                   onUpdate(field, e.target.value);

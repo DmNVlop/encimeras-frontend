@@ -151,7 +151,7 @@ const AddonsPage: React.FC = () => {
       width: 100,
       getActions: (params) => [
         <GridActionsCellItem icon={<EditIcon />} label="Editar" onClick={() => handleOpenModal(params.row)} />,
-        <GridActionsCellItem icon={<DeleteIcon />} label="Eliminar" onClick={() => handleDelete(params.id as string)} color="error" />,
+        <GridActionsCellItem icon={<DeleteIcon color="error" />} label="Eliminar" onClick={() => handleDelete(params.id as string)} />,
       ],
     },
   ];

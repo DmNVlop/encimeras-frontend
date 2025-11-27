@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, MeshBuilder, StandardMaterial, Texture, Color3, AxesViewer } from "@babylonjs/core";
+import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, MeshBuilder, StandardMaterial, Texture, Color3 } from "@babylonjs/core";
 import { Box, Typography } from "@mui/material";
 import type { MainPiece } from "../../../context/QuoteContext";
 
