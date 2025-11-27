@@ -28,8 +28,16 @@ const AttributesPage: React.FC = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
   const [filterType, setFilterType] = useState("");
 
-  // --- MODIFICACIÓN: Añadimos MAT_TYPE a la lista de tipos ---
-  const [allTypes, setAllTypes] = useState<string[]>(["MAT_GROUP", "MAT_FACE", "CUTOUT_TYPE", "MAT_CATEGORY", "MAT_TYPE", "MAT_THICKNESS", "MAT_FINISH"]);
+  const [allTypes, setAllTypes] = useState<string[]>([
+    "MAT_GROUP",
+    "MAT_FACE",
+    "MAT_CATEGORY",
+    "MAT_TYPE",
+    "MAT_THICKNESS",
+    "MAT_FINISH",
+    "MAT_TEXTURE",
+    "WIDTH_RANGE",
+  ]);
 
   const loadAttributes = async () => {
     const params = filterType ? { type: filterType } : {};

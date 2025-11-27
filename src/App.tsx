@@ -8,12 +8,12 @@ import PrivateRoute from "./components/admin/PrivateRoute";
 import MaterialsPage from "./pages/admin/MaterialsPage";
 import EdgeProfilesPage from "./pages/admin/EdgeProfilesPage";
 import CutoutsPage from "./pages/admin/CutoutsPage";
-import QuoteWizardPage from "./pages/public/QuoteWizardPage";
 import PriceConfigsPage from "./pages/admin/PriceConfigsPage";
 import AttributesPage from "./pages/admin/AttributesPage";
-
-// Página de ejemplo para el dashboard
-const DashboardPage = () => <h1>Bienvenido al Dashboard</h1>;
+import DashboardPage from "./pages/admin/DashboardPage";
+import NewQuoteWizardPage from "./pages/public/QuoteWizard/NewQuoteWizardPage";
+import AddonsPage from "./pages/admin/AddonsPage";
+import MeasurementRuleSetPage from "./pages/admin/MeasurementRuleSetPage";
 
 function App() {
   return (
@@ -26,7 +26,7 @@ function App() {
             <QuoteProvider>
               {" "}
               {/* 3. Envuelve el asistente con el proveedor */}
-              <QuoteWizardPage />
+              <NewQuoteWizardPage />
             </QuoteProvider>
           }
         />
@@ -39,6 +39,8 @@ function App() {
           <Route path="/admin" element={<AdminLayout />}>
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="materials" element={<MaterialsPage />} />
+            <Route path="rule-sets" element={<MeasurementRuleSetPage />} />
+            <Route path="addons" element={<AddonsPage />} />
             <Route path="edges" element={<EdgeProfilesPage />} />
             <Route path="cutouts" element={<CutoutsPage />} />
             <Route path="price-configs" element={<PriceConfigsPage />} />

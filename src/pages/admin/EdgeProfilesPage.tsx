@@ -60,7 +60,7 @@ const EdgeProfilesPage: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm("¿Estás seguro de que quieres eliminar este perfil de canto?")) {
       try {
-        await remove("/edge-profiles", id);
+        await remove("/edge-profiles", [id]);
         loadProfiles();
       } catch (error) {
         alert(`Error al eliminar: ${error}`);
@@ -141,7 +141,7 @@ const EdgeProfilesPage: React.FC = () => {
 
   const columns: GridColDef[] = [
     { field: "name", headerName: "Nombre", width: 300 },
-    { field: "pricePerMeter", headerName: "Precio (€/metro)", type: "number", width: 200 },
+    { field: "pricePerMeter", headerName: "Precio (€)", type: "number", width: 200 },
     {
       field: "actions",
       type: "actions",
@@ -185,7 +185,15 @@ const EdgeProfilesPage: React.FC = () => {
         <Box sx={modalStyle} component="form" onSubmit={handleSubmit}>
           <Typography variant="h6">{isEditMode ? "Editar" : "Añadir"} Perfil de Canto</Typography>
           <TextField margin="normal" required fullWidth name="name" label="Nombre" defaultValue={currentProfile.name} />
-          <TextField margin="normal" required fullWidth name="pricePerMeter" label="Precio (€/metro)" type="number" defaultValue={currentProfile.pricePerMeter} />
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            name="pricePerMeter"
+            label="Precio (€/metro)"
+            type="number"
+            defaultValue={currentProfile.pricePerMeter}
+          />
           <TextField margin="normal" fullWidth name="imageUrl" label="URL de la Imagen" defaultValue={currentProfile.imageUrl} />
           <Button type="submit" fullWidth variant="contained" sx={{ mt: 2 }}>
             Guardar

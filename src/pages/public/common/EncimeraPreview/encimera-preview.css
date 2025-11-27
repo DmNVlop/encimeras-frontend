@@ -1,0 +1,37 @@
+/*
+ * Archivo: encimera-preview.css
+ * Estilos para el componente EncimeraPreview.
+ */
+
+/**
+ * Contenedor principal (el lienzo).
+ * Convertimos el ID #encimera-preview a una clase.
+ */
+.encimera-preview-container {
+  display: grid;
+  /* Usamos min-height en lugar de height para que
+     funcione bien con aspectRatio y sea más flexible */
+  min-height: 250px;
+  max-width: 100%;
+  height: 100%;
+  gap: 3px; /* Simula las juntas */
+  transition: all 0.3s ease;
+  overflow: hidden; /* Para que los bordes redondeados corten bien */
+  /* width: 100%; */ /* Asegura que ocupe el contenedor padre */
+  /* border: 2px solid #333; */
+  /* background-color: #f0f0f0; */
+}
+
+/**
+ * Cada pieza individual de la encimera.
+ * (Estilos tomados de tu código final)
+ */
+.encimera-pieza {
+  border: 1px solid #666;
+  box-sizing: border-box;
+
+  /* Simulación del rayado de tu código */
+  background-color: #d9d9d9;
+  background-image: linear-gradient(135deg, #e0e0e0 25%, #f2f2f2 25%, #f2f2f2 50%, #e0e0e0 50%, #e0e0e0 75%, #f2f2f2 75%, #f2f2f2 100%);
+  background-size: 36px 36px;
+}
