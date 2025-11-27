@@ -8,7 +8,7 @@ import {
   Paper,
   Chip, // Para la columna 'ranges'
 } from "@mui/material";
-import { DataGrid, type GridColDef, GridActionsCellItem, type GridRowId } from "@mui/x-data-grid";
+import { DataGrid, type GridColDef, GridActionsCellItem } from "@mui/x-data-grid";
 import { esES } from "@mui/x-data-grid/locales";
 import { get, remove } from "../../services/apiService";
 import EditIcon from "@mui/icons-material/Edit";
@@ -126,7 +126,13 @@ const MeasurementRuleSetPage: React.FC = () => {
       renderCell: (params) => (
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, py: 1, alignItems: "center", height: "100%" }}>
           {((params.value as MeasurementRange[]) || []).map((range) => (
-            <Chip key={range.label} label={range.label} size="small" title={`Min: ${range.min}, Max: ${range.max}, Tipo: ${range.priceType}`} variant="outlined" />
+            <Chip
+              key={range.label}
+              label={range.label}
+              size="small"
+              title={`Min: ${range.min}, Max: ${range.max}, Tipo: ${range.priceType}`}
+              variant="outlined"
+            />
           ))}
         </Box>
       ),
@@ -138,7 +144,7 @@ const MeasurementRuleSetPage: React.FC = () => {
       width: 100,
       getActions: (params) => [
         <GridActionsCellItem icon={<EditIcon />} label="Editar" onClick={() => handleOpenModal(params.row)} />,
-        <GridActionsCellItem icon={<DeleteIcon />} label="Eliminar" onClick={() => handleDelete(params.id as string)} color="error" />,
+        <GridActionsCellItem icon={<DeleteIcon color="error" />} label="Eliminar" onClick={() => handleDelete(params.id as string)} />,
       ],
     },
   ];
@@ -156,7 +162,8 @@ const MeasurementRuleSetPage: React.FC = () => {
           justifyContent: "space-between",
           alignItems: "center",
           mb: 2,
-        }}>
+        }}
+      >
         <Typography variant="h4">Gestión de Reglas de Medición</Typography>
         <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenModal()}>
           Añadir Set de Reglas
@@ -171,7 +178,8 @@ const MeasurementRuleSetPage: React.FC = () => {
               justifyContent: "center",
               alignItems: "center",
               height: "100%",
-            }}>
+            }}
+          >
             <CircularProgress />
           </Box>
         ) : (
@@ -191,7 +199,9 @@ const MeasurementRuleSetPage: React.FC = () => {
 
       {/* --- 7. Placeholder para el Modal (Fase 2) --- */}
 
-      {modalOpen && <MeasurementRuleSetEditModal open={modalOpen} onClose={handleCloseModal} onSave={handleSave} ruleSet={selectedRuleSet} isEditMode={isEditMode} />}
+      {modalOpen && (
+        <MeasurementRuleSetEditModal open={modalOpen} onClose={handleCloseModal} onSave={handleSave} ruleSet={selectedRuleSet} isEditMode={isEditMode} />
+      )}
     </Box>
   );
 };

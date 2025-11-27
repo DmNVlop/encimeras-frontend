@@ -8,7 +8,6 @@ import {
   TextField,
   IconButton,
   Chip,
-  Paper, // Importado para el asistente
   Collapse, // Importado para el asistente
   Autocomplete,
   CircularProgress,
@@ -109,7 +108,7 @@ const PriceConfigsPage: React.FC = () => {
     try {
       setIsLoadingTypes(true);
       // Asumimos que el endpoint es /product-types
-      const types = await get<string[]>("/dictionaries/product-types");
+      const types = await get<string>("/dictionaries/product-types");
       setProductTypesList(types);
     } catch (error) {
       console.error("Error cargando el diccionario de product types:", error);

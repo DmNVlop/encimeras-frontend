@@ -1,4 +1,3 @@
-import PropTypes from "prop-types";
 import "./encimera-preview.css";
 import type { EncimeraPreviewProps } from "./encimera-preview.interfase";
 
@@ -6,7 +5,7 @@ import type { EncimeraPreviewProps } from "./encimera-preview.interfase";
  * Un componente atómico que renderiza una visualización de una configuración
  * de encimera, usando CSS Grid.
  */
-const EncimeraPreview: React.FC<EncimeraPreviewProps> = ({ config }) => {
+const EncimeraPreview: React.FC<EncimeraPreviewProps> = ({ config = null }) => {
   // --- Validación de Props (Robustez) ---
   // Validamos que la configuración esencial exista.
   // Si no, devolvemos null para no romper la UI.
@@ -49,43 +48,6 @@ const EncimeraPreview: React.FC<EncimeraPreviewProps> = ({ config }) => {
       })}
     </div>
   );
-};
-
-// --- PropTypes para Desarrollo ---
-// Esto te avisará en la consola si pasas props incorrectas
-EncimeraPreview.propTypes = {
-  /**
-   * El objeto de configuración que define la forma de la encimera.
-   */
-  config: PropTypes.shape({
-    /**
-     * ID único para la configuración (usado en el .map() padre)
-     */
-    id: PropTypes.string.isRequired,
-    /**
-     * Definición de la cuadrícula (el lienzo)
-     */
-    grid: PropTypes.shape({
-      columns: PropTypes.string.isRequired,
-      rows: PropTypes.string.isRequired,
-      aspectRatio: PropTypes.string,
-    }).isRequired,
-    /**
-     * Array de objetos, donde cada objeto es una pieza de la encimera
-     */
-    pieces: PropTypes.arrayOf(
-      PropTypes.shape({
-        id: PropTypes.string.isRequired,
-        area: PropTypes.string.isRequired,
-        borderRadius: PropTypes.string,
-      })
-    ).isRequired,
-  }),
-};
-
-// Valor por defecto en caso de que la prop llegue undefined
-EncimeraPreview.defaultProps = {
-  config: null,
 };
 
 export default EncimeraPreview;

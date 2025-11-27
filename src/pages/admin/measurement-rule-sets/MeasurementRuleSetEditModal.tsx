@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Box, Modal, Typography, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { get, create, update } from "../../../services/apiService";
+import { create, update } from "../../../services/apiService";
 
 // 1. Importamos la interfaz y el formulario
 import type { MeasurementRuleSet, MeasurementRange } from "../../../interfases/measurement-rule-set.interfase";
@@ -40,7 +40,7 @@ const modalStyle = {
 const MeasurementRuleSetEditModal: React.FC<MeasurementRuleSetEditModalProps> = ({ open, onClose, onSave, ruleSet, isEditMode }) => {
   // 3. Estado "inteligente" para el formulario
   const [currentRuleSet, setCurrentRuleSet] = useState<Partial<MeasurementRuleSet>>(
-    { name: "", unit: "mm", ranges: [] } // Estado inicial por defecto
+    { name: "", unit: "mm", ranges: [] }, // Estado inicial por defecto
   );
 
   // 4. Reseteo del estado
@@ -48,7 +48,7 @@ const MeasurementRuleSetEditModal: React.FC<MeasurementRuleSetEditModalProps> = 
   useEffect(() => {
     if (open) {
       setCurrentRuleSet(
-        ruleSet || { name: "", unit: "mm", ranges: [] } // Carga el 'ruleSet' a editar o uno nuevo
+        ruleSet || { name: "", unit: "mm", ranges: [] }, // Carga el 'ruleSet' a editar o uno nuevo
       );
     }
   }, [ruleSet, open]);
