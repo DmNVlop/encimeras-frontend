@@ -112,7 +112,6 @@ const MaterialEditModal: React.FC<MaterialEditModalProps> = ({ open, onClose, ma
 
   // --- Manejadores de eventos que se pasarán al formulario ---
   const handleTextChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    console.log("🚀 ~ handleTextChange ~ event:", event);
     const { name, value } = event.target;
     setCurrentMaterial((prev) => ({ ...prev, [name]: value }));
   };

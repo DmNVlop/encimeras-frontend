@@ -29,6 +29,7 @@ import CropSquareIcon from "@mui/icons-material/CropSquare";
 import Crop169Icon from "@mui/icons-material/Crop169";
 import CropPortraitIcon from "@mui/icons-material/CropPortrait";
 import CloseIcon from "@mui/icons-material/Close";
+import { config } from "../../../../config";
 
 // Definimos las opciones de aspecto disponibles
 type AspectOption = {
@@ -149,8 +150,9 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
       const formData = new FormData();
       formData.append("file", croppedBlob, "upload.jpg");
 
+      const uploadUrl = `${config.api.baseURL}/assets/upload`;
       // En proyecto local la llamada a API local:
-      const response = await axios.post("http://localhost:3000/assets/upload", formData, {
+      const response = await axios.post(uploadUrl, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

@@ -29,13 +29,13 @@ const AttributesPage: React.FC = () => {
   const [filterType, setFilterType] = useState("");
 
   const [allTypes, setAllTypes] = useState<string[]>([
-    "MAT_GROUP",
-    "MAT_FACE",
-    "MAT_CATEGORY",
-    "MAT_TYPE",
-    "MAT_THICKNESS",
-    "MAT_FINISH",
-    "MAT_TEXTURE",
+    "MAT_GRUPO",
+    "MAT_CARA",
+    "MAT_ESPESOR",
+    "MAT_ACABADO",
+    "MAT_TEXTURA",
+    "MAT_CATEGORIA",
+    "MAT_TIPO",
     "WIDTH_RANGE",
   ]);
 
