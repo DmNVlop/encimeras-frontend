@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -23,6 +23,7 @@ import { get } from "@/services/apiService";
 
 import type { Material } from "@/interfases/materials.interfase";
 import { MaterialAttributeModal } from "@/pages/public/common/MaterialAttributeModal";
+import { MaterialsFilter } from "@/pages/public/components/MaterialsFilter";
 
 // =============================================================================
 // COMPONENTE WizardStep1_Materials
@@ -39,6 +40,10 @@ export const WizardStep1_Materials: React.FC = () => {
   // 2. Estados de UI y Datos (Lógica de Step1)
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loadingMaterials, setLoadingMaterials] = useState(true);
+
+  // --- NUEVO ESTADO PARA EL FILTRO ---
+  const [searchTerm, setSearchTerm] = useState("");
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [materialForModal, setMaterialForModal] = useState<Material | null>(null);
 
@@ -60,9 +65,30 @@ export const WizardStep1_Materials: React.FC = () => {
       }
     };
     fetchMaterials();
-  }, []); // Carga única
+  }, []);
 
-  // Abrir el modal
+  // =======================================================================
+  // LÓGICA DE FILTRADO (useMemo)
+  // =======================================================================
+  // Esta lógica se ejecuta automáticamente cuando cambia 'searchTerm' o 'materials'.
+  // Filtramos por Nombre O por Categoría.
+  const filteredMaterials = useMemo(() => {
+    if (!searchTerm) return materials; // Si está vacío, devolvemos todo
+
+    const lowerTerm = searchTerm.toLowerCase();
+
+    return materials.filter((mat) => {
+      const matchName = mat.name.toLowerCase().includes(lowerTerm);
+      // Asumimos que category existe, si es opcional usa mat.category?.
+      const matchCategory = mat.category.toLowerCase().includes(lowerTerm);
+
+      return matchName || matchCategory;
+    });
+  }, [materials, searchTerm]);
+
+  // =======================================================================
+  // HANDLERS
+  // =======================================================================
   const handleOpenModal = (material: Material) => {
     setMaterialForModal(material);
     // const initialSelection = material.selectableAttributes.reduce((acc, attr) => ({ ...acc, [attr]: "" }), {});
@@ -101,19 +127,29 @@ export const WizardStep1_Materials: React.FC = () => {
 
   return (
     <Box sx={{ pb: 4 }}>
-      {/* --- TÍTULO DEL PASO --- */}
-      <Box sx={{ mb: 4, display: "flex", alignItems: "center", gap: 2 }}>
-        <Avatar sx={{ bgcolor: theme.palette.primary.main }}>
-          <TextureIcon />
-        </Avatar>
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: "bold", color: "#333" }}>
-            Elige tu Material
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Material base para la construcción de tu encimera.
-          </Typography>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "top", gap: 2 }}>
+        {/* --- TÍTULO DEL PASO --- */}
+        <Box sx={{ display: "flex", alignItems: "top", gap: 2 }}>
+          <Avatar sx={{ bgcolor: theme.palette.primary.main }}>
+            <TextureIcon />
+          </Avatar>
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: "bold", color: "#333" }}>
+              Elige tu Material
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Material base para la construcción de tu encimera.
+            </Typography>
+          </Box>
         </Box>
+
+        {/* --- FILTRO / BUSCADOR (NUEVO) --- */}
+        {/* Solo mostramos el filtro si hay materiales cargados */}
+        {materials.length > 0 && (
+          <Box sx={{ maxWidth: 600, minWidth: 320, width: "100%" }}>
+            <MaterialsFilter searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+          </Box>
+        )}
       </Box>
 
       {/* --- Feedback para el usuario --- */}
@@ -123,39 +159,52 @@ export const WizardStep1_Materials: React.FC = () => {
         </Alert>
       )}
 
-      {/* --- Parrilla de Cards "Vistosas" --- */}
+      {/* --- GRID (Iteramos sobre filteredMaterials) --- */}
       <Grid container spacing={3}>
-        {materials.map((material) => (
-          <Grid size={{ xs: 12, sm: 6, md: 3 }} key={material._id}>
-            <Card
-              onClick={() => handleOpenModal(material)}
-              // Resaltamos la card si es la seleccionada
-              raised={wizardTempMaterial?.materialId === material._id}
-              sx={{
-                border: wizardTempMaterial?.materialId === material._id ? 2 : "none",
-                borderColor: "primary.main",
-              }}
-            >
-              <CardActionArea>
-                <CardMedia
-                  component="img"
-                  height="160"
-                  // (Asumimos que la API devuelve 'imageUrl')
-                  image={(material as any).imageUrl || "https_via_placeholder_com_300.png"}
-                  alt={material.name}
-                />
-                <CardContent>
-                  <Typography gutterBottom variant="h6" component="div">
-                    {material.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Categoría: {material.category}
-                  </Typography>
-                </CardContent>
-              </CardActionArea>
-            </Card>
-          </Grid>
-        ))}
+        {filteredMaterials.length > 0 ? (
+          filteredMaterials.map((material) => (
+            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={material._id}>
+              <Card
+                onClick={() => handleOpenModal(material)}
+                // Resaltamos la card si es la seleccionada
+                raised={wizardTempMaterial?.materialId === material._id}
+                sx={{
+                  border: wizardTempMaterial?.materialId === material._id ? 2 : "none",
+                  borderColor: "primary.main",
+                  height: "100%", // Asegurar altura uniforme
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <CardActionArea>
+                  <CardMedia
+                    component="img"
+                    height="160"
+                    // (Asumimos que la API devuelve 'imageUrl')
+                    image={(material as any).imageUrl || "https_via_placeholder_com_300.png"}
+                    alt={material.name}
+                    sx={{ objectFit: "cover" }}
+                  />
+                  <CardContent>
+                    <Typography gutterBottom variant="h6" component="div">
+                      {material.name}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Categoría: {material.category}
+                    </Typography>
+                  </CardContent>
+                </CardActionArea>
+              </Card>
+            </Grid>
+          ))
+        ) : (
+          /* Estado vacío si la búsqueda no arroja resultados */
+          <Box sx={{ width: "100%", textAlign: "center", mt: 4 }}>
+            <Typography variant="body1" color="text.secondary">
+              No se encontraron materiales que coincidan con "{searchTerm}".
+            </Typography>
+          </Box>
+        )}
       </Grid>
 
       {/* --- Modal de Selección (Lógica de Step1) --- */}
