@@ -4,8 +4,6 @@ import {
   Typography,
   CircularProgress,
   Alert,
-  Tabs,
-  Tab,
   Paper,
   Grid,
   Avatar,
@@ -31,6 +29,7 @@ import { get } from "@/services/apiService";
 import type { Material } from "@/interfases/materials.interfase";
 import type { Addon } from "@/interfases/addon.interfase";
 import { MeasurementInput } from "@/components/admin/inputs/MeasurementInput";
+import { ProjectPiecesSelector } from "@/pages/public/components/ProjectPiecesSelector";
 
 // --- CONSTANTES VISUALES ---
 // Asegúrate de tener esta imagen en tu carpeta public/images/addons/
@@ -58,7 +57,7 @@ const AvailableComplementCard: React.FC<{
         transition: "all 0.3s ease",
         border: "1px solid transparent",
         "&:hover": {
-          transform: "translateY(-4px)",
+          transform: "translateY(2px)",
           boxShadow: theme.shadows[6],
           borderColor: theme.palette.secondary.main, // Usamos secondary para diferenciar del paso 3
           "& .add-icon": { opacity: 1, transform: "scale(1)" },
@@ -241,7 +240,19 @@ export const WizardStep4_Complements: React.FC = () => {
   // 2. Memos
   const complementAddons = useMemo(() => allAddons.filter((a) => a.category === "COMPLEMENTO"), [allAddons]);
 
-  const materialMap = useMemo(() => {
+  // Mapa de materiales completo (ID -> Objeto Material) para el selector visual
+  const materialMapFull = useMemo(() => {
+    return allMaterials.reduce(
+      (acc, mat) => {
+        acc[mat._id] = mat;
+        return acc;
+      },
+      {} as Record<string, Material>,
+    );
+  }, [allMaterials]);
+
+  // Mapa de categorías (ID -> string) para filtrar complementos compatibles
+  const materialCategoryMap = useMemo(() => {
     return allMaterials.reduce(
       (acc, mat) => {
         acc[mat._id] = mat.category;
@@ -253,9 +264,10 @@ export const WizardStep4_Complements: React.FC = () => {
 
   // --- HANDLERS ---
 
-  const handleTabChange = (_e: React.SyntheticEvent, newValue: number) => {
-    setActiveTabIndex(newValue);
-    dispatch({ type: "SET_ACTIVE_PIECE", payload: { index: newValue } });
+  // Nuevo Handler unificado para el selector de piezas (reemplaza a Tabs)
+  const handlePieceSelect = (index: number) => {
+    setActiveTabIndex(index);
+    dispatch({ type: "SET_ACTIVE_PIECE", payload: { index } });
   };
 
   // Lógica inteligente: Sugerir medidas
@@ -340,6 +352,8 @@ export const WizardStep4_Complements: React.FC = () => {
     );
   if (mainPieces.length === 0) return <Alert severity="warning">Define la forma primero.</Alert>;
 
+  const activePiece = mainPieces[activeTabIndex];
+
   return (
     <Box sx={{ pb: 4 }}>
       {/* TÍTULO DEL PASO */}
@@ -357,95 +371,78 @@ export const WizardStep4_Complements: React.FC = () => {
         </Box>
       </Box>
 
-      {/* TABS DE PIEZAS */}
-      <Tabs
-        value={activeTabIndex}
-        onChange={handleTabChange}
-        variant="scrollable"
-        scrollButtons="auto"
-        sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}
-        indicatorColor="secondary"
-        textColor="secondary"
-      >
-        {mainPieces.map((p, idx) => (
-          <Tab label={`Pieza ${idx + 1}`} key={p.id} />
-        ))}
-      </Tabs>
+      {/* 1. SELECTOR VISUAL DE PIEZAS (Reemplaza Tabs) */}
+      <ProjectPiecesSelector materialsMap={materialMapFull} activeIndex={activeTabIndex} onPieceSelect={handlePieceSelect} />
 
-      {/* CONTENIDO POR PIEZA */}
-      <Box sx={{ mt: 2 }}>
-        {mainPieces.map((piece, index) => {
-          if (activeTabIndex !== index) return null;
-          const matCategory = materialMap[piece.materialId!] || "";
+      {/* 2. ÁREA DE EDICIÓN DE LA PIEZA SELECCIONADA */}
+      {activePiece && (
+        <Fade in={true} key={activePiece.id} timeout={400}>
+          <Box sx={{ mt: 2, minHeight: 300 }}>
+            {(() => {
+              const matCategory = materialCategoryMap[activePiece.materialId!] || "";
 
-          // 1. Filtrar addons APLICADOS que sean complementos
-          const appliedComplements = piece.appliedAddons
-            .map((addon, idx) => ({ ...addon, originalIndex: idx }))
-            .filter((addon) => complementAddons.some((def) => def.code === addon.code));
+              // 1. Filtrar addons APLICADOS que sean complementos
+              const appliedComplements = activePiece.appliedAddons
+                .map((addon, idx) => ({ ...addon, originalIndex: idx }))
+                .filter((addon) => complementAddons.some((def) => def.code === addon.code));
 
-          // 2. Filtrar addons DISPONIBLES (Catálogo)
-          const compatibleComplements = complementAddons.filter((c) => c.allowedMaterialCategories.includes(matCategory));
+              // 2. Filtrar addons DISPONIBLES (Catálogo)
+              const compatibleComplements = complementAddons.filter((c) => c.allowedMaterialCategories.includes(matCategory));
 
-          return (
-            <Box key={piece.id} role="tabpanel" sx={{ minHeight: 300, py: 2 }}>
-              {/* ZONA SUPERIOR: Complementos Seleccionados */}
-              <Box sx={{ mb: 4 }}>
-                <Typography
-                  variant="subtitle2"
-                  color="text.secondary"
-                  sx={{
-                    mb: 2,
-                    textTransform: "uppercase",
-                    letterSpacing: 1,
-                    fontWeight: "bold",
-                  }}
-                >
-                  Complementos añadidos a la Pieza {index + 1}
-                </Typography>
-                {}
-                {appliedComplements.length === 0 ? (
-                  <Alert severity="info" variant="outlined" sx={{ mb: 2, borderStyle: "dashed" }}>
-                    No hay complementos en esta pieza.
-                  </Alert>
-                ) : (
-                  appliedComplements.map((applied) => {
-                    const def = complementAddons.find((d) => d.code === applied.code);
-                    return (
-                      <AppliedComplementRow
-                        key={`${applied.code}-${applied.originalIndex}`}
-                        appliedAddon={applied}
-                        addonDef={def}
-                        imageUrl={getImageUrl(def)}
-                        onError={handleImageError}
-                        onRemove={() => handleRemoveAddon(index, applied.originalIndex)}
-                        onUpdate={(field, val) => handleUpdateMeasurement(index, applied.originalIndex, field, val)}
-                      />
-                    );
-                  })
-                )}
-              </Box>
+              return (
+                <>
+                  <Box sx={{ mb: 4 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+                      <Typography variant="subtitle2" color="text.secondary" sx={{ textTransform: "uppercase", letterSpacing: 1, fontWeight: "bold" }}>
+                        COMPLEMENTOS EN PIEZA {activeTabIndex + 1}
+                      </Typography>
+                    </Box>
 
-              <Divider sx={{ my: 4 }}>
-                <Chip label="Catálogo de Complementos" color="secondary" variant="outlined" icon={<ExtensionIcon />} />
-              </Divider>
+                    {appliedComplements.length === 0 ? (
+                      <Alert severity="info" variant="outlined" sx={{ mb: 2, borderStyle: "dashed" }}>
+                        No hay complementos en esta pieza. Selecciona uno abajo.
+                      </Alert>
+                    ) : (
+                      appliedComplements.map((applied) => {
+                        const def = complementAddons.find((d) => d.code === applied.code);
+                        return (
+                          <AppliedComplementRow
+                            key={`${applied.code}-${applied.originalIndex}`}
+                            appliedAddon={applied}
+                            addonDef={def}
+                            imageUrl={getImageUrl(def)}
+                            onError={handleImageError}
+                            onRemove={() => handleRemoveAddon(activeTabIndex, applied.originalIndex)}
+                            onUpdate={(field, val) => handleUpdateMeasurement(activeTabIndex, applied.originalIndex, field, val)}
+                          />
+                        );
+                      })
+                    )}
+                  </Box>
 
-              {/* ZONA INFERIOR: Catálogo Grid */}
-              <Grid container spacing={2}>
-                {compatibleComplements.map((addon) => (
-                  <Grid size={{ xs: 6, sm: 4, md: 3, lg: 2 }} key={addon._id}>
-                    <AvailableComplementCard
-                      addon={addon}
-                      imageUrl={getImageUrl(addon)}
-                      onError={handleImageError}
-                      onAdd={() => handleAddAddon(index, addon)}
-                    />
+                  <Divider sx={{ my: 4 }}>
+                    <Chip label="Catálogo de Complementos Disponibles" color="secondary" variant="outlined" icon={<ExtensionIcon />} />
+                  </Divider>
+
+                  {/* ZONA INFERIOR: Catálogo Grid */}
+                  <Grid container spacing={2}>
+                    {compatibleComplements.map((addon) => (
+                      <Grid size={{ xs: 6, sm: 4, md: 3, lg: 2 }} key={addon._id}>
+                        <AvailableComplementCard
+                          addon={addon}
+                          imageUrl={getImageUrl(addon)}
+                          onError={handleImageError}
+                          onAdd={() => handleAddAddon(activeTabIndex, addon)}
+                        />
+                      </Grid>
+                    ))}
                   </Grid>
-                ))}
-              </Grid>
-            </Box>
-          );
-        })}
-      </Box>
+                </>
+              );
+            })()}
+          </Box>
+        </Fade>
+      )}
     </Box>
   );
 };
