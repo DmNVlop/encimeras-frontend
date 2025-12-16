@@ -168,7 +168,7 @@ const EdgeProfilesPage: React.FC = () => {
           </Button>
         </Box>
       </Box>
-      <Box sx={{ height: 600, width: "100%" }}>
+      <Box sx={{ height: "calc(100vh - 180px)", width: "100%" }}>
         <DataGrid
           rows={profiles}
           columns={columns}

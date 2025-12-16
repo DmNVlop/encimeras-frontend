@@ -155,8 +155,8 @@ const MaterialsPage: React.FC = () => {
     { field: "category", headerName: "Categoría", width: 110 },
     { field: "type", headerName: "Tipo", width: 110 },
     {
-      field: "pricingRecipes", // <-- CAMBIO
-      headerName: "Recetas de Precio", // <-- CAMBIO
+      field: "pricingRecipes",
+      headerName: "Recetas de Precio",
       flex: 1,
       minWidth: 200,
       renderCell: (params) => (
@@ -231,7 +231,7 @@ const MaterialsPage: React.FC = () => {
           </Button>
         </Box>
       </Box>
-      <Box sx={{ height: 600, width: "100%", display: "flex", justifyContent: "center", alignItems: "center" }}>
+      <Box sx={{ height: "calc(100vh - 180px)", width: "100%", display: "flex", justifyContent: "center", alignItems: "center" }}>
         {loading ? (
           <CircularProgress />
         ) : (

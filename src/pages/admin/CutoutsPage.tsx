@@ -115,7 +115,7 @@ const CutoutsPage: React.FC = () => {
           Añadir Corte
         </Button>
       </Box>
-      <Box sx={{ height: 600, width: "100%" }}>
+      <Box sx={{ height: "calc(100vh - 180px)", width: "100%" }}>
         <DataGrid
           rows={cutouts}
           columns={columns}
