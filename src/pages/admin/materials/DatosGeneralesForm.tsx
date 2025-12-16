@@ -1,6 +1,6 @@
 // src/components/admin/materials/DatosGeneralesForm.tsx
 import React from "react";
-import { config } from "../../../config";
+import { config } from "@/config";
 
 import {
   Box,
@@ -21,9 +21,9 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import CloseIcon from "@mui/icons-material/Close";
-import type { Material } from "../../../interfases/materials.interfase";
-import type { AttributesBundle } from "./MaterialEditModal";
-import { ImageUploader } from "../../public/common/ImageUploader/ImageUploader";
+import type { Material } from "@/interfases/materials.interfase";
+import type { AttributesBundle } from "@/pages/admin/materials/MaterialEditModal";
+import { ImageUploader } from "@/pages/public/common/ImageUploader/ImageUploader";
 
 // --- Props que el formulario necesita para funcionar ---
 interface DatosGeneralesFormProps {
@@ -84,7 +84,7 @@ const DatosGeneralesForm: React.FC<DatosGeneralesFormProps> = ({
         />
       </Box>
 
-      <FormControl fullWidth margin="normal" title="Categoria (MAT_CATEGORY)" required>
+      <FormControl fullWidth margin="normal" title="Categoria (MAT_CATEGORIA)" required>
         <InputLabel>Categoría</InputLabel>
         <Select name="category" value={currentMaterial.category || ""} onChange={handleSelectChange} label="Categoría">
           {attributes.categories.map((c) => (
@@ -95,7 +95,7 @@ const DatosGeneralesForm: React.FC<DatosGeneralesFormProps> = ({
         </Select>
       </FormControl>
 
-      <FormControl fullWidth margin="normal" required>
+      <FormControl fullWidth margin="normal" title="Tipo (MAT_TIPO)" required>
         <InputLabel>Tipo</InputLabel>
         <Select name="type" value={currentMaterial.type || ""} onChange={handleSelectChange} label="Tipo">
           {attributes.matTypes.map((t) => (
@@ -122,7 +122,7 @@ const DatosGeneralesForm: React.FC<DatosGeneralesFormProps> = ({
               <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   fullWidth
-                  label="Tipo de Producto (ej. COUNTERTOP)"
+                  label="Tipo de Producto (ej. ENCIMERA, COPETE)"
                   name="productType"
                   value={recipe.productType}
                   onChange={(e) => handleRecipeChange(index, "productType", e.target.value)}
@@ -178,10 +178,11 @@ const DatosGeneralesForm: React.FC<DatosGeneralesFormProps> = ({
       </Typography>
 
       <FormControl fullWidth margin="normal">
-        <InputLabel>Atributos Seleccionables (Step 1)</InputLabel>
+        <InputLabel>Atributos Seleccionables</InputLabel>
         <Select
           name="selectableAttributes"
           multiple
+          title="Atributos Seleccionables (Step 1). Estos serán los atributos que escogerá el usuario en el precio en el presupuestador."
           value={currentMaterial.selectableAttributes || []}
           onChange={handleSelectChange}
           input={<OutlinedInput label="Atributos que definen el precio" />}

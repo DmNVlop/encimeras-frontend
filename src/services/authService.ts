@@ -1,8 +1,8 @@
 // src/services/authService.ts
 import axios from "axios";
-import { config } from "../config";
+import { config } from "@/config";
 
-import type { LoginDto } from "../types/LoginDto";
+import type { LoginDto } from "@/types/LoginDto";
 
 // Configura una instancia de Axios con la URL base de tu API
 const apiClient = axios.create({

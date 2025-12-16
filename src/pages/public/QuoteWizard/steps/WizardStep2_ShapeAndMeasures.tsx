@@ -6,18 +6,18 @@ import Grid from "@mui/material/Grid";
 import StraightenIcon from "@mui/icons-material/Straighten";
 
 // Importar HOOKS del Contexto
-import { useQuoteDispatch, useQuoteState, type MaterialConfirmationPayload } from "../../../../context/QuoteContext";
+import { useQuoteDispatch, useQuoteState, type MaterialConfirmationPayload } from "@/context/QuoteContext";
 
 // Importaciones REALES de tu API y Tipos
-import { get } from "../../../../services/apiService";
-import type { Material } from "../../../../interfases/materials.interfase";
-import { MaterialAttributeModal } from "../../common/MaterialAttributeModal";
+import { get } from "@/services/apiService";
+import type { Material } from "@/interfases/materials.interfase";
+import { MaterialAttributeModal } from "@/pages/public/common/MaterialAttributeModal";
 
-import EncimeraPreview from "../../common/EncimeraPreview/encimera-preview";
+import EncimeraPreview from "@/pages/public/common/EncimeraPreview/encimera-preview";
 
 // Interfases y Tipos
-import type { SelectionState, ShapeVariation } from "../../../../interfases/shape-variation.interfase";
-import { shapeVariations } from "../../common/shapes-step2";
+import type { SelectionState, ShapeVariation } from "@/interfases/shape-variation.interfase";
+import { shapeVariations } from "@/pages/public/common/shapes-step2";
 
 // =============================================================================
 // COMPONENTE WizardStep2_ShapeAndMeasures

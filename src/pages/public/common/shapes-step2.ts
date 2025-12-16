@@ -1,4 +1,4 @@
-import type { ShapeVariation } from "../../../interfases/shape-variation.interfase";
+import type { ShapeVariation } from "@/interfases/shape-variation.interfase";
 
 // --- Define Shape Variations ---
 export const shapeVariations: ShapeVariation[] = [

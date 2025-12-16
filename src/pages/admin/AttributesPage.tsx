@@ -3,11 +3,11 @@ import React, { useState, useEffect } from "react";
 import { Box, Typography, Button, Modal, TextField, Switch, FormControlLabel, Select, MenuItem, InputLabel, FormControl } from "@mui/material";
 import { DataGrid, type GridColDef, GridActionsCellItem } from "@mui/x-data-grid";
 import { esES } from "@mui/x-data-grid/locales";
-import { get, create, update, remove } from "../../services/apiService";
+import { get, create, update, remove } from "@/services/apiService";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
-import type { Attribute } from "../../interfases/attribute.interfase";
+import type { Attribute } from "@/interfases/attribute.interfase";
 
 const modalStyle = {
   position: "absolute" as "absolute",

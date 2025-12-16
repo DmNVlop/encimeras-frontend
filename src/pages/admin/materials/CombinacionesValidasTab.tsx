@@ -18,12 +18,12 @@ import {
   TableBody,
   Chip,
 } from "@mui/material";
-import { get, create, update, remove } from "../../../services/apiService";
+import { get, create, update, remove } from "@/services/apiService";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
-import type { Attribute } from "../../../interfases/attribute.interfase";
+import type { Attribute } from "@/interfases/attribute.interfase";
 
 // --- Interfaces específicas para este componente ---
 interface ValidCombination {
@@ -137,12 +137,15 @@ const CombinacionesValidasTab: React.FC<CombinacionesValidasTabProps> = ({ mater
 
   // --- FUNCIÓN handleSubmit UNIFICADA ---
   const handleSubmit = async () => {
-    const attributesObject = formAttributes.reduce((acc, attr) => {
-      if (attr.type && attr.value) {
-        acc[attr.type] = attr.value;
-      }
-      return acc;
-    }, {} as Record<string, string>);
+    const attributesObject = formAttributes.reduce(
+      (acc, attr) => {
+        if (attr.type && attr.value) {
+          acc[attr.type] = attr.value;
+        }
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
 
     if (!materialId || Object.keys(attributesObject).length === 0) {
       alert("Debes seleccionar atributos para la combinación.");

@@ -6,10 +6,8 @@ import { AppBar, Toolbar, Typography, Button, Box, Drawer, List, ListItem, ListI
 import PriceCheckIcon from "@mui/icons-material/PriceCheck";
 import SettingsIcon from "@mui/icons-material/Tune";
 import StoneIcon from "@mui/icons-material/SquareFoot";
-// import CarpenterIcon from "@mui/icons-material/Carpenter";
-// import EdgesensorLowIcon from "@mui/icons-material/EdgesensorLow";
 
-import { logout } from "../../services/authService";
+import { logout } from "@/services/authService";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 
 const drawerWidth = 240;
@@ -24,14 +22,11 @@ const AdminLayout: React.FC = () => {
 
   const menuItems = [
     { text: "Dashboard", icon: <DashboardIcon />, path: "/admin/dashboard" },
-    { text: "Configuraciones", path: "/admin/attributes", icon: <SettingsIcon /> },
+    { text: "Atributos", path: "/admin/attributes", icon: <SettingsIcon /> },
     { text: "Materiales", icon: <StoneIcon />, path: "/admin/materials" },
     { text: "Reglas Medidas", icon: <StoneIcon />, path: "/admin/rule-sets" },
     { text: "Complementos", icon: <StoneIcon />, path: "/admin/addons" },
-    // { text: "Ensambles", icon: <EdgesensorLowIcon />, path: "/admin/edges" },
-    // { text: "Trabajos CyC", icon: <CarpenterIcon />, path: "/admin/cutouts" },
     { text: "Precios", icon: <PriceCheckIcon />, path: "/admin/price-configs" },
-    // Añadir más items aquí (Cantos, Cortes, etc.)
   ];
 
   return (
