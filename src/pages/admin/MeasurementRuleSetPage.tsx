@@ -170,7 +170,7 @@ const MeasurementRuleSetPage: React.FC = () => {
         </Button>
       </Box>
 
-      <Paper sx={{ height: 600, width: "100%" }}>
+      <Paper sx={{ height: "calc(100vh - 180px)", width: "100%" }}>
         {loading ? (
           <Box
             sx={{

@@ -112,8 +112,27 @@ const AttributesPage: React.FC = () => {
 
   return (
     <Box>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-        <Typography variant="h4">Gestión de Atributos</Typography>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Box sx={{ display: "flex", justifyContent: "flex-start" }}>
+          <Typography variant="h4" sx={{ mr: 4 }}>
+            Gestión de Atributos
+          </Typography>
+
+          <FormControl sx={{ minWidth: 240, mb: 2 }}>
+            <InputLabel id="filter-type-label">Filtrar por tipo</InputLabel>
+            <Select labelId="filter-type-label" value={filterType} label="Filtrar por tipo" onChange={(e) => setFilterType(e.target.value as string)}>
+              <MenuItem value="">
+                <em>Todos</em>
+              </MenuItem>
+              {allTypes.map((type) => (
+                <MenuItem key={type} value={type}>
+                  {type}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+
         <Box>
           <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpen()}>
             Añadir Atributo
@@ -121,21 +140,7 @@ const AttributesPage: React.FC = () => {
         </Box>
       </Box>
 
-      <FormControl sx={{ minWidth: 240, mb: 2 }}>
-        <InputLabel id="filter-type-label">Filtrar por tipo</InputLabel>
-        <Select labelId="filter-type-label" value={filterType} label="Filtrar por tipo" onChange={(e) => setFilterType(e.target.value as string)}>
-          <MenuItem value="">
-            <em>Todos</em>
-          </MenuItem>
-          {allTypes.map((type) => (
-            <MenuItem key={type} value={type}>
-              {type}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-
-      <Box sx={{ height: 600, width: "100%" }}>
+      <Box sx={{ height: "calc(100vh - 200px)", width: "100%" }}>
         <DataGrid
           rows={attributes}
           columns={columns}

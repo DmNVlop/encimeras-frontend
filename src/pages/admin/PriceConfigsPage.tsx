@@ -237,7 +237,7 @@ const PriceConfigsPage: React.FC = () => {
           Añadir Configuración
         </Button>
       </Box>
-      <Box sx={{ height: "70vh", width: "100%" }}>
+      <Box sx={{ height: "calc(100vh - 180px)", width: "100%" }}>
         <DataGrid
           rows={priceConfigs}
           columns={columns}
