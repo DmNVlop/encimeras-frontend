@@ -90,6 +90,8 @@ export interface QuoteState {
   mainPieces: MainPiece[];
   activePieceIndex: number | null; // Lo usaremos en Step 2, 3 y 4
 
+  selectedShapeId: string | null; // Guardará el ID de la forma (variationCode)
+
   // --- NUEVO ---
   // Almacena temporalmente la selección de Step 1
   wizardTempMaterial: {
@@ -123,6 +125,7 @@ export const createDefaultPiece = (): MainPiece => ({
 export const initialState: QuoteState = {
   mainPieces: [],
   activePieceIndex: null,
+  selectedShapeId: null,
   wizardTempMaterial: null,
   isCalculating: false,
   calculationResult: null,
@@ -248,7 +251,7 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
 
     // --- NUEVA ACCIÓN DE STEP 2 (Medidas) ---
     case "SET_SHAPE_VARIATION_AND_CREATE_PIECES": {
-      const { count, defaultMeasurements, piecesLayout } = action.payload;
+      const { count, defaultMeasurements, piecesLayout, variationCode } = action.payload;
 
       // Safety checks (same as before)
       if (state.mainPieces.length > 0 || !state.wizardTempMaterial) {
@@ -283,6 +286,7 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
         ...state,
         mainPieces: newPieces,
         activePieceIndex: 0, // Activate the first piece
+        selectedShapeId: variationCode,
       };
     }
 

@@ -27,7 +27,11 @@ export const WizardStep2_ShapeAndMeasures: React.FC = () => {
   const theme = useTheme();
 
   // Conectar al Contexto
-  const { wizardTempMaterial, mainPieces } = useQuoteState();
+  const { wizardTempMaterial, mainPieces, selectedShapeId } = useQuoteState();
+
+  // Buscamos la configuración visual de la forma actual
+  const currentShapeVariation = shapeVariations.find((v) => v.id === selectedShapeId);
+
   const dispatch = useQuoteDispatch();
 
   // Estado para el Modal de "Cambiar Material"
@@ -278,44 +282,83 @@ export const WizardStep2_ShapeAndMeasures: React.FC = () => {
 
           return (
             <Grid size={{ xs: 6 }} key={piece.id}>
-              <Paper elevation={2} sx={{ p: 2 }}>
-                <Typography variant="h6" component="div" gutterBottom>
-                  Pieza {index + 1}
-                </Typography>
+              {" "}
+              {/* Cambiado a xs:12 para ocupar ancho y dividir dentro */}
+              <Paper elevation={2} sx={{ p: 0, overflow: "hidden" }}>
+                <Grid container>
+                  {/* COLUMNA IZQUIERDA: Inputs y Datos (Como en tu diseño) */}
+                  <Grid size={{ xs: 12, md: 8 }} sx={{ p: 3 }}>
+                    <Typography variant="h6" component="div" gutterBottom>
+                      Pieza {index + 1}
+                    </Typography>
 
-                {/* Info del material con botón de cambiar */}
-                <Box sx={{ mb: 2, p: 1.5, backgroundColor: "#f9f9f9", borderRadius: 1 }}>
-                  <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-                    {materialName}
-                  </Typography>
-                  <Button size="small" variant="text" onClick={() => handleOpenChangeMaterialModal(index)} sx={{ p: 0, mt: 0.5 }}>
-                    Cambiar material de esta pieza
-                  </Button>
-                </Box>
+                    {/* Info del material con botón de cambiar */}
+                    <Box sx={{ mb: 2, p: 1.5, backgroundColor: "#f9f9f9", borderRadius: 1 }}>
+                      <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+                        {materialName}
+                      </Typography>
+                      <Button size="small" variant="text" onClick={() => handleOpenChangeMaterialModal(index)} sx={{ p: 0, mt: 0.5 }}>
+                        Cambiar material de esta pieza
+                      </Button>
+                    </Box>
 
-                {/* Inputs de Medidas */}
-                <Grid container spacing={2}>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <TextField
-                      fullWidth
-                      label="Largo (mm)"
-                      name="length_mm"
-                      type="number"
-                      value={piece.measurements.length_mm}
-                      onChange={(e) => handleMeasureChange(index, "length_mm", e.target.value)}
-                      variant="outlined"
-                    />
+                    {/* Inputs de Medidas */}
+                    <Grid container spacing={2}>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                          fullWidth
+                          label="Largo (mm)"
+                          name="length_mm"
+                          type="number"
+                          value={piece.measurements.length_mm}
+                          onChange={(e) => handleMeasureChange(index, "length_mm", e.target.value)}
+                          variant="outlined"
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                          fullWidth
+                          label="Ancho (mm)"
+                          name="width_mm"
+                          type="number"
+                          value={piece.measurements.width_mm}
+                          onChange={(e) => handleMeasureChange(index, "width_mm", e.target.value)}
+                        />
+                      </Grid>
+                    </Grid>
                   </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <TextField
-                      fullWidth
-                      label="Ancho (mm)"
-                      name="width_mm"
-                      type="number"
-                      value={piece.measurements.width_mm}
-                      onChange={(e) => handleMeasureChange(index, "width_mm", e.target.value)}
-                      variant="outlined"
-                    />
+
+                  {/* COLUMNA DERECHA: Visualización Contextual */}
+                  <Grid
+                    size={{ xs: 12, md: 4 }}
+                    sx={{
+                      backgroundColor: "#f4f6f8",
+                      borderLeft: { md: "1px solid #e0e0e0" },
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      p: 2,
+                    }}
+                  >
+                    {/* Aquí renderizamos la forma completa, pero iluminamos la pieza 'index' */}
+                    {currentShapeVariation ? (
+                      <Box sx={{ width: "100%" }}>
+                        <EncimeraPreview
+                          config={{
+                            id: currentShapeVariation.id,
+                            name: currentShapeVariation.name,
+                            grid: currentShapeVariation.grid,
+                            pieces: currentShapeVariation.pieces,
+                          }}
+                          highlightIndex={index} // <--- LA MAGIA ESTÁ AQUÍ
+                        />
+                        <Typography variant="caption" align="center" display="block" sx={{ mt: 1, color: "text.secondary" }}>
+                          Estás editando la zona azul
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Typography variant="caption">Forma no visualizable</Typography>
+                    )}
                   </Grid>
                 </Grid>
               </Paper>
