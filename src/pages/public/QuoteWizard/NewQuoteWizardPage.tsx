@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Container, Box, Paper, Stepper, Step, Button, Typography, useTheme, useMediaQuery, MobileStepper, Alert, StepButton } from "@mui/material";
 import { KeyboardArrowLeft, KeyboardArrowRight } from "@mui/icons-material";
-import { QuoteProvider, useQuoteState } from "../../../context/QuoteContext";
+import { QuoteProvider, useQuoteState } from "@/context/QuoteContext";
 
 // Importar los pasos
 import { WizardStep1_Materials } from "./steps/WizardStep1_Materials";

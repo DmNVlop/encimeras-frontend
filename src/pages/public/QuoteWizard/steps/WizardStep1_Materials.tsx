@@ -16,13 +16,13 @@ import Grid from "@mui/material/Grid";
 import TextureIcon from "@mui/icons-material/Texture";
 
 // Importar HOOKS del Contexto
-import { useQuoteDispatch, useQuoteState, type MaterialConfirmationPayload } from "../../../../context/QuoteContext";
+import { useQuoteDispatch, useQuoteState, type MaterialConfirmationPayload } from "@/context/QuoteContext";
 
 // Importar API Service
-import { get } from "../../../../services/apiService";
+import { get } from "@/services/apiService";
 
-import type { Material } from "../../../../interfases/materials.interfase";
-import { MaterialAttributeModal } from "../../common/MaterialAttributeModal";
+import type { Material } from "@/interfases/materials.interfase";
+import { MaterialAttributeModal } from "@/pages/public/common/MaterialAttributeModal";
 
 // =============================================================================
 // COMPONENTE WizardStep1_Materials

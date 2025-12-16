@@ -4,9 +4,9 @@ import { Box, Modal, Typography, Tabs, Tab, IconButton, type SelectChangeEvent }
 import CloseIcon from "@mui/icons-material/Close";
 import DatosGeneralesForm from "./DatosGeneralesForm";
 import CombinacionesValidasTab from "./CombinacionesValidasTab";
-import { get, create, update } from "../../../services/apiService";
-import type { Material } from "../../../interfases/materials.interfase";
-import type { Attribute } from "../../../interfases/attribute.interfase";
+import { get, create, update } from "@/services/apiService";
+import type { Material } from "@/interfases/materials.interfase";
+import type { Attribute } from "@/interfases/attribute.interfase";
 
 // --- Interfaz para el "paquete" de atributos ---
 export interface AttributesBundle {
@@ -81,8 +81,8 @@ const MaterialEditModal: React.FC<MaterialEditModalProps> = ({ open, onClose, ma
   useEffect(() => {
     const loadAttributes = async () => {
       const [categoryData, typeData, allAttrs] = await Promise.all([
-        get<Attribute>("/attributes", { params: { type: "MAT_CATEGORY" } }),
-        get<Attribute>("/attributes", { params: { type: "MAT_TYPE" } }),
+        get<Attribute>("/attributes", { params: { type: "MAT_CATEGORIA" } }),
+        get<Attribute>("/attributes", { params: { type: "MAT_TIPO" } }),
         get<Attribute>("/attributes"),
       ]);
       const uniqueTypes = Array.from(new Set(allAttrs.map((attr) => attr.type)));

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Box, Typography, Button, Modal, TextField } from "@mui/material";
 import { DataGrid, GridActionsCellItem } from "@mui/x-data-grid";
-import { get, create, update, remove } from "../../services/apiService";
+import { get, create, update, remove } from "@/services/apiService";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";

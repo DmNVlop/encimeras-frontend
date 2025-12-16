@@ -1,5 +1,5 @@
 // src/components/admin/addons/AddonForm.tsx
-import React from "react";
+import React, { Suspense } from "react";
 import {
   Box,
   Button,
@@ -14,12 +14,22 @@ import {
   Paper,
   type SelectChangeEvent,
   Divider,
+  ListItemText,
+  Tooltip,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import type { Addon } from "../../../interfases/addon.interfase";
-import type { MeasurementRuleSet } from "../../../interfases/measurement-rule-set.interfase";
-import { ImageUploader } from "../../public/common/ImageUploader/ImageUploader";
-import { config } from "../../../config";
+import type { Addon } from "@/interfases/addon.interfase";
+import type { MeasurementRuleSet } from "@/interfases/measurement-rule-set.interfase";
+import { config } from "@/config";
+import { MEASUREMENT_CONFIG, MEASUREMENT_OPTIONS_LIST } from "@/config/measurements";
+import type { MeasurementKey } from "@/types/measurements";
+
+// Lazy load heavy ImageUploader
+const ImageUploader = React.lazy(() =>
+  import("@/pages/public/common/ImageUploader/ImageUploader").then((module) => ({
+    default: module.ImageUploader,
+  })),
+);
 
 interface AddonFormProps {
   currentAddon: Partial<Addon>;
@@ -46,12 +56,13 @@ const AddonForm: React.FC<AddonFormProps> = ({
   handleDeleteChip,
 }) => {
   // Opciones fijas para Required Measurements
-  const measurementOptions = [
-    { value: "quantity", label: "Cantidad (Unidades)" },
-    { value: "length_ml", label: "Largo (ml)" },
-    { value: "width_mm", label: "Ancho (mm)" },
-    { value: "height_mm", label: "Alto (mm)" },
-  ];
+  // const measurementOptions = [
+  //   { value: "quantity", label: "Cantidad (Unidades)" },
+  //   { value: "length_ml", label: "Largo (ml)" },
+  //   { value: "width_mm", label: "Ancho (mm)" },
+  //   { value: "height_mm", label: "Alto (mm)" },
+  //   { value: "radio_mm", label: "Radio (mm)" },
+  // ];
 
   return (
     <Box component="form" onSubmit={handleSubmit}>
@@ -95,25 +106,27 @@ const AddonForm: React.FC<AddonFormProps> = ({
           Imagen / Textura del Material
         </Typography>
 
-        <ImageUploader
-          // 1. Vinculación del valor (igual que antes)
-          value={currentAddon.imageUrl}
-          // 2. Manejo del Cambio (ADAPTADOR)
-          onChange={(newUrl) => {
-            // 1. Creamos un evento "sintético" (falso) que tiene la estructura exacta que tu función espera
-            const syntheticEvent = {
-              target: {
-                name: "imageUrl", // El nombre del campo en tu estado
-                value: newUrl, // El valor que nos da el Uploader
-              },
-            } as React.ChangeEvent<HTMLInputElement>;
+        <Suspense fallback={<Typography>Cargando uploader...</Typography>}>
+          <ImageUploader
+            // 1. Vinculación del valor (igual que antes)
+            value={currentAddon.imageUrl}
+            // 2. Manejo del Cambio (ADAPTADOR)
+            onChange={(newUrl) => {
+              // 1. Creamos un evento "sintético" (falso) que tiene la estructura exacta que tu función espera
+              const syntheticEvent = {
+                target: {
+                  name: "imageUrl", // El nombre del campo en tu estado
+                  value: newUrl, // El valor que nos da el Uploader
+                },
+              } as React.ChangeEvent<HTMLInputElement>;
 
-            // 2. Llamamos a tu función original pasándole este evento falso
-            handleTextChange(syntheticEvent);
-          }}
-          maxSizeMB={6}
-          urlPrefix={config.assets.baseUrl}
-        />
+              // 2. Llamamos a tu función original pasándole este evento falso
+              handleTextChange(syntheticEvent);
+            }}
+            maxSizeMB={6}
+            urlPrefix={config.assets.baseUrl}
+          />
+        </Suspense>
       </Box>
 
       {/* --- SECCIÓN 2: COMPORTAMIENTO EN EL WIZARD (NUEVO) --- */}
@@ -145,23 +158,52 @@ const AddonForm: React.FC<AddonFormProps> = ({
                 value={currentAddon.requiredMeasurements || []}
                 onChange={handleSelectChange}
                 input={<OutlinedInput label="Inputs Requeridos al Cliente" />}
-                renderValue={(selected) => (
+                // --- SECCIÓN 1: Renderizado de los CHIPS seleccionados ---
+                renderValue={(selectedIds) => (
                   <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                    {selected.map((val) => (
-                      <Chip
-                        key={val}
-                        label={val}
-                        size="small"
-                        onDelete={() => handleDeleteChip("requiredMeasurements", val)}
-                        onMouseDown={(e) => e.stopPropagation()}
-                      />
-                    ))}
+                    {(selectedIds as MeasurementKey[]).map((val) => {
+                      // Recuperamos la info completa usando el ID
+                      const info = MEASUREMENT_CONFIG[val];
+
+                      // Fallback por seguridad si el ID no existe
+                      if (!info) return null;
+
+                      return (
+                        // Envolvemos en Tooltip para mostrar la descripción al pasar el mouse
+                        <Tooltip key={val} title={info.description} arrow>
+                          <Chip
+                            // IMPORTANTE: Mostramos el Label humano, no el value (ID)
+                            label={info.label}
+                            size="small"
+                            onDelete={() => handleDeleteChip("requiredMeasurements", val)}
+                            onMouseDown={(e) => e.stopPropagation()}
+                          />
+                        </Tooltip>
+                      );
+                    })}
                   </Box>
                 )}
               >
-                {measurementOptions.map((opt) => (
+                {/* --- SECCIÓN 2: Renderizado de las OPCIONES del Menú --- */}
+                {MEASUREMENT_OPTIONS_LIST.map((opt) => (
                   <MenuItem key={opt.value} value={opt.value}>
-                    {opt.label}
+                    {/* ListItemText permite formatear título y subtítulo nativamente en MUI */}
+                    <ListItemText
+                      primary={opt.label}
+                      secondary={opt.description}
+                      slotProps={{
+                        primary: {
+                          variant: "body1",
+                          fontWeight: 500,
+                        },
+                        secondary: {
+                          variant: "caption",
+                          color: "text.secondary",
+                          // Nota senior: Preferimos 'sx' sobre 'style' en MUI para consistencia
+                          sx: { whiteSpace: "normal" },
+                        },
+                      }}
+                    />
                   </MenuItem>
                 ))}
               </Select>

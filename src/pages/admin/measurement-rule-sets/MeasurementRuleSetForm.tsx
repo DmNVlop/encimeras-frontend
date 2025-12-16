@@ -6,7 +6,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 
 // 1. Importamos las interfaces que definimos en Fase 1
-import type { MeasurementRuleSet, MeasurementRange } from "../../../interfases/measurement-rule-set.interfase";
+import type { MeasurementRuleSet, MeasurementRange } from "@/interfases/measurement-rule-set.interfase";
 
 // --- 2. Definimos todas las props que el formulario necesita ---
 interface MeasurementRuleSetFormProps {
@@ -122,7 +122,11 @@ const MeasurementRuleSetForm: React.FC<MeasurementRuleSetFormProps> = ({
               <Grid size={{ xs: 12 }}>
                 <FormControl fullWidth size="small" required>
                   <InputLabel>Tipo de Precio</InputLabel>
-                  <Select label="Tipo de Precio" value={range.priceType} onChange={(e: SelectChangeEvent<string>) => handleRangeChange(index, "priceType", e.target.value)}>
+                  <Select
+                    label="Tipo de Precio"
+                    value={range.priceType}
+                    onChange={(e: SelectChangeEvent<string>) => handleRangeChange(index, "priceType", e.target.value)}
+                  >
                     <MenuItem value="ml">ml (Metro Lineal)</MenuItem>
                     <MenuItem value="m2">m2 (Metro Cuadrado)</MenuItem>
                     <MenuItem value="piece">piece (Por Pieza)</MenuItem>

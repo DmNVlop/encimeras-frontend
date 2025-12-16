@@ -25,10 +25,10 @@ import AssignmentIcon from "@mui/icons-material/Assignment";
 import SummarizeIcon from "@mui/icons-material/Summarize";
 
 // 1. Importar Contexto
-import { useQuoteState, useQuoteDispatch } from "../../../../context/QuoteContext";
-import { post } from "../../../../services/apiService"; // Asumimos que tienes un método 'post' genérico
-import type { CalculationResponse } from "../../../../interfases/price.interfase";
-import { ApiErrorFeedback } from "../../common/ApiErrorFeedback";
+import { useQuoteState, useQuoteDispatch } from "@/context/QuoteContext";
+import { post } from "@/services/apiService"; // Asumimos que tienes un método 'post' genérico
+import type { CalculationResponse } from "@/interfases/price.interfase";
+import { ApiErrorFeedback } from "@/pages/public/common/ApiErrorFeedback";
 // import { Countertop3DViewer } from "../../common/Countertop3DViewer";
 
 // =============================================================================

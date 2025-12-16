@@ -27,10 +27,10 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 
 // --- IMPORTACIONES ---
 // Usamos rutas relativas asumiendo que este archivo está en src/pages/wizard/steps/
-import { useQuoteDispatch, useQuoteState, type AppliedAddon } from "../../../../context/QuoteContext";
-import { get } from "../../../../services/apiService";
-import type { Material } from "../../../../interfases/materials.interfase";
-import type { Addon } from "../../../../interfases/addon.interfase";
+import { useQuoteDispatch, useQuoteState, type AppliedAddon } from "@/context/QuoteContext";
+import { get } from "@/services/apiService";
+import type { Material } from "@/interfases/materials.interfase";
+import type { Addon } from "@/interfases/addon.interfase";
 
 // --- CONSTANTES VISUALES ---
 // Asegúrate de tener esta imagen en tu carpeta public/images/addons/

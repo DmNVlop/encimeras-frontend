@@ -20,7 +20,6 @@ import {
   Collapse,
 } from "@mui/material";
 import axios from "axios"; // O tu apiService
-import { getCroppedImg } from "./utils/canvasUtils";
 
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -29,7 +28,9 @@ import CropSquareIcon from "@mui/icons-material/CropSquare";
 import Crop169Icon from "@mui/icons-material/Crop169";
 import CropPortraitIcon from "@mui/icons-material/CropPortrait";
 import CloseIcon from "@mui/icons-material/Close";
-import { config } from "../../../../config";
+import { config } from "@/config";
+import { resolveImageUrl } from "./utils/urlUtils";
+import { getCroppedImg } from "./utils/imageUtils";
 
 // Definimos las opciones de aspecto disponibles
 type AspectOption = {
@@ -146,35 +147,55 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
     try {
       setIsUploading(true);
 
-      const croppedBlob = await getCroppedImg(selectedFile, croppedAreaPixels);
+      // 1. INTELIGENCIA DE FORMATO
+      // Intentamos determinar el formato original para mantenerlo (ej: si subió PNG, mantenemos PNG)
+      // Si selectedFile es base64: "data:image/png;base64,..."
+      // Si es URL: "blob:..." o "http://.../img.png"
+      let targetMimeType = "image/jpeg"; // Default
+
+      if (selectedFile.startsWith("data:")) {
+        targetMimeType = selectedFile.substring(5, selectedFile.indexOf(";"));
+      } else if (/\.png$/i.test(selectedFile)) {
+        targetMimeType = "image/png";
+      } else if (/\.webp$/i.test(selectedFile)) {
+        targetMimeType = "image/webp";
+      }
+
+      // 2. GENERACIÓN DEL BLOB
+      // Pasamos el tipo deseado al canvas.
+      const croppedBlob = await getCroppedImg(selectedFile, croppedAreaPixels, targetMimeType);
+
+      // 3. PREPARACIÓN DEL UPLOAD
+      // Leemos la "verdad" del blob generado
+      const finalMimeType = croppedBlob.type; // ej: "image/png"
+      const extension = finalMimeType.split("/")[1] || "jpg";
+      const fileName = `upload.${extension}`;
+
       const formData = new FormData();
-      formData.append("file", croppedBlob, "upload.jpg");
+      formData.append("file", croppedBlob, fileName);
 
       const uploadUrl = `${config.api.baseURL}/assets/upload`;
-      // En proyecto local la llamada a API local:
+
+      // 4. PETICIÓN
       const response = await axios.post(uploadUrl, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      // --- LÓGICA DE URL PREFIX ---
-      const serverPath = response.data.url; // Se asume que viene como "/uploads/foto.webp"
+      const serverPath = response?.data?.url;
 
-      let finalUrl = serverPath;
-
-      if (urlPrefix) {
-        // Eliminamos el slash final del prefijo si existe para evitar "//"
-        // Ejemplo: "http://localhost:3000/" -> "http://localhost:3000"
-        const cleanPrefix = urlPrefix.endsWith("/") ? urlPrefix.slice(0, -1) : urlPrefix;
-
-        finalUrl = `${cleanPrefix}${serverPath}`;
+      if (!serverPath) {
+        throw new Error("La respuesta del servidor no contiene una URL válida.");
       }
 
-      onChange(finalUrl);
+      // 5. RESOLUCIÓN DE URL (Lógica Cloud vs Local)
+      const finalUrl = resolveImageUrl(serverPath, urlPrefix);
 
+      onChange(finalUrl);
       handleClose();
-    } catch (e) {
+    } catch (e: any) {
       console.error("Error uploading", e);
-      setError("Ocurrió un error inesperado al subir la imagen al servidor.");
+      const msg = e.response?.data?.message || e.message || "Error inesperado al procesar la imagen.";
+      setError(msg);
     } finally {
       setIsUploading(false);
     }

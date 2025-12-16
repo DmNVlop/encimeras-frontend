@@ -1,6 +1,6 @@
 // src/services/apiService.ts
 import axios, { AxiosError, type AxiosRequestConfig } from "axios";
-import { config } from "../config";
+import { config } from "@/config";
 
 import { getToken, logout } from "./authService";
 

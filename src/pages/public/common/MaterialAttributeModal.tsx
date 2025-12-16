@@ -3,9 +3,9 @@ import React, { useState, useEffect } from "react";
 import { Box, Typography, CircularProgress, Modal, Button, ToggleButtonGroup, ToggleButton } from "@mui/material";
 
 // Importaciones necesarias (asegúrate de que las rutas sean correctas)
-import { get } from "../../../services/apiService";
-import type { Material } from "../../../interfases/materials.interfase";
-import { modalStyle } from "../../../pages/public/QuoteWizard/steps/_Modal_Material_Style"; // Reutilizamos el estilo
+import { get } from "@/services/apiService";
+import type { Material } from "@/interfases/materials.interfase";
+import { modalStyle } from "@/pages/public/QuoteWizard/steps/_Modal_Material_Style"; // Reutilizamos el estilo
 
 // Interfaces locales que necesita este componente
 type SelectionState = Record<string, string>;

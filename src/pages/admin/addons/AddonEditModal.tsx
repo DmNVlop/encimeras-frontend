@@ -2,11 +2,11 @@
 import React, { useState, useEffect } from "react";
 import { Box, Modal, Typography, IconButton, type SelectChangeEvent } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { get, create, update } from "../../../services/apiService";
-import type { Addon } from "../../../interfases/addon.interfase";
-import type { MeasurementRuleSet } from "../../../interfases/measurement-rule-set.interfase";
-import type { Attribute } from "../../../interfases/attribute.interfase";
-import type { Material } from "../../../interfases/materials.interfase"; // Necesitamos importar Material
+import { get, create, update } from "@/services/apiService";
+import type { Addon } from "@/interfases/addon.interfase";
+import type { MeasurementRuleSet } from "@/interfases/measurement-rule-set.interfase";
+import type { Attribute } from "@/interfases/attribute.interfase";
+import type { Material } from "@/interfases/materials.interfase"; // Necesitamos importar Material
 
 import AddonForm from "./AddonForm";
 

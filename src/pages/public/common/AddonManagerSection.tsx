@@ -4,8 +4,8 @@ import { Box, Typography, Paper, Grid, TextField, IconButton, Button, Alert } fr
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 
-import type { Addon } from "../../../interfases/addon.interfase";
-import type { MainPiece } from "../../../context/QuoteContext";
+import type { Addon } from "@/interfases/addon.interfase";
+import type { MainPiece } from "@/context/QuoteContext";
 
 // Helper para etiquetas
 const measurementLabels: { [key: string]: string } = {

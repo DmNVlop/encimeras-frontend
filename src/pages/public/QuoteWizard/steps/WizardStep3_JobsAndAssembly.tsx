@@ -33,10 +33,10 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import ConstructionIcon from "@mui/icons-material/Construction";
 
 // --- IMPORTACIONES ---
-import { useQuoteDispatch, useQuoteState, type AppliedAddon } from "../../../../context/QuoteContext";
-import { get } from "../../../../services/apiService";
-import type { Material } from "../../../../interfases/materials.interfase";
-import type { Addon } from "../../../../interfases/addon.interfase";
+import { useQuoteDispatch, useQuoteState, type AppliedAddon } from "@/context/QuoteContext";
+import { get } from "@/services/apiService";
+import type { Material } from "@/interfases/materials.interfase";
+import type { Addon } from "@/interfases/addon.interfase";
 
 // --- CONSTANTES VISUALES ---
 const IMAGE_PATH = "/addons";

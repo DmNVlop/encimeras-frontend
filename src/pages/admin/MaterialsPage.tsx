@@ -3,12 +3,12 @@ import React, { useState, useEffect, useRef } from "react";
 import { Box, Typography, Button, CircularProgress, Chip } from "@mui/material";
 import { DataGrid, type GridColDef, GridActionsCellItem, type GridRowId, type GridRowSelectionModel } from "@mui/x-data-grid";
 import { esES } from "@mui/x-data-grid/locales";
-import { create, get, remove } from "../../services/apiService";
+import { create, get, remove } from "@/services/apiService";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
-import type { Material, PricingRecipe } from "../../interfases/materials.interfase";
+import type { Material, PricingRecipe } from "@/interfases/materials.interfase";
 import MaterialEditModal from "./materials/MaterialEditModal";
 
 // =============================================================================

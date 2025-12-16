@@ -1,7 +1,7 @@
 // src/pages/admin/LoginPage.tsx
 import React, { useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import { login } from "../../services/authService";
+import { login } from "@/services/authService";
 import { Button, TextField, Container, Typography, Box, Link } from "@mui/material";
 
 const LoginPage: React.FC = () => {
@@ -29,7 +29,8 @@ const LoginPage: React.FC = () => {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-        }}>
+        }}
+      >
         <Typography component="h1" variant="h5">
           Admin Login
         </Typography>

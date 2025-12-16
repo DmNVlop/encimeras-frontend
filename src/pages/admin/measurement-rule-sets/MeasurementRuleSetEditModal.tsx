@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from "react";
 import { Box, Modal, Typography, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { create, update } from "../../../services/apiService";
+import { create, update } from "@/services/apiService";
 
 // 1. Importamos la interfaz y el formulario
-import type { MeasurementRuleSet, MeasurementRange } from "../../../interfases/measurement-rule-set.interfase";
+import type { MeasurementRuleSet, MeasurementRange } from "@/interfases/measurement-rule-set.interfase";
 import MeasurementRuleSetForm from "./MeasurementRuleSetForm";
 
 // --- 2. Props que el Modal recibe de la página (Fase 1) ---
