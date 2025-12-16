@@ -97,8 +97,8 @@ export const WizardStep5_Summary: React.FC = () => {
       });
     } catch (err: any) {
       console.error("Calculation Error:", err);
-      const errorMsg = err.response?.data?.message || "Error al conectar con el servidor de cálculo.";
-      dispatch({ type: "CALCULATION_ERROR", payload: { error: errorMsg } });
+      // const errorMsg = err.response?.data?.message || "Error al conectar con el servidor de cálculo.";
+      dispatch({ type: "CALCULATION_ERROR", payload: { error: err } });
     }
   };
 

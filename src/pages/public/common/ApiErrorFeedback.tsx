@@ -18,50 +18,48 @@ export const ApiErrorFeedback: React.FC<ApiErrorFeedbackProps> = ({ error, title
 
   // --- LÓGICA DE TRADUCCIÓN E EXTRACCIÓN ---
   const parseErrorMessage = (err: any) => {
-    let friendlyMsg = "Ha ocurrido un error de conexión o el servidor no responde.";
+    // Valores por defecto
+    let friendlyMsg = "Ha ocurrido un error inesperado.";
     let techMsg = "";
 
-    // 1. Si es un error que viene del Backend (Axios response)
-    if (err?.response?.data) {
+    // CASO 1: Error es un String simple (Legacy o errores manuales)
+    if (typeof err === "string") {
+      friendlyMsg = err;
+      techMsg = err;
+    }
+    // CASO 2: Error viene de Axios / NestJS (Objeto con response)
+    else if (err?.response?.data) {
       const data = err.response.data;
 
-      // --- A: EXTRAER EL MENSAJE TÉCNICO PURO ---
-      // Priorizamos 'message' sobre todo lo demás
-      const rawMessage = data.message;
-
-      if (Array.isArray(rawMessage)) {
-        // Caso Class-Validator: ["length must be a number", "width must be..."]
-        techMsg = rawMessage.join("\n");
-      } else if (typeof rawMessage === "string") {
-        // Caso NestJS standard: "Pricing recipe not found..."
-        techMsg = rawMessage;
+      // A. Extracción del Mensaje Técnico (Para el Collapse)
+      // NestJS suele devolver: { message: "...", error: "...", statusCode: ... }
+      if (typeof data.message === "string") {
+        techMsg = data.message;
+      } else if (Array.isArray(data.message)) {
+        // Validación de DTOs (Array de errores)
+        techMsg = data.message.join("\n");
       } else {
-        // Fallback: Si no hay message, mostramos todo el objeto
+        // Fallback: mostrar todo el JSON
         techMsg = JSON.stringify(data, null, 2);
       }
 
-      // --- B: TRADUCIR A LENGUAJE HUMANO (FRIENDLY) ---
-      // Usamos 'techMsg' que ya contiene el texto real para buscar palabras clave
-
-      if (techMsg.includes("Pricing recipe")) {
-        friendlyMsg = "El material seleccionado no tiene configurada una tarifa de precios válida para este tipo de producto.";
+      // B. Mensaje Amigable (Para el Usuario)
+      // Lógica específica para tu caso de Precios
+      if (techMsg.includes("Price not found") || techMsg.includes("Pricing recipe")) {
+        friendlyMsg = "Falta configuración de precio para la combinación de materiales seleccionada.";
       } else if (data.statusCode === 404) {
-        friendlyMsg = "No se han encontrado los datos necesarios en el servidor.";
+        friendlyMsg = "No se encontraron datos para procesar la solicitud (404).";
       } else if (data.statusCode === 400) {
-        friendlyMsg = "La configuración enviada contiene datos incorrectos o incompletos.";
+        friendlyMsg = "Revisa los datos seleccionados, hay información incompatible.";
       } else {
-        // Si no identificamos el error, usamos el mensaje del backend si es corto
-        friendlyMsg = techMsg.length < 120 ? techMsg : "Error al procesar la solicitud.";
+        // Si no reconocemos el error, mostramos el mensaje del backend si no es muy largo
+        friendlyMsg = techMsg.length < 150 ? techMsg : "Error de comunicación con el servidor.";
       }
     }
-    // 2. Errores de Red / Cliente
+    // CASO 3: Error de Red (Sin respuesta del servidor)
     else if (err?.message) {
       techMsg = err.message;
-      if (err.message === "Network Error") {
-        friendlyMsg = "No se puede conectar con el servidor. Verifica tu conexión.";
-      } else {
-        friendlyMsg = err.message; // Fallback genérico
-      }
+      friendlyMsg = "Error de conexión. Verifica tu internet o si el servidor está activo.";
     }
 
     return { friendlyMsg, techMsg };
@@ -101,8 +99,8 @@ export const ApiErrorFeedback: React.FC<ApiErrorFeedbackProps> = ({ error, title
           }}
           onClick={() => setShowDetails(!showDetails)}
         >
-          <Typography variant="caption" color="error" sx={{ fontWeight: "bold", textTransform: "uppercase", fontSize: "0.7rem" }}>
-            {showDetails ? "Ocultar detalles" : "Ver detalles del error"}
+          <Typography variant="caption" color="error" sx={{ fontWeight: "bold", textTransform: "uppercase", fontSize: "0.75rem" }}>
+            {showDetails ? "Ocultar detalles técnicos" : "Ver qué falló exactamente"}
           </Typography>
           <IconButton size="small" sx={{ p: 0, ml: 0.5 }}>
             {showDetails ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
@@ -113,19 +111,20 @@ export const ApiErrorFeedback: React.FC<ApiErrorFeedbackProps> = ({ error, title
           <Box
             sx={{
               mt: 1,
-              p: 1.5,
-              bgcolor: "#FFF4F4", // Fondo muy claro
-              border: "1px solid #FFCDD2", // Borde rojo claro
+              p: 2,
+              bgcolor: "#fff",
+              border: "1px solid #ffcdd2",
               borderRadius: 1,
-              fontFamily: "Consolas, Monaco, 'Andale Mono', monospace",
+              fontFamily: "Monaco, Consolas, 'Courier New', monospace", // Fuente monoespaciada vital para leer JSON/Logs
               fontSize: "0.8rem",
-              color: "#C62828", // Rojo oscuro legible
-              whiteSpace: "pre-wrap", // Respeta saltos de línea
-              wordBreak: "break-word",
+              color: "#d32f2f",
+              overflowX: "auto",
             }}
           >
-            {/* Aquí se imprime DIRECTAMENTE el string del error */}
-            {techMsg || "Sin detalles disponibles."}
+            {/* Aquí se imprime el mensaje tal cual viene del Backend */}
+            <strong>Server Message:</strong>
+            <br />
+            {techMsg || "No details provided."}
           </Box>
         </Collapse>
       </Box>
