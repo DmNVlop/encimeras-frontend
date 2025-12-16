@@ -15,7 +15,7 @@ const LoginPage: React.FC = () => {
     setError("");
     try {
       await login({ username, password });
-      navigate("/admin/dashboard"); // Redirige al dashboard si el login es exitoso
+      navigate("/admin/materials"); // Redirige al dashboard si el login es exitoso
     } catch (err) {
       setError("Credenciales incorrectas. Por favor, inténtalo de nuevo.");
     }

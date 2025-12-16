@@ -270,7 +270,7 @@ const AddonForm: React.FC<AddonFormProps> = ({
               name="productTypeMap"
               value={currentAddon.productTypeMap || ""}
               onChange={handleTextChange}
-              helperText="Link a price-configs"
+              helperText="Para vincular a los Precios (price-configs)"
             />
           </Grid>
 

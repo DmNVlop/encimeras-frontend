@@ -22,7 +22,7 @@ const AdminLayout: React.FC = () => {
 
   const menuItems = [
     { text: "Dashboard", icon: <DashboardIcon />, path: "/admin/dashboard" },
-    { text: "Configuraciones", path: "/admin/attributes", icon: <SettingsIcon /> },
+    { text: "Atributos", path: "/admin/attributes", icon: <SettingsIcon /> },
     { text: "Materiales", icon: <StoneIcon />, path: "/admin/materials" },
     { text: "Reglas Medidas", icon: <StoneIcon />, path: "/admin/rule-sets" },
     { text: "Complementos", icon: <StoneIcon />, path: "/admin/addons" },

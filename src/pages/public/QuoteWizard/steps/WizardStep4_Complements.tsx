@@ -16,7 +16,6 @@ import {
   CardMedia,
   CardContent,
   IconButton,
-  TextField,
   Tooltip,
   Divider,
   Fade,
@@ -31,6 +30,7 @@ import { useQuoteDispatch, useQuoteState, type AppliedAddon } from "@/context/Qu
 import { get } from "@/services/apiService";
 import type { Material } from "@/interfases/materials.interfase";
 import type { Addon } from "@/interfases/addon.interfase";
+import { MeasurementInput } from "@/components/admin/inputs/MeasurementInput";
 
 // --- CONSTANTES VISUALES ---
 // Asegúrate de tener esta imagen en tu carpeta public/images/addons/
@@ -186,62 +186,16 @@ const AppliedComplementRow: React.FC<{
         </Box>
 
         {/* 3. Inputs Dinámicos */}
-        <Box
-          sx={{
-            display: "flex",
-            gap: 2,
-            flexWrap: "wrap",
-            alignItems: "center",
-          }}
-        >
-          {addonDef.requiredMeasurements.map((field) => {
-            // 1. Configuración Lógica del Input
-            let minVal = 0;
-            let stepVal = "1";
-
-            if (field === "length_ml") {
-              minVal = 1;
-              stepVal = "0.1";
-            } else if (field === "quantity") {
-              minVal = 1;
-              stepVal = "1";
-            }
-
-            // 2. VALIDACIÓN VISUAL (Estado de Error)
-            const currentValue = appliedAddon.measurements[field];
-            const numValue = parseFloat(currentValue?.toString() || "0");
-
-            // Es inválido si es vacío, NaN, o menor/igual a 0 (para quantity/length)
-            // O simplemente <= 0 para dimensiones físicas en este negocio
-            const isInvalid = !currentValue || isNaN(numValue) || numValue <= 0;
-
-            return (
-              <TextField
-                key={field}
-                label={field === "quantity" ? "Cantidad" : field.replace("_mm", " (mm)").replace("_ml", " (ml)").toUpperCase()}
-                type="number"
-                size="small"
-                variant="outlined"
-                value={currentValue || ""}
-                onChange={(e) => {
-                  // const val = parseFloat(e.target.value);
-                  // Permitimos escribir (incluso si es inválido momentáneamente) para no bloquear al usuario
-                  // La validación visual le dirá que lo corrija
-                  onUpdate(field, e.target.value);
-                }}
-                // --- FEEDBACK VISUAL ---
-                error={isInvalid}
-                helperText={isInvalid ? "Requerido" : ""}
-                // --- PROPIEDADES HTML5 (slotProps en vez de InputProps) ---
-                slotProps={{
-                  input: {
-                    inputProps: { min: minVal, step: stepVal },
-                  },
-                }}
-                sx={{ width: field === "quantity" ? 90 : 120 }}
-              />
-            );
-          })}
+        <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "center" }}>
+          {addonDef.requiredMeasurements.map((fieldKey) => (
+            <MeasurementInput
+              key={fieldKey}
+              fieldKey={fieldKey}
+              value={appliedAddon.measurements[fieldKey]}
+              // Pasamos la función de actualización limpia
+              onChange={(key, val) => onUpdate(key, val)}
+            />
+          ))}
         </Box>
 
         {/* 4. Botón Eliminar */}

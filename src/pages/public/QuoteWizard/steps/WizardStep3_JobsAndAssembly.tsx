@@ -20,7 +20,6 @@ import {
   CardMedia,
   CardContent,
   IconButton,
-  TextField,
   Tooltip,
   Divider,
   Fade,
@@ -37,6 +36,7 @@ import { useQuoteDispatch, useQuoteState, type AppliedAddon } from "@/context/Qu
 import { get } from "@/services/apiService";
 import type { Material } from "@/interfases/materials.interfase";
 import type { Addon } from "@/interfases/addon.interfase";
+import { MeasurementInput } from "@/components/admin/inputs/MeasurementInput";
 
 // --- CONSTANTES VISUALES ---
 const IMAGE_PATH = "/addons";
@@ -169,66 +169,16 @@ const AppliedJobRow: React.FC<{
         </Box>
 
         {/* Inputs Dinámicos con VALIDACIÓN */}
-        <Box
-          sx={{
-            display: "flex",
-            gap: 2,
-            flexWrap: "wrap",
-            alignItems: "center",
-          }}
-        >
-          {addonDef.requiredMeasurements.map((field) => {
-            // 1. Configuración de Límites y Pasos
-            let minVal = 0;
-            let stepVal = "1";
-
-            if (field === "length_ml") {
-              minVal = 1; // Mínimo 1 metro
-              stepVal = "0.1"; // Paso decimal
-            } else if (field === "quantity") {
-              minVal = 1; // Mínimo 1 unidad
-              stepVal = "1";
-            }
-
-            // 2. Lógica de Validación Visual
-            const currentValue = appliedAddon.measurements[field];
-            const numValue = parseFloat(currentValue?.toString() || "0");
-
-            // Es inválido si está vacío, es NaN o <= 0
-            // Para length_ml y quantity, el mínimo lógico es 1
-            let isInvalid = !currentValue || isNaN(numValue) || numValue <= 0;
-            if ((field === "length_ml" || field === "quantity") && numValue < 1) {
-              isInvalid = true;
-            }
-
-            return (
-              <TextField
-                key={field}
-                label={field === "quantity" ? "Cantidad" : field.replace("_mm", " (mm)").replace("_ml", " (ml)").toUpperCase()}
-                type="number"
-                size="small"
-                variant="outlined"
-                value={currentValue || ""}
-                onChange={(e) => {
-                  const val = parseFloat(e.target.value);
-                  // Permitimos editar libremente para no bloquear UX
-                  if (e.target.value === "" || val >= 0) {
-                    onUpdate(field, e.target.value);
-                  }
-                }}
-                // --- FEEDBACK VISUAL ---
-                error={isInvalid}
-                helperText={isInvalid ? "Requerido" : ""}
-                // --- PROPIEDADES HTML5 (slotProps) ---
-                slotProps={{
-                  input: {
-                    inputProps: { min: minVal, step: stepVal },
-                  },
-                }}
-                sx={{ width: field === "quantity" ? 90 : 120 }}
-              />
-            );
-          })}
+        <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "center" }}>
+          {addonDef.requiredMeasurements.map((fieldKey) => (
+            <MeasurementInput
+              key={fieldKey}
+              fieldKey={fieldKey}
+              value={appliedAddon.measurements[fieldKey]}
+              // Pasamos la función de actualización limpia
+              onChange={(key, val) => onUpdate(key, val)}
+            />
+          ))}
         </Box>
 
         {/* 4. Botón Eliminar */}
