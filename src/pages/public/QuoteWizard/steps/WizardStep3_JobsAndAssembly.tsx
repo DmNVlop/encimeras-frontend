@@ -4,8 +4,6 @@ import {
   Typography,
   CircularProgress,
   Alert,
-  Tabs,
-  Tab,
   Paper,
   Grid,
   FormControl,
@@ -37,6 +35,7 @@ import { get } from "@/services/apiService";
 import type { Material } from "@/interfases/materials.interfase";
 import type { Addon } from "@/interfases/addon.interfase";
 import { MeasurementInput } from "@/components/admin/inputs/MeasurementInput";
+import { ProjectPiecesSelector } from "../../components/ProjectPiecesSelector";
 
 // --- CONSTANTES VISUALES ---
 const IMAGE_PATH = "/addons";
@@ -63,7 +62,7 @@ const AvailableJobCard: React.FC<{
         transition: "all 0.3s ease",
         border: "1px solid transparent",
         "&:hover": {
-          transform: "translateY(-4px)",
+          transform: "translateY(2px)",
           boxShadow: theme.shadows[6],
           borderColor: theme.palette.primary.main,
           "& .add-icon": {
@@ -105,6 +104,7 @@ const AvailableJobCard: React.FC<{
               opacity: 0,
               transform: "scale(0.8)",
               transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              "&:hover": { opacity: 1 },
             }}
           >
             <Avatar sx={{ bgcolor: "primary.main", width: 48, height: 48 }}>
@@ -225,7 +225,18 @@ export const WizardStep3_JobsAndAssembly: React.FC = () => {
   const assemblyAddons = useMemo(() => allAddons.filter((a) => a.category === "ENSAMBLAJE"), [allAddons]);
   const jobAddons = useMemo(() => allAddons.filter((a) => a.category === "TRABAJO"), [allAddons]);
 
-  const materialMap = useMemo(() => {
+  // Mapa de materiales completo (ID -> Objeto Material) para pasarlo al componente visual
+  const materialMapFull = useMemo(() => {
+    return allMaterials.reduce(
+      (acc, mat) => {
+        acc[mat._id] = mat;
+        return acc;
+      },
+      {} as Record<string, Material>,
+    );
+  }, [allMaterials]);
+
+  const materialCategoryMap = useMemo(() => {
     return allMaterials.reduce(
       (acc, mat) => {
         acc[mat._id] = mat.category;
@@ -254,7 +265,9 @@ export const WizardStep3_JobsAndAssembly: React.FC = () => {
     }
   };
 
-  // --- LÓGICA BLOQUE A (UNIONES) ---
+  // --- HANDLERS ---
+
+  // Handlers de Lógica de Negocio (Igual que antes)
   const getCurrentAssemblyForUnion = (targetPieceIndex: number) => {
     if (!mainPieces[targetPieceIndex]) return "";
     const piece = mainPieces[targetPieceIndex];
@@ -280,26 +293,16 @@ export const WizardStep3_JobsAndAssembly: React.FC = () => {
     const addonDef = assemblyAddons.find((a) => a.code === addonCode);
     if (addonDef) {
       const defaultMeasurements: Record<string, number> = {};
-      addonDef.requiredMeasurements.forEach((m) => {
-        defaultMeasurements[m] = m === "quantity" ? 1 : 0;
-      });
-
-      const newAddon: AppliedAddon = {
-        code: addonDef.code,
-        measurements: defaultMeasurements,
-      };
-
-      dispatch({
-        type: "ADD_ADDON_TO_PIECE",
-        payload: { pieceIndex: targetPieceIndex, addon: newAddon },
-      });
+      addonDef.requiredMeasurements.forEach((m) => (defaultMeasurements[m] = m === "quantity" ? 1 : 0));
+      dispatch({ type: "ADD_ADDON_TO_PIECE", payload: { pieceIndex: targetPieceIndex, addon: { code: addonDef.code, measurements: defaultMeasurements } } });
     }
   };
 
-  // --- LÓGICA BLOQUE B (TRABAJOS) ---
-  const handleTabChange = (_e: React.SyntheticEvent, newValue: number) => {
-    setActiveTabIndex(newValue);
-    dispatch({ type: "SET_ACTIVE_PIECE", payload: { index: newValue } });
+  // 2. TRABAJOS (Por pieza)
+  // Cambio de TAB a través del Card Selector
+  const handlePieceSelect = (index: number) => {
+    setActiveTabIndex(index);
+    dispatch({ type: "SET_ACTIVE_PIECE", payload: { index } });
   };
 
   const handleAddJob = (pieceIndex: number, addon: Addon) => {
@@ -357,10 +360,11 @@ export const WizardStep3_JobsAndAssembly: React.FC = () => {
   if (mainPieces.length === 0) return <Alert severity="warning">Sin piezas definidas.</Alert>;
 
   const numberOfUnions = Math.max(0, mainPieces.length - 1);
+  const activePiece = mainPieces[activeTabIndex];
 
   return (
     <Box sx={{ pb: 8 }}>
-      {/* --- TÍTULO DEL PASO --- */}
+      {/* Título Principal */}
       <Box sx={{ mb: 4, display: "flex", alignItems: "center", gap: 2 }}>
         <Avatar sx={{ bgcolor: theme.palette.primary.main }}>
           <HandymanIcon />
@@ -391,7 +395,7 @@ export const WizardStep3_JobsAndAssembly: React.FC = () => {
               const pieceBIndex = unionIndex + 1;
               if (!mainPieces[pieceBIndex]) return null;
 
-              const matCategoryB = materialMap[mainPieces[pieceBIndex].materialId!] || "";
+              const matCategoryB = materialCategoryMap[mainPieces[pieceBIndex].materialId!] || "";
               const currentVal = getCurrentAssemblyForUnion(pieceBIndex);
               const compatibleAssemblies = assemblyAddons.filter((a) => a.allowedMaterialCategories.includes(matCategoryB));
 
@@ -533,75 +537,77 @@ export const WizardStep3_JobsAndAssembly: React.FC = () => {
         </Typography>
         <Divider sx={{ mb: 3 }} />
 
-        <Tabs
-          value={activeTabIndex}
-          onChange={handleTabChange}
-          variant="scrollable"
-          scrollButtons="auto"
-          sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}
-        >
-          {mainPieces.map((p, idx) => (
-            <Tab label={`Pieza ${idx + 1}`} key={p.id} />
-          ))}
-        </Tabs>
+        {/* 1. SELECTOR VISUAL (Reemplazo de <Tabs>) */}
+        <ProjectPiecesSelector materialsMap={materialMapFull} activeIndex={activeTabIndex} onPieceSelect={handlePieceSelect} />
 
-        {mainPieces.map((piece, index) => {
-          if (activeTabIndex !== index) return null;
-          const matCategory = materialMap[piece.materialId!] || "";
+        {/* 2. ÁREA DE EDICIÓN DE LA PIEZA SELECCIONADA */}
+        {activePiece && (
+          <Fade in={true} key={activePiece.id} timeout={400}>
+            <Box sx={{ mt: 2, minHeight: 300 }}>
+              {(() => {
+                // Lógica de filtrado de addons para la pieza activa
+                const matCategory = materialCategoryMap[activePiece.materialId!] || "";
+                const appliedJobsWithIndex = activePiece.appliedAddons
+                  .map((addon, idx) => ({ ...addon, originalIndex: idx }))
+                  .filter((addon) => jobAddons.some((def) => def.code === addon.code));
 
-          // Filtrar qué addons son trabajos (excluir ensamblajes aplicados)
-          const appliedJobsWithIndex = piece.appliedAddons
-            .map((addon, idx) => ({ ...addon, originalIndex: idx }))
-            .filter((addon) => jobAddons.some((def) => def.code === addon.code));
+                // Filtrar trabajos disponibles para este material
+                const compatibleJobs = jobAddons.filter((job) => job.allowedMaterialCategories.includes(matCategory));
 
-          // Filtrar trabajos disponibles para este material
-          const compatibleJobs = jobAddons.filter((job) => job.allowedMaterialCategories.includes(matCategory));
+                return (
+                  <>
+                    <Box sx={{ mb: 4 }}>
+                      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+                        <Typography variant="subtitle2" color="text.secondary" sx={{ textTransform: "uppercase", letterSpacing: 1, fontWeight: "bold" }}>
+                          TRABAJOS APLICADOS EN PIEZA {activeTabIndex + 1}
+                        </Typography>
+                      </Box>
 
-          return (
-            <Box key={piece.id} role="tabpanel" sx={{ minHeight: 300, py: 2 }}>
-              {/* 1. LISTA DE TRABAJOS APLICADOS (ZONA SUPERIOR) */}
-              <Box sx={{ mb: 4 }}>
-                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2, textTransform: "uppercase", letterSpacing: 1, fontWeight: "bold" }}>
-                  Trabajos Aplicados en Pieza {index + 1}
-                </Typography>
+                      {appliedJobsWithIndex.length === 0 ? (
+                        <Alert severity="info" variant="outlined" sx={{ mb: 2, borderStyle: "dashed" }}>
+                          No hay trabajos añadidos en esta pieza. Selecciona uno del catálogo inferior.
+                        </Alert>
+                      ) : (
+                        appliedJobsWithIndex.map((applied) => {
+                          const def = jobAddons.find((d) => d.code === applied.code);
+                          return (
+                            <AppliedJobRow
+                              key={`${applied.code}-${applied.originalIndex}`}
+                              appliedAddon={applied}
+                              addonDef={def}
+                              imageUrl={getAddonImageUrl(def)} // USAMOS LA NUEVA FUNCIÓN
+                              onError={handleImageError}
+                              onRemove={() => handleRemoveJob(activeTabIndex, applied.originalIndex)}
+                              onUpdate={(field, val) => handleUpdateJobMeasurement(activeTabIndex, applied.originalIndex, field, val)}
+                            />
+                          );
+                        })
+                      )}
+                    </Box>
 
-                {appliedJobsWithIndex.length === 0 ? (
-                  <Alert severity="info" variant="outlined" sx={{ mb: 2, borderStyle: "dashed" }}>
-                    No hay trabajos añadidos en esta pieza. Selecciona uno del catálogo inferior.
-                  </Alert>
-                ) : (
-                  appliedJobsWithIndex.map((applied) => {
-                    const def = jobAddons.find((d) => d.code === applied.code);
-                    return (
-                      <AppliedJobRow
-                        key={`${applied.code}-${applied.originalIndex}`}
-                        appliedAddon={applied}
-                        addonDef={def}
-                        imageUrl={getAddonImageUrl(def)} // USAMOS LA NUEVA FUNCIÓN
-                        onError={handleImageError}
-                        onRemove={() => handleRemoveJob(index, applied.originalIndex)}
-                        onUpdate={(field, val) => handleUpdateJobMeasurement(index, applied.originalIndex, field, val)}
-                      />
-                    );
-                  })
-                )}
-              </Box>
+                    <Divider sx={{ my: 4 }}>
+                      <Chip label="Catálogo de Trabajos Disponibles" />
+                    </Divider>
 
-              <Divider sx={{ my: 4 }}>
-                <Chip label="Catálogo de Trabajos Disponibles" />
-              </Divider>
-
-              {/* 2. CATÁLOGO (ZONA INFERIOR - GRID) */}
-              <Grid container spacing={2}>
-                {compatibleJobs.map((job) => (
-                  <Grid size={{ xs: 6, sm: 4, md: 3, lg: 2 }} key={job._id}>
-                    <AvailableJobCard addon={job} imageUrl={getAddonImageUrl(job)} onError={handleImageError} onAdd={() => handleAddJob(index, job)} />
-                  </Grid>
-                ))}
-              </Grid>
+                    {/* 2. CATÁLOGO (ZONA INFERIOR - GRID) */}
+                    <Grid container spacing={2}>
+                      {compatibleJobs.map((job) => (
+                        <Grid size={{ xs: 6, sm: 4, md: 3, lg: 2 }} key={job._id}>
+                          <AvailableJobCard
+                            addon={job}
+                            imageUrl={getAddonImageUrl(job)}
+                            onError={handleImageError}
+                            onAdd={() => handleAddJob(activeTabIndex, job)}
+                          />
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </>
+                );
+              })()}
             </Box>
-          );
-        })}
+          </Fade>
+        )}
       </Box>
     </Box>
   );
