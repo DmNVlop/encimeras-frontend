@@ -66,8 +66,17 @@ export const WizardStep1_Materials: React.FC = () => {
     const fetchMaterials = async () => {
       try {
         setLoadingMaterials(true);
-        const data = await get<Material>("/materials");
-        console.log("Materiales cargados:", data);
+
+        // AQUI ESTÁ LA MAGIA
+        // Pasamos el objeto de configuración con 'params'
+        const data = await get<Material>("/materials", {
+          params: {
+            // Lista separada por comas de los campos que REALMENTE usas en la vista y el modal
+            fields: "name,category,imageUrl,selectableAttributes,_id",
+          },
+        });
+
+        console.log("Materiales optimizados cargados:", data);
         setMaterials(data);
       } catch (error) {
         console.error("Error al cargar materiales:", error);
