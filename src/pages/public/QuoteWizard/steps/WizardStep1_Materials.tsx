@@ -24,6 +24,7 @@ import { get } from "@/services/apiService";
 import type { Material } from "@/interfases/materials.interfase";
 import { MaterialAttributeModal } from "@/pages/public/common/MaterialAttributeModal";
 import { MaterialsFilter } from "@/pages/public/components/MaterialsFilter";
+import { CategoryFilter } from "../../components/CategoryFilter";
 
 // =============================================================================
 // COMPONENTE WizardStep1_Materials
@@ -41,8 +42,17 @@ export const WizardStep1_Materials: React.FC = () => {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loadingMaterials, setLoadingMaterials] = useState(true);
 
-  // --- NUEVO ESTADO PARA EL FILTRO ---
+  // --- ESTADO PARA EL FILTRO ---
   const [searchTerm, setSearchTerm] = useState("");
+
+  // --- ESTADO PARA CATEGORÍA ---
+  const [selectedCategory, setSelectedCategory] = useState("all");
+
+  // Calcular dinámicamente las categorías disponibles basadas en los materiales cargados
+  const uniqueCategories = useMemo(() => {
+    const categories = materials.map((m) => m.category).filter(Boolean); // Extraer categorías
+    return Array.from(new Set(categories)); // Eliminar duplicados
+  }, [materials]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [materialForModal, setMaterialForModal] = useState<Material | null>(null);
@@ -57,6 +67,7 @@ export const WizardStep1_Materials: React.FC = () => {
       try {
         setLoadingMaterials(true);
         const data = await get<Material>("/materials");
+        console.log("Materiales cargados:", data);
         setMaterials(data);
       } catch (error) {
         console.error("Error al cargar materiales:", error);
@@ -70,21 +81,23 @@ export const WizardStep1_Materials: React.FC = () => {
   // =======================================================================
   // LÓGICA DE FILTRADO (useMemo)
   // =======================================================================
-  // Esta lógica se ejecuta automáticamente cuando cambia 'searchTerm' o 'materials'.
-  // Filtramos por Nombre O por Categoría.
+  // Esta lógica se ejecuta automáticamente cuando cambia 'searchTerm', 'materials' o 'selectedCategory'.
+  // Filtramos por Nombre o por Categoría.
   const filteredMaterials = useMemo(() => {
-    if (!searchTerm) return materials; // Si está vacío, devolvemos todo
-
-    const lowerTerm = searchTerm.toLowerCase();
-
     return materials.filter((mat) => {
-      const matchName = mat.name.toLowerCase().includes(lowerTerm);
-      // Asumimos que category existe, si es opcional usa mat.category?.
-      const matchCategory = mat.category.toLowerCase().includes(lowerTerm);
+      // 1. Filtro de Texto (Nombre)
+      // Nota: He quitado la búsqueda por categoría en texto para evitar redundancia,
+      // pero puedes dejarla si quieres que el buscador de texto también busque categorías.
+      const lowerTerm = searchTerm.toLowerCase();
+      const matchText = !searchTerm || mat.name.toLowerCase().includes(lowerTerm);
 
-      return matchName || matchCategory;
+      // 2. Filtro de Categoría (Select)
+      const matchCategory = selectedCategory === "all" || mat.category === selectedCategory;
+
+      // Ambas condiciones deben cumplirse
+      return matchText && matchCategory;
     });
-  }, [materials, searchTerm]);
+  }, [materials, searchTerm, selectedCategory]);
 
   // =======================================================================
   // HANDLERS
@@ -143,11 +156,26 @@ export const WizardStep1_Materials: React.FC = () => {
           </Box>
         </Box>
 
-        {/* --- FILTRO / BUSCADOR (NUEVO) --- */}
+        {/* --- FILTRO / BUSCADOR --- */}
         {/* Solo mostramos el filtro si hay materiales cargados */}
         {materials.length > 0 && (
-          <Box sx={{ maxWidth: 600, minWidth: 320, width: "100%" }}>
-            <MaterialsFilter searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+          <Box
+            sx={{
+              display: "flex",
+              gap: 2,
+              flexWrap: "wrap", // Para que se adapte a móviles
+              justifyContent: "flex-end",
+              width: "100%",
+              maxWidth: 800,
+            }}
+          >
+            {/* Componente Nuevo */}
+            <CategoryFilter categories={uniqueCategories} selectedCategory={selectedCategory} onCategoryChange={setSelectedCategory} />
+
+            {/* Componente Existente (ajustamos width para que convivan bien) */}
+            <Box sx={{ flexGrow: 1, minWidth: 250 }}>
+              <MaterialsFilter searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+            </Box>
           </Box>
         )}
       </Box>
