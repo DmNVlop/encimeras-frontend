@@ -31,7 +31,7 @@ export const ProjectPiecesSelector: React.FC<ProjectPiecesSelectorProps> = ({ ma
   return (
     <Box sx={{ width: "100%", mb: 3 }}>
       <Typography variant="caption" color="text.secondary" fontWeight="bold" sx={{ mb: 1, display: "block", textTransform: "uppercase" }}>
-        SELECCIONA UNA PIEZA PARA AÑADIR TRABAJOS ({mainPieces.length})
+        SELECCIONA UNA PIEZA PARA AÑADIR TRABAJOS ({mainPieces?.length || ""})
       </Typography>
 
       {/* Contenedor Scrollable */}
@@ -40,7 +40,8 @@ export const ProjectPiecesSelector: React.FC<ProjectPiecesSelectorProps> = ({ ma
           display: "flex",
           gap: 2,
           overflowX: "auto",
-          pb: 2, // Espacio para la sombra y scrollbar
+          pt: 1, // Espacio para la sombra y scrollbar
+          pb: 1, // Espacio para la sombra y scrollbar
           px: 1, // Padding lateral para que no se corte la sombra del primero
           "&::-webkit-scrollbar": { height: 6 },
           "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.grey[300], borderRadius: 4 },

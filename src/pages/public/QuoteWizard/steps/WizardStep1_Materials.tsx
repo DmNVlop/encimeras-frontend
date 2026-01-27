@@ -16,7 +16,7 @@ import Grid from "@mui/material/Grid";
 import TextureIcon from "@mui/icons-material/Texture";
 
 // Importar HOOKS del Contexto
-import { useQuoteDispatch, useQuoteState, type MaterialConfirmationPayload } from "@/context/QuoteContext";
+import { useQuoteDispatch, useQuoteState } from "@/context/QuoteContext";
 
 // Importar API Service
 import { get } from "@/services/apiService";
@@ -25,6 +25,7 @@ import type { Material } from "@/interfases/materials.interfase";
 import { MaterialAttributeModal } from "@/pages/public/common/MaterialAttributeModal";
 import { MaterialsFilter } from "@/pages/public/components/MaterialsFilter";
 import { CategoryFilter } from "../../components/CategoryFilter";
+import type { MaterialConfirmationPayload } from "@/context/QuoteInterfases";
 
 // =============================================================================
 // COMPONENTE WizardStep1_Materials

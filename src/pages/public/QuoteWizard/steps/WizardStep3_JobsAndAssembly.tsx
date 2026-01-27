@@ -30,12 +30,13 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import ConstructionIcon from "@mui/icons-material/Construction";
 
 // --- IMPORTACIONES ---
-import { useQuoteDispatch, useQuoteState, type AppliedAddon } from "@/context/QuoteContext";
+import { useQuoteDispatch, useQuoteState } from "@/context/QuoteContext";
 import { get } from "@/services/apiService";
 import type { Material } from "@/interfases/materials.interfase";
 import type { Addon } from "@/interfases/addon.interfase";
 import { MeasurementInput } from "@/components/admin/inputs/MeasurementInput";
 import { ProjectPiecesSelector } from "../../components/ProjectPiecesSelector";
+import type { AppliedAddon } from "@/context/QuoteInterfases";
 
 // --- CONSTANTES VISUALES ---
 const IMAGE_PATH = "/addons";
