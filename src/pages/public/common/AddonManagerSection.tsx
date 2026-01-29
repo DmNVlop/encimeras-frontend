@@ -5,7 +5,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 
 import type { Addon } from "@/interfases/addon.interfase";
-import type { MainPiece } from "@/context/QuoteContext";
+import type { MainPiece } from "@/context/QuoteInterfases";
 
 // Helper para etiquetas
 const measurementLabels: { [key: string]: string } = {
@@ -49,12 +49,12 @@ export const AddonManagerSection: React.FC<AddonManagerSectionProps> = ({
   // B. Identificar cuáles de los compatibles YA están aplicados en la pieza
   // Mapeamos para guardar el índice real dentro del array appliedAddons de la pieza
   const appliedInThisSection = piece.appliedAddons
-    .map((pa, index) => ({ ...pa, originalIndex: index }))
-    .filter((pa) => compatibleAddons.some((a) => a.code === pa.code));
+    .map((pa: any, index: number) => ({ ...pa, originalIndex: index }))
+    .filter((pa: any) => compatibleAddons.some((a: any) => a.code === pa.code));
 
   // C. Identificar cuáles faltan por añadir (para mostrar botones)
   // (Asumimos que solo se puede añadir 1 vez cada tipo de addon por pieza)
-  const notAppliedYet = compatibleAddons.filter((addon) => !piece.appliedAddons.some((pa) => pa.code === addon.code));
+  const notAppliedYet = compatibleAddons.filter((addon: any) => !piece.appliedAddons.some((pa: any) => pa.code === addon.code));
 
   return (
     <Box sx={{ my: 3 }}>
@@ -65,9 +65,9 @@ export const AddonManagerSection: React.FC<AddonManagerSectionProps> = ({
       {/* --- LISTA DE APLICADOS --- */}
       {appliedInThisSection.length > 0 ? (
         <Grid container spacing={2} sx={{ mb: 2 }}>
-          {appliedInThisSection.map((appliedItem) => {
+          {appliedInThisSection.map((appliedItem: any) => {
             // Buscamos la definición completa para saber nombre y qué inputs pide
-            const definition = compatibleAddons.find((a) => a.code === appliedItem.code)!;
+            const definition = compatibleAddons.find((a: any) => a.code === appliedItem.code)!;
 
             return (
               <Grid size={{ xs: 12, md: 6 }} key={appliedItem.originalIndex}>
@@ -91,7 +91,7 @@ export const AddonManagerSection: React.FC<AddonManagerSectionProps> = ({
                         </Typography>
                       </Grid>
                     ) : (
-                      definition.requiredMeasurements.map((field) => (
+                      definition.requiredMeasurements.map((field: string) => (
                         <Grid size={{ xs: 6 }} key={field}>
                           <TextField
                             fullWidth
@@ -119,7 +119,7 @@ export const AddonManagerSection: React.FC<AddonManagerSectionProps> = ({
 
       {/* --- BOTONES PARA AÑADIR --- */}
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-        {notAppliedYet.map((addon) => (
+        {notAppliedYet.map((addon: any) => (
           <Button key={addon._id} variant="outlined" size="small" startIcon={<AddCircleOutlineIcon />} onClick={() => onAdd(pieceIndex, addon)}>
             {addon.name}
           </Button>

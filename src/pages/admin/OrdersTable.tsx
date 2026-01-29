@@ -38,10 +38,10 @@ export const OrdersPage: React.FC = () => {
 
   // Estado para el detalle de la orden seleccionada
   const [selectedOrderFull, setSelectedOrderFull] = useState<any | null>(null);
-  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [_isLoadingDetail, setIsLoadingDetail] = useState(false);
 
   // Consumimos el socket del contexto (Singleton)
-  const { socket, isConnected } = useSocket();
+  const { socket } = useSocket(); // ,isConnected
 
   // 1. Carga inicial REST (Snapshot inicial)
   useEffect(() => {

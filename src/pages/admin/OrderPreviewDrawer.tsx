@@ -3,21 +3,12 @@ import { Drawer, Box, Typography, IconButton, List, ListItem, ListItemText, Chip
 import CloseIcon from "@mui/icons-material/Close";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DoNotDisturbOnIcon from "@mui/icons-material/DoNotDisturbOn";
-import ViewInArIcon from "@mui/icons-material/ViewInAr";
 import PrecisionManufacturingIcon from "@mui/icons-material/PrecisionManufacturing";
-
-interface OrderPreviewDrawerProps {
-  open: boolean;
-  onClose: () => void;
-  order: any | null; // El objeto orden completo (con header y technicalSnapshot si lo tienes cargado)
-  onApprove: (orderId: string) => void;
-  onOpenDetail: (orderId: string) => void; // Para ir a la vista completa 3D
-}
 
 // Helper para traducir claves técnicas a etiquetas legibles (Opcional)
 const ATTRIBUTE_LABELS: Record<string, string> = {};
 
-export const OrderPreviewDrawer: React.FC<any> = ({ open, onClose, order, onApprove, onReject, onOpenDetail }) => {
+export const OrderPreviewDrawer: React.FC<any> = ({ open, onClose, order, onApprove, onReject }) => {
   if (!order) return null;
 
   // Extraemos datos de forma segura (asumiendo que quizás solo tienes el header al principio)
