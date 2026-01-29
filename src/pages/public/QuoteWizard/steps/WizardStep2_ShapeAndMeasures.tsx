@@ -6,7 +6,7 @@ import Grid from "@mui/material/Grid";
 import StraightenIcon from "@mui/icons-material/Straighten";
 
 // Importar HOOKS del Contexto
-import { useQuoteDispatch, useQuoteState, type MaterialConfirmationPayload } from "@/context/QuoteContext";
+import { useQuoteDispatch, useQuoteState } from "@/context/QuoteContext";
 
 // Importaciones REALES de tu API y Tipos
 import { get } from "@/services/apiService";
@@ -18,6 +18,8 @@ import EncimeraPreview from "@/pages/public/common/EncimeraPreview/encimera-prev
 // Interfases y Tipos
 import type { SelectionState, ShapeVariation } from "@/interfases/shape-variation.interfase";
 import { shapeVariations } from "@/pages/public/common/shapes-step2";
+import { selectOnFocus } from "@/utils/form.utils";
+import type { MaterialConfirmationPayload } from "@/context/QuoteInterfases";
 
 // =============================================================================
 // COMPONENTE WizardStep2_ShapeAndMeasures
@@ -312,6 +314,7 @@ export const WizardStep2_ShapeAndMeasures: React.FC = () => {
                           type="number"
                           value={piece.measurements.length_mm}
                           onChange={(e) => handleMeasureChange(index, "length_mm", e.target.value)}
+                          onFocus={selectOnFocus}
                           variant="outlined"
                         />
                       </Grid>
@@ -323,6 +326,7 @@ export const WizardStep2_ShapeAndMeasures: React.FC = () => {
                           type="number"
                           value={piece.measurements.width_mm}
                           onChange={(e) => handleMeasureChange(index, "width_mm", e.target.value)}
+                          onFocus={selectOnFocus}
                         />
                       </Grid>
                     </Grid>

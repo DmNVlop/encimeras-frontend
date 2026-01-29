@@ -15,10 +15,14 @@ const apiClient = axios.create({
 // Interceptor para añadir el token a todas las peticiones
 apiClient.interceptors.request.use(
   (config) => {
+    // 1. Leer token del almacenamiento
     const token = getToken();
+
+    // 2. Si existe, pegarlo en la cabecera
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
     return config;
   },
   (error) => {
@@ -128,3 +132,5 @@ export const remove = (endpoint: string, ids: string[]): Promise<any> => {
   // Si hay varios IDs, los enviamos en el body
   return apiClient.delete(endpoint, { data: { ids } }).then((res) => res.data);
 };
+
+export default apiClient;

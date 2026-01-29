@@ -1,7 +1,4 @@
-// =============================================================================
-// SECCIÓN DE INTERFACES Y TIPOS
-
-import type { PieceLayout } from "@/context/QuoteContext";
+import type { PieceLayout } from "@/context/QuoteInterfases";
 
 // =============================================================================
 export type SelectionState = Record<string, string>;

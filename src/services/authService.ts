@@ -1,13 +1,7 @@
 // src/services/authService.ts
-import axios from "axios";
-import { config } from "@/config";
 
 import type { LoginDto } from "@/types/LoginDto";
-
-// Configura una instancia de Axios con la URL base de tu API
-const apiClient = axios.create({
-  baseURL: config.api.baseURL, // La URL de tu backend
-});
+import apiClient from "./apiService";
 
 export const login = async (credentials: LoginDto) => {
   try {

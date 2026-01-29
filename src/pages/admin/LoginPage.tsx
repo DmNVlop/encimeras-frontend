@@ -10,13 +10,50 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  // const handleLogin = async (event: React.FormEvent) => {
+  //   event.preventDefault();
+  //   setError("");
+  //   try {
+  //     await login({ username, password });
+  //     navigate("/admin/materials"); // Redirige al dashboard si el login es exitoso
+  //   } catch (err) {
+  //     setError("Credenciales incorrectas. Por favor, inténtalo de nuevo.");
+  //   }
+  // };
+
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
+
     try {
-      await login({ username, password });
-      navigate("/admin/materials"); // Redirige al dashboard si el login es exitoso
+      const data = await login({ username, password });
+      console.log("Login exitoso: ", data);
+
+      // 1. Guardar Token y Datos
+      localStorage.setItem("token", data.access_token);
+      // Opcional: Guardar el usuario en localStorage o Context para no perderlo al refrescar
+      // localStorage.setItem("user", JSON.stringify(data.user));
+
+      // 2. Extraemos los roles (asegurando que sea un array)
+      const userRoles = data.user.roles || [];
+
+      // 3. Lógica de Redirección por Jerarquía (El orden importa)
+
+      if (userRoles.includes("ADMIN")) {
+        // El Admin tiene prioridad absoluta
+        navigate("/admin/orders");
+      } else if (userRoles.includes("SALES")) {
+        // Si no es Admin, pero es Ventas
+        navigate("/admin/orders");
+      } else if (userRoles.includes("WORKER")) {
+        // Si es operario de fábrica
+        navigate("/factory/queue");
+      } else {
+        // USER o cualquier otro caso (Default)
+        navigate("/");
+      }
     } catch (err) {
+      console.error(err);
       setError("Credenciales incorrectas. Por favor, inténtalo de nuevo.");
     }
   };

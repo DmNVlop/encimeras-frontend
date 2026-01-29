@@ -3,6 +3,7 @@ import React from "react";
 import { TextField } from "@mui/material";
 import { MEASUREMENT_CONFIG } from "@/config/measurements";
 import { type MeasurementKey } from "@/types/measurements";
+import { selectOnFocus } from "@/utils/form.utils";
 
 interface MeasurementInputProps {
   fieldKey: string; // Recibimos string, validamos dentro
@@ -46,6 +47,7 @@ export const MeasurementInput: React.FC<MeasurementInputProps> = ({ fieldKey, va
       title={description}
       // Feedback Visual
       error={isInvalid}
+      onFocus={selectOnFocus}
       helperText={isInvalid ? "Requerido" : ""}
       // Estilos controlados por config
       sx={{ width: inputConfig.defaultWidth }}
