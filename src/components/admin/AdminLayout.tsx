@@ -27,6 +27,8 @@ const AdminLayout: React.FC = () => {
     { text: "Reglas Medidas", icon: <StoneIcon />, path: "/admin/rule-sets" },
     { text: "Complementos", icon: <StoneIcon />, path: "/admin/addons" },
     { text: "Precios", icon: <PriceCheckIcon />, path: "/admin/price-configs" },
+    { text: "-------------------", icon: "", path: "#" },
+    { text: "Órdenes", icon: <PriceCheckIcon />, path: "/admin/orders" },
   ];
 
   return (

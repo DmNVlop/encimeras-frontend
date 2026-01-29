@@ -3,6 +3,7 @@ import { Suspense, lazy } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { QuoteProvider } from "./context/QuoteContext";
 import { Box, CircularProgress } from "@mui/material";
+import { OrdersPage } from "./pages/admin/OrdersTable";
 
 // Lazy imports for pages and layouts
 const LoginPage = lazy(() => import("./pages/admin/LoginPage"));
@@ -56,6 +57,7 @@ function App() {
               <Route path="cutouts" element={<CutoutsPage />} />
               <Route path="price-configs" element={<PriceConfigsPage />} />
               <Route path="attributes" element={<AttributesPage />} />
+              <Route path="orders" element={<OrdersPage />} />
               {/* Añadir más rutas aquí (cantos, cortes, etc.) */}
             </Route>
           </Route>

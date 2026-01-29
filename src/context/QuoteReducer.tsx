@@ -235,6 +235,27 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
         error: action.payload.error, // Guarda el mensaje de error
       };
 
+    case "LOAD_SAVED_PROJECT":
+      return {
+        ...state,
+        // Restauramos la configuración
+        wizardTempMaterial: action.payload.configuration.wizardTempMaterial,
+        mainPieces: action.payload.configuration.mainPieces,
+        // Es vital restaurar el material para que el Paso 1 se vea bien
+
+        // Restauramos identidad y alertas
+        currentDraftId: action.payload._id,
+        isDraftRecalculated: action.payload.recalculated || false, // Flag que viene del backend
+        calculationResult: { totalPoints: action.payload.currentPricePoints }, // Hidratamos el precio
+      };
+
+    // Cuando guardamos con éxito un borrador nuevo
+    case "SET_DRAFT_ID":
+      return {
+        ...state,
+        currentDraftId: action.payload,
+      };
+
     default:
       return state;
   }

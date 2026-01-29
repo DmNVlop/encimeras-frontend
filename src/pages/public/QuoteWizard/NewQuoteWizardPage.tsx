@@ -1,7 +1,24 @@
 import React, { useState } from "react";
-import { Container, Box, Paper, Stepper, Step, Button, Typography, useTheme, useMediaQuery, MobileStepper, Alert, StepButton } from "@mui/material";
+import {
+  Container,
+  Box,
+  Paper,
+  Stepper,
+  Step,
+  Button,
+  Typography,
+  useTheme,
+  useMediaQuery,
+  MobileStepper,
+  Alert,
+  StepButton,
+  Backdrop,
+  CircularProgress,
+  Snackbar,
+  AlertTitle,
+} from "@mui/material";
 import { KeyboardArrowLeft, KeyboardArrowRight } from "@mui/icons-material";
-import { QuoteProvider, useQuoteState } from "@/context/QuoteContext";
+import { QuoteProvider, useQuoteDispatch, useQuoteState } from "@/context/QuoteContext";
 
 // Importar los pasos
 import { WizardStep1_Materials } from "./steps/WizardStep1_Materials";
@@ -9,6 +26,8 @@ import { WizardStep2_ShapeAndMeasures } from "./steps/WizardStep2_ShapeAndMeasur
 import { WizardStep3_JobsAndAssembly } from "./steps/WizardStep3_JobsAndAssembly";
 import { WizardStep4_Complements } from "./steps/WizardStep4_Complements";
 import { WizardStep5_Summary } from "./steps/WizardStep5_Summary";
+import { useLocation } from "react-router-dom";
+import { draftsApi } from "@/services/drafts.api";
 
 const steps = ["Material", "Forma y Medidas", "Trabajos y Ensamblaje", "Complementos", "Resumen"];
 
@@ -35,6 +54,56 @@ const WizardStepperContent: React.FC = () => {
   const { wizardTempMaterial, mainPieces } = useQuoteState();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+  const [isLoadingDraft, setIsLoadingDraft] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [showPriceWarning, setShowPriceWarning] = useState(false);
+
+  // --- HOOKS ---
+  const dispatch = useQuoteDispatch(); // <--- Necesitas exponer esto en tu Context
+  const location = useLocation(); // Para leer ?draftId=...
+
+  // --- EFECTO DE CARGA PARA LEER RUTA ---
+  React.useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const draftId = params.get("draftId");
+
+    // Si hay ID en la URL y aún no lo hemos cargado en el estado
+    if (draftId && !mainPieces.length && !wizardTempMaterial) {
+      loadDraft(draftId);
+    }
+  }, [location.search]);
+
+  const loadDraft = async (id: string) => {
+    setIsLoadingDraft(true);
+    setLoadError(null);
+    try {
+      const { data } = await draftsApi.getById(id);
+
+      // Despachamos al reducer
+      dispatch({
+        type: "LOAD_SAVED_PROJECT",
+        payload: {
+          ...data.data, // El objeto configuración guardado
+          _id: id, // Aseguramos que el ID venga
+          recalculated: data.status === "EXPIRED_RECALCULATED",
+        },
+      });
+
+      // Si fue recalculado, mostramos aviso
+      if (data.status === "EXPIRED_RECALCULATED") {
+        setShowPriceWarning(true);
+      }
+
+      // Opcional: Saltar directo al resumen o al paso 2
+      // setActiveStep(1);
+    } catch (error) {
+      console.error(error);
+      setLoadError("No se pudo recuperar el presupuesto.");
+    } finally {
+      setIsLoadingDraft(false);
+    }
+  };
 
   // --- LOGICA DE VALIDACIÓN PURA ---
   // Verifica si el Paso 1 (Material) está completo
@@ -243,6 +312,31 @@ const WizardStepperContent: React.FC = () => {
           </Box>
         )}
       </Paper>
+
+      {/* --- ELEMENTOS DE UI en Overlay --- */}
+      {/* 1. Spinner de carga bloquiante */}
+      <Backdrop sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }} open={isLoadingDraft}>
+        <CircularProgress color="inherit" />
+        <Box ml={2}>Recuperando presupuesto...</Box>
+      </Backdrop>
+
+      {/* 2. Alerta de precios recalculados */}
+      <Snackbar
+        open={showPriceWarning}
+        autoHideDuration={10000}
+        onClose={() => setShowPriceWarning(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert severity="warning" onClose={() => setShowPriceWarning(false)} sx={{ width: "100%" }}>
+          <AlertTitle>Precios Actualizados</AlertTitle>
+          Tu presupuesto ha caducado. Hemos actualizado los precios a la tarifa vigente.
+        </Alert>
+      </Snackbar>
+
+      {/* 3. Alerta de Error */}
+      <Snackbar open={!!loadError} autoHideDuration={6000} onClose={() => setLoadError(null)}>
+        <Alert severity="error">{loadError}</Alert>
+      </Snackbar>
     </Container>
   );
 };

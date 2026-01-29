@@ -101,6 +101,8 @@ export interface QuoteState {
   isCalculating: boolean;
   calculationResult: any | null;
   error: string | null;
+  currentDraftId: string | null; // NULL = Nuevo proyecto, STRING = Editando borrador
+  isDraftRecalculated: boolean; // Para mostrar alertas si el precio cambió al cargar
 }
 
 /**

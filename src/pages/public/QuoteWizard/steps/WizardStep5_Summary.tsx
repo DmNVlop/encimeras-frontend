@@ -16,11 +16,14 @@ import {
   DialogContent,
   useTheme,
   Avatar,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import SendIcon from "@mui/icons-material/Send";
 import CalculateIcon from "@mui/icons-material/Calculate";
 import CloseIcon from "@mui/icons-material/Close";
+import SaveIcon from "@mui/icons-material/Save";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import SummarizeIcon from "@mui/icons-material/Summarize";
 
@@ -29,6 +32,7 @@ import { useQuoteState, useQuoteDispatch } from "@/context/QuoteContext";
 import { post } from "@/services/apiService"; // Asumimos que tienes un método 'post' genérico
 import type { CalculationResponse } from "@/interfases/price.interfase";
 import { ApiErrorFeedback } from "@/pages/public/common/ApiErrorFeedback";
+import { draftsApi } from "@/services/drafts.api";
 // import { Countertop3DViewer } from "../../common/Countertop3DViewer";
 
 // =============================================================================
@@ -38,12 +42,16 @@ import { ApiErrorFeedback } from "@/pages/public/common/ApiErrorFeedback";
 export const WizardStep5_Summary: React.FC = () => {
   const theme = useTheme();
 
-  const { mainPieces, isCalculating, calculationResult, error } = useQuoteState();
+  const { mainPieces, isCalculating, calculationResult, error, currentDraftId, wizardTempMaterial } = useQuoteState();
   const dispatch = useQuoteDispatch();
 
   // Estado local para el envío final
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+
+  // --- ESTADOS PARA BORRADORES ---
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   // ESTADO PARA EL MODAL 3D
   const [open3D, setOpen3D] = useState(false);
@@ -74,7 +82,7 @@ export const WizardStep5_Summary: React.FC = () => {
   };
 
   // ---------------------------------------------------------------------------
-  // 1. HANDLER: CALCULAR PRECIO (POST /quotes/calculate)
+  // HANDLER: CALCULAR PRECIO (POST /quotes/calculate)
   // ---------------------------------------------------------------------------
   const handleCalculate = async () => {
     dispatch({ type: "CALCULATION_START" });
@@ -103,44 +111,115 @@ export const WizardStep5_Summary: React.FC = () => {
   };
 
   // ---------------------------------------------------------------------------
-  // 2. HANDLER: ENVIAR PEDIDO (POST /quotes)
+  // HANDLER: ENVIAR PEDIDO (POST /quotes)
   // ---------------------------------------------------------------------------
   const handleFinalSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
+    setSubmitSuccess(false);
 
     const formData = new FormData(event.currentTarget);
-
-    // Construimos el CreateQuoteDto exacto que espera el Backend
-    const finalPayload = {
-      // Datos del Cliente
-      customerName: formData.get("name") as string,
-      customerEmail: formData.get("email") as string,
-      customerPhone: formData.get("phone") as string,
-
-      // Datos del Proyecto (El backend recalculará el precio por seguridad)
-      mainPieces: mainPieces,
-    };
+    const customerEmail = formData.get("email") as string;
+    // const customerName = formData.get("name") as string;
 
     try {
-      await post("/quotes", finalPayload);
+      // PASO 1: Garantizar que existe un Borrador actualizado
+      let activeDraftId = currentDraftId;
+
+      // Payload actual del contexto
+      const currentPayload = {
+        configuration: { wizardTempMaterial, mainPieces },
+        currentPricePoints: calculationResult?.totalPoints || 0,
+      };
+
+      if (activeDraftId) {
+        // A) Si YA existe: Lo actualizamos silenciosamente para asegurar que
+        // lo que se convierte en orden es EXACTAMENTE lo que hay en pantalla.
+        await draftsApi.update(activeDraftId, currentPayload);
+      } else {
+        // B) Si NO existe: Lo creamos en segundo plano
+        const draftRes = await draftsApi.create(currentPayload);
+        activeDraftId = draftRes.data.id;
+        // Importante: Actualizamos el contexto por si el usuario se queda aquí
+        dispatch({ type: "SET_DRAFT_ID", payload: activeDraftId });
+      }
+
+      // PASO 2: Convertir ese Borrador en Orden Oficial
+      // El backend leerá el borrador (activeDraftId), creará el Snapshot y lo "quemará" (isConverted: true)
+      const orderRes = await draftsApi.convertToOrder({
+        draftId: activeDraftId,
+        customerId: customerEmail, // O el ID que prefieras usar
+        // deliveryInfo: { ... } // Si añades dirección en el futuro
+      });
+
+      console.log("Orden Creada:", orderRes.data.orderNumber);
       setSubmitSuccess(true);
-      alert("¡Presupuesto enviado con éxito! Te hemos enviado un email.");
-      // Aquí podrías redirigir o resetear el wizard
+
+      // Opcional: Aquí podrías limpiar el contexto o redirigir
+      // dispatch({ type: "RESET_WIZARD" });
     } catch (err: any) {
       console.error("Submit Error:", err);
-      alert("Error al enviar el presupuesto. Inténtalo de nuevo.");
+      alert("Hubo un error al procesar tu pedido. Por favor, intenta guardar el borrador manualmente primero.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   // ---------------------------------------------------------------------------
-  // 3. RENDERIZADO DEL DESGLOSE (Visualización de CalculationResponse)
+  // HANDLER: GUARDAR/ACTUALIZAR BORRADOR
+  // ---------------------------------------------------------------------------
+  const handleSaveDraft = async () => {
+    setIsSavingDraft(true);
+    setSaveMessage(null);
+
+    const payload = {
+      configuration: {
+        wizardTempMaterial: wizardTempMaterial,
+        mainPieces: mainPieces,
+      },
+      currentPricePoints: calculationResult?.totalPoints || 0,
+    };
+
+    try {
+      if (currentDraftId) {
+        // ACTUALIZAR EXISTENTE (PUT)
+        await draftsApi.update(currentDraftId, payload);
+        setSaveMessage({ type: "success", text: "Presupuesto actualizado." });
+      } else {
+        // CREAR NUEVO (POST)
+        const response = await draftsApi.create(payload);
+        const newId = response.data.id;
+
+        dispatch({ type: "SET_DRAFT_ID", payload: newId });
+
+        // Actualizamos URL para permitir F5
+        const newUrl = `${window.location.pathname}?draftId=${newId}`;
+        window.history.replaceState({ path: newUrl }, "", newUrl);
+
+        setSaveMessage({ type: "success", text: "Borrador guardado correctamente." });
+      }
+    } catch (err) {
+      console.error("Save Draft Error:", err);
+      setSaveMessage({ type: "error", text: "No se pudo guardar el borrador." });
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
+
+  // ---------------------------------------------------------------------------
+  // HANDLER: RENDERIZADO DEL DESGLOSE (Visualización de CalculationResponse)
   // ---------------------------------------------------------------------------
   const renderBreakdown = () => {
     if (!calculationResult) return null;
 
+    // 1. Verificación reforzada: ¿Existe el resultado y tiene el array de piezas?
+    if (!calculationResult || !calculationResult.pieces) {
+      return (
+        <Alert severity="info" sx={{ mt: 2 }}>
+          Pulsa "Calcular Presupuesto" para ver el desglose detallado.
+        </Alert>
+      );
+    }
     // Casta forzado seguro gracias a la interfaz
     const result = calculationResult as CalculationResponse;
 
@@ -215,6 +294,21 @@ export const WizardStep5_Summary: React.FC = () => {
   };
 
   // ---------------------------------------------------------------------------
+  // HANDLER: REINICIAMOS EL PRESUPUESTADOR
+  // ---------------------------------------------------------------------------
+  const handleStartNew = () => {
+    // 1. Obtenemos la ruta base sin parámetros (ej. "/presupuestador" en lugar de "/presupuestador?draftId=xyz")
+    const basePath = window.location.pathname;
+
+    // 2. Forzamos una navegación nativa del navegador.
+    // Esto hace dos cosas:
+    // a) Elimina el query param ?draftId=...
+    // b) Provoca un refresco real (Hard Reload), lo que limpia la memoria RAM,
+    //    el Contexto de React y el contexto WebGL de BabylonJS.
+    window.location.href = basePath;
+  };
+
+  // ---------------------------------------------------------------------------
   // RENDER PRINCIPAL
   // ---------------------------------------------------------------------------
   if (submitSuccess) {
@@ -224,7 +318,7 @@ export const WizardStep5_Summary: React.FC = () => {
           ¡Gracias!
         </Typography>
         <Typography>Tu solicitud de presupuesto ha sido enviada correctamente.</Typography>
-        <Button variant="outlined" sx={{ mt: 3 }} onClick={() => window.location.reload()}>
+        <Button variant="outlined" sx={{ mt: 3 }} onClick={handleStartNew}>
           Iniciar nuevo presupuesto
         </Button>
       </Paper>
@@ -269,6 +363,19 @@ export const WizardStep5_Summary: React.FC = () => {
             Ver en 3D
           </Button> */}
 
+          {/* BOTÓN GUARDAR BORRADOR */}
+          <Button
+            variant="outlined"
+            color="primary"
+            size="large"
+            startIcon={isSavingDraft ? <CircularProgress size={20} /> : <SaveIcon />}
+            onClick={handleSaveDraft}
+            disabled={isSavingDraft || mainPieces.length === 0}
+            sx={{ py: 1.5, minWidth: 200 }}
+          >
+            {isSavingDraft ? "Guardando..." : currentDraftId ? "Actualizar Borrador" : "Guardar Borrador"}
+          </Button>
+
           {/* BOTÓN CALCULAR (EXISTENTE) */}
           <Box sx={{ position: "relative" }}>
             <Button
@@ -285,6 +392,13 @@ export const WizardStep5_Summary: React.FC = () => {
           </Box>
         </Box>
 
+        {/* Snackbar para el feedback de guardado */}
+        <Snackbar open={!!saveMessage} autoHideDuration={4000} onClose={() => setSaveMessage(null)} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
+          <Alert severity={saveMessage?.type || "info"} variant="filled">
+            {saveMessage?.text}
+          </Alert>
+        </Snackbar>
+
         {error && <ApiErrorFeedback error={error} title="No se pudo calcular el presupuesto" onRetry={handleCalculate} />}
       </Paper>
 
@@ -293,10 +407,15 @@ export const WizardStep5_Summary: React.FC = () => {
         <>
           {renderBreakdown()}
 
-          {/* FORMULARIO DE CONTACTO */}
           <Box sx={{ mt: 5 }}>
             <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
               Datos de Contacto
+            </Typography>
+          </Box>
+          {/* FORMULARIO DE CONTACTO */}
+          <Box sx={{ mt: 5 }}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
+              Datos de Cliente
             </Typography>
             <Paper component="form" onSubmit={handleFinalSubmit} elevation={3} sx={{ p: 3 }}>
               <Grid container spacing={3}>

@@ -28,6 +28,8 @@ export const initialState: QuoteState = {
   isCalculating: false,
   calculationResult: null,
   error: null,
+  currentDraftId: null,
+  isDraftRecalculated: false,
 };
 
 // --- 5. CONTEXTO, PROVIDER Y HOOKS (Sin cambios) ---
