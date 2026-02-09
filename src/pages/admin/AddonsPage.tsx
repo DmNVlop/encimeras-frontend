@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import { DataGrid, type GridColDef, GridActionsCellItem } from "@mui/x-data-grid";
 import { esES } from "@mui/x-data-grid/locales"; // Para traducir la grilla
-import { get, remove } from "@/services/apiService"; // Nuestros servicios API
+import { get, remove } from "@/services/api.service"; // Nuestros servicios API
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";

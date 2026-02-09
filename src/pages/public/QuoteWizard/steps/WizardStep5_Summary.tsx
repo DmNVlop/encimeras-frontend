@@ -29,10 +29,10 @@ import SummarizeIcon from "@mui/icons-material/Summarize";
 
 // 1. Importar Contexto
 import { useQuoteState, useQuoteDispatch } from "@/context/QuoteContext";
-import { post } from "@/services/apiService"; // Asumimos que tienes un método 'post' genérico
+import { post } from "@/services/api.service"; // Asumimos que tienes un método 'post' genérico
 import type { CalculationResponse } from "@/interfases/price.interfase";
 import { ApiErrorFeedback } from "@/pages/public/common/ApiErrorFeedback";
-import { draftsApi } from "@/services/drafts.api";
+import { draftsApi } from "@/services/drafts.service";
 // import { Countertop3DViewer } from "../../common/Countertop3DViewer";
 
 // =============================================================================

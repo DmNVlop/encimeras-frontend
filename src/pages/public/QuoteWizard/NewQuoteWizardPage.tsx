@@ -27,7 +27,7 @@ import { WizardStep3_JobsAndAssembly } from "./steps/WizardStep3_JobsAndAssembly
 import { WizardStep4_Complements } from "./steps/WizardStep4_Complements";
 import { WizardStep5_Summary } from "./steps/WizardStep5_Summary";
 import { useLocation } from "react-router-dom";
-import { draftsApi } from "@/services/drafts.api";
+import { draftsApi } from "@/services/drafts.service";
 
 const steps = ["Material", "Forma y Medidas", "Trabajos y Ensamblaje", "Complementos", "Resumen"];
 

@@ -1,8 +1,9 @@
 // src/pages/admin/LoginPage.tsx
 import React, { useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import { login } from "@/services/authService";
+
 import { Button, TextField, Container, Typography, Box, Link } from "@mui/material";
+import { useAuth } from "@/hooks/useAuth";
 
 const LoginPage: React.FC = () => {
   const [username, setUsername] = useState("admin");
@@ -21,35 +22,29 @@ const LoginPage: React.FC = () => {
   //   }
   // };
 
+  const { login } = useAuth();
+
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
 
     try {
-      const data = await login({ username, password });
-      console.log("Login exitoso: ", data);
+      const data = await login(username, password);
+      console.log("Login exitoso component: ", data);
 
-      // 1. Guardar Token y Datos
-      localStorage.setItem("token", data.access_token);
-      // Opcional: Guardar el usuario en localStorage o Context para no perderlo al refrescar
-      // localStorage.setItem("user", JSON.stringify(data.user));
+      // 1. Los tokens y el usuario ya los maneja el AuthProvider
 
       // 2. Extraemos los roles (asegurando que sea un array)
       const userRoles = data.user.roles || [];
 
       // 3. Lógica de Redirección por Jerarquía (El orden importa)
-
       if (userRoles.includes("ADMIN")) {
-        // El Admin tiene prioridad absoluta
         navigate("/admin/orders");
-      } else if (userRoles.includes("SALES")) {
-        // Si no es Admin, pero es Ventas
+      } else if (userRoles.some((role) => role.includes("SALES"))) {
         navigate("/admin/orders");
       } else if (userRoles.includes("WORKER")) {
-        // Si es operario de fábrica
         navigate("/factory/queue");
       } else {
-        // USER o cualquier otro caso (Default)
         navigate("/");
       }
     } catch (err) {

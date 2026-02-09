@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Box, Modal, Typography, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { create, update } from "@/services/apiService";
+import { create, update } from "@/services/api.service";
 
 // 1. Importamos la interfaz y el formulario
 import type { MeasurementRuleSet, MeasurementRange } from "@/interfases/measurement-rule-set.interfase";

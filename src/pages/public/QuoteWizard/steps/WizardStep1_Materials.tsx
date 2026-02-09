@@ -19,7 +19,7 @@ import TextureIcon from "@mui/icons-material/Texture";
 import { useQuoteDispatch, useQuoteState } from "@/context/QuoteContext";
 
 // Importar API Service
-import { get } from "@/services/apiService";
+import { get } from "@/services/api.service";
 
 import type { Material } from "@/interfases/materials.interfase";
 import { MaterialAttributeModal } from "@/pages/public/common/MaterialAttributeModal";

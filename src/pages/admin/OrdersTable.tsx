@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import { DataGrid, type GridColDef, type GridRenderCellParams } from "@mui/x-data-grid";
 import { Box, Typography, Chip, Paper } from "@mui/material";
 
-import { get } from "@/services/apiService";
+import { get } from "@/services/api.service";
 
 import { useSocket } from "../../context/SocketContext";
 import { OrderPreviewDrawer } from "./OrderPreviewDrawer";
 import { useSearchParams } from "react-router-dom";
-import { ordersApi } from "@/services/orders.api";
+import { ordersApi } from "@/services/orders.service";
 
 // Definición de columnas basada en tu OrderHeader [cite: 82]
 const columns: GridColDef[] = [
@@ -50,7 +50,7 @@ export const OrdersPage: React.FC = () => {
 
   const fetchOrders = async () => {
     try {
-      const data = await get("/orders");
+      const data: any[] = await get("/orders");
       // Aseguramos que cada fila tenga 'id' único para el DataGrid (usamos _id de Mongo)
       const mappedRows = data.map((order: any) => ({
         id: order._id || order.header.orderNumber, // Fallback ID
@@ -248,3 +248,5 @@ export const OrdersPage: React.FC = () => {
     </Box>
   );
 };
+
+export default OrdersPage;

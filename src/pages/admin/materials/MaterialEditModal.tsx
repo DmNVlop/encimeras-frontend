@@ -4,7 +4,7 @@ import { Box, Modal, Typography, Tabs, Tab, IconButton, type SelectChangeEvent }
 import CloseIcon from "@mui/icons-material/Close";
 import DatosGeneralesForm from "./DatosGeneralesForm";
 import CombinacionesValidasTab from "./CombinacionesValidasTab";
-import { get, create, update } from "@/services/apiService";
+import { get, create, update } from "@/services/api.service";
 import type { Material } from "@/interfases/materials.interfase";
 import type { Attribute } from "@/interfases/attribute.interfase";
 

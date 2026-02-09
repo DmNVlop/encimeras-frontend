@@ -7,8 +7,8 @@ import PriceCheckIcon from "@mui/icons-material/PriceCheck";
 import SettingsIcon from "@mui/icons-material/Tune";
 import StoneIcon from "@mui/icons-material/SquareFoot";
 
-import { logout } from "@/services/authService";
 import DashboardIcon from "@mui/icons-material/Dashboard";
+import { AuthService } from "@/services/auth.service";
 
 const drawerWidth = 240;
 
@@ -16,8 +16,8 @@ const AdminLayout: React.FC = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();
-    navigate("/admin/login");
+    AuthService.logout();
+    navigate("/login");
   };
 
   const menuItems = [

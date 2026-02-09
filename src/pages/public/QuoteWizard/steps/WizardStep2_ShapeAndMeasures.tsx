@@ -9,7 +9,7 @@ import StraightenIcon from "@mui/icons-material/Straighten";
 import { useQuoteDispatch, useQuoteState } from "@/context/QuoteContext";
 
 // Importaciones REALES de tu API y Tipos
-import { get } from "@/services/apiService";
+import { get } from "@/services/api.service";
 import type { Material } from "@/interfases/materials.interfase";
 import { MaterialAttributeModal } from "@/pages/public/common/MaterialAttributeModal";
 

@@ -18,7 +18,7 @@ import {
   TableBody,
   Chip,
 } from "@mui/material";
-import { get, create, update, remove } from "@/services/apiService";
+import { get, create, update, remove } from "@/services/api.service";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";

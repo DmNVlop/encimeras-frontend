@@ -1,4 +1,4 @@
-import { update } from "@/services/apiService"; // Tu utilidad genérica
+import { update } from "@/services/api.service"; // Tu utilidad genérica
 
 export const ordersApi = {
   // Método específico y tipado
