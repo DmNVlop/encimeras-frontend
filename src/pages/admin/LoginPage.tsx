@@ -4,23 +4,13 @@ import { Link as RouterLink, useNavigate } from "react-router-dom";
 
 import { Button, TextField, Container, Typography, Box, Link } from "@mui/material";
 import { useAuth } from "@/hooks/useAuth";
+import { UserRole } from "@/types/auth.types";
 
 const LoginPage: React.FC = () => {
   const [username, setUsername] = useState("admin");
   const [password, setPassword] = useState("admin123");
   const [error, setError] = useState("");
   const navigate = useNavigate();
-
-  // const handleLogin = async (event: React.FormEvent) => {
-  //   event.preventDefault();
-  //   setError("");
-  //   try {
-  //     await login({ username, password });
-  //     navigate("/admin/materials"); // Redirige al dashboard si el login es exitoso
-  //   } catch (err) {
-  //     setError("Credenciales incorrectas. Por favor, inténtalo de nuevo.");
-  //   }
-  // };
 
   const { login } = useAuth();
 
@@ -30,7 +20,6 @@ const LoginPage: React.FC = () => {
 
     try {
       const data = await login(username, password);
-      console.log("Login exitoso component: ", data);
 
       // 1. Los tokens y el usuario ya los maneja el AuthProvider
 
@@ -40,7 +29,7 @@ const LoginPage: React.FC = () => {
       // 3. Lógica de Redirección por Jerarquía (El orden importa)
       if (userRoles.includes("ADMIN")) {
         navigate("/admin/orders");
-      } else if (userRoles.some((role) => role.includes("SALES"))) {
+      } else if (userRoles.some((role) => role.includes(UserRole.SALES_FACTORY))) {
         navigate("/admin/orders");
       } else if (userRoles.includes("WORKER")) {
         navigate("/factory/queue");

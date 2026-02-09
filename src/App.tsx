@@ -50,7 +50,7 @@ function App() {
             {renderRoutes(appRoutes)}
 
             {/* Redirección por defecto */}
-            <Route path="*" element={<Navigate to="/quote" />} />
+            <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </Suspense>
       </Router>

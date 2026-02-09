@@ -16,6 +16,13 @@ const PriceConfigsPage = lazy(() => import("@/pages/admin/PriceConfigsPage"));
 const AttributesPage = lazy(() => import("@/pages/admin/AttributesPage"));
 const OrdersPage = lazy(() => import("@/pages/admin/OrdersTable"));
 
+// USER PORTAL
+const UserPortalLayout = lazy(() => import("@/pages/public/UserPortal/layout/UserPortalLayout"));
+const UserDashboard = lazy(() => import("@/pages/public/UserPortal/views/Dashboard"));
+const UserQuotes = lazy(() => import("@/pages/public/UserPortal/views/MyQuotes"));
+const UserDrafts = lazy(() => import("@/pages/public/UserPortal/views/Drafts"));
+const UserProfile = lazy(() => import("@/pages/public/UserPortal/views/UserProfile"));
+
 // ADMIN: "ADMIN",
 // SALES_FACTORY: "SALES_FACTORY",
 // WORKER: "WORKER",
@@ -29,6 +36,19 @@ export const appRoutes: AppRouteConfig[] = [
     component: NewQuoteWizardPage,
     // Array vacío o null significa "Público"
     allowedRoles: [UserRole.ADMIN, UserRole.SALES_FACTORY, UserRole.SALES_SHOP, UserRole.USER],
+  },
+
+  // 4. USER PORTAL (Client)
+  {
+    path: "/",
+    component: UserPortalLayout,
+    allowedRoles: [UserRole.USER, UserRole.ADMIN],
+    children: [
+      { path: "dashboard", component: UserDashboard, allowedRoles: [UserRole.USER, UserRole.ADMIN] },
+      { path: "my-quotes", component: UserQuotes, allowedRoles: [UserRole.USER, UserRole.ADMIN] },
+      { path: "drafts", component: UserDrafts, allowedRoles: [UserRole.USER, UserRole.ADMIN] },
+      { path: "user-profile", component: UserProfile, allowedRoles: [UserRole.USER, UserRole.ADMIN] },
+    ],
   },
 
   // 2. LOGIN
