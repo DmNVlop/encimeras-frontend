@@ -89,7 +89,7 @@ export default function UserPortalLayout() {
             <MenuIcon />
           </IconButton>
 
-          <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center" }}>
+          <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center", gap: 2 }}>
             <Box
               component="img"
               src={logo}
@@ -101,6 +101,20 @@ export default function UserPortalLayout() {
                 display: "block",
               }}
             />
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 500,
+                color: "text.secondary",
+                fontSize: "1.1rem",
+                borderLeft: "1px solid",
+                borderColor: "divider",
+                pl: 2,
+                display: { xs: "none", sm: "block" },
+              }}
+            >
+              Portal de Usuario
+            </Typography>
           </Box>
 
           {/* User Menu */}
