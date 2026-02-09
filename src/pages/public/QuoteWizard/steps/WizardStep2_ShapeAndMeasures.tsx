@@ -53,7 +53,7 @@ export const WizardStep2_ShapeAndMeasures: React.FC = () => {
     const fetchMaterials = async () => {
       try {
         setLoadingMaterials(true);
-        const data = await get<Material>("/materials");
+        const data = await get<Material[]>("/materials");
         setMaterialsList(data);
       } catch (error) {
         console.error("Error al cargar materiales:", error);

@@ -20,7 +20,13 @@ const columns: GridColDef[] = [
     headerName: "Estado",
     width: 150,
     renderCell: (params: GridRenderCellParams) => {
-      const colors: any = { PENDING: "warning", MANUFACTURING: "info", SHIPPED: "success" };
+      const colors: any = {
+        PENDING: "warning",
+        APPROVED: "success",
+        REJECTED: "error",
+        MANUFACTURING: "info",
+        SHIPPED: "success",
+      };
       return <Chip label={params.value} color={colors[params.value] || "default"} size="small" />;
     },
   },
@@ -230,7 +236,6 @@ export const OrdersPage: React.FC = () => {
           sx={{ "& .MuiDataGrid-row": { cursor: "pointer" } }}
           // Aquí añadiremos la acción de "Ver Detalle" más adelante
           onRowClick={(params) => {
-            console.log("Ver detalle de:", params.id);
             handleRowClick(params);
           }}
         />

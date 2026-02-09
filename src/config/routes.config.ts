@@ -30,7 +30,14 @@ const UserProfile = lazy(() => import("@/pages/public/UserPortal/views/UserProfi
 // USER: "USER",
 
 export const appRoutes: AppRouteConfig[] = [
-  // 1. RUTA PÚBLICA (Presupuestador)
+  // 1. LOGIN [RUTA PÚBLICA]
+  {
+    path: "/login",
+    component: LoginPage,
+    allowedRoles: [],
+  },
+
+  // 2. PRESUPUESTADOR
   {
     path: "/quote",
     component: NewQuoteWizardPage,
@@ -38,7 +45,7 @@ export const appRoutes: AppRouteConfig[] = [
     allowedRoles: [UserRole.ADMIN, UserRole.SALES_FACTORY, UserRole.SALES_SHOP, UserRole.USER],
   },
 
-  // 4. USER PORTAL (Client)
+  // 3. USER PORTAL (Client)
   {
     path: "/",
     component: UserPortalLayout,
@@ -51,14 +58,7 @@ export const appRoutes: AppRouteConfig[] = [
     ],
   },
 
-  // 2. LOGIN
-  {
-    path: "/login",
-    component: LoginPage,
-    allowedRoles: [],
-  },
-
-  // 3. RUTAS PROTEGIDAS (ADMIN)
+  // 4. PANEL DE ADMIN (ADMIN)
   // Nota: El componente principal es el LAYOUT
   {
     path: "/admin",

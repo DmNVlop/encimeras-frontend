@@ -36,7 +36,7 @@ const MaterialsPage: React.FC = () => {
   const loadMaterials = async () => {
     setLoading(true);
     try {
-      const data = await get<Material>("/materials");
+      const data = await get<Material[]>("/materials");
       setMaterials(data.map((m) => ({ ...m, id: m._id })));
     } catch (error) {
       console.error("Error al cargar los materiales:", error);

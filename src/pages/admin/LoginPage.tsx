@@ -1,44 +1,48 @@
 // src/pages/admin/LoginPage.tsx
-import React, { useState } from "react";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
-import { Button, TextField, Container, Typography, Box, Link } from "@mui/material";
+import { Button, TextField, Container, Typography, Box, CircularProgress } from "@mui/material";
 import { useAuth } from "@/hooks/useAuth";
 import { UserRole } from "@/types/auth.types";
+import { ApiErrorFeedback } from "../public/common/ApiErrorFeedback";
 
 const LoginPage: React.FC = () => {
   const [username, setUsername] = useState("admin");
   const [password, setPassword] = useState("admin123");
-  const [error, setError] = useState("");
+  const [error, setError] = useState<any>(null);
   const navigate = useNavigate();
 
-  const { login } = useAuth();
+  const { login, isLoading, isAuthenticated, user } = useAuth();
+
+  // redirection logic based on roles
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const userRoles = user.roles || [];
+
+      // Logic for hierarchy redirection
+      if (userRoles.includes(UserRole.ADMIN) || userRoles.includes(UserRole.SALES_FACTORY)) {
+        navigate("/admin/orders", { replace: true });
+      } else if (userRoles.includes(UserRole.WORKER)) {
+        navigate("/factory/queue", { replace: true });
+      } else {
+        navigate("/", { replace: true });
+      }
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
-    setError("");
+    setError(null);
 
     try {
-      const data = await login(username, password);
-
-      // 1. Los tokens y el usuario ya los maneja el AuthProvider
-
-      // 2. Extraemos los roles (asegurando que sea un array)
-      const userRoles = data.user.roles || [];
-
-      // 3. Lógica de Redirección por Jerarquía (El orden importa)
-      if (userRoles.includes("ADMIN")) {
-        navigate("/admin/orders");
-      } else if (userRoles.some((role) => role.includes(UserRole.SALES_FACTORY))) {
-        navigate("/admin/orders");
-      } else if (userRoles.includes("WORKER")) {
-        navigate("/factory/queue");
-      } else {
-        navigate("/");
-      }
-    } catch (err) {
-      console.error(err);
-      setError("Credenciales incorrectas. Por favor, inténtalo de nuevo.");
+      await login(username, password);
+      // navigation handled by useEffect
+    } catch (err: any) {
+      console.error("Login Error:", err);
+      // api.service returns a string for errors, which ApiErrorFeedback handles gracefully.
+      // We pass it directly to avoid misinterpretation as a network error by the component.
+      setError(err);
     }
   };
 
@@ -65,6 +69,7 @@ const LoginPage: React.FC = () => {
             name="username"
             autoComplete="username"
             autoFocus
+            disabled={isLoading}
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
@@ -77,22 +82,23 @@ const LoginPage: React.FC = () => {
             type="password"
             id="password"
             autoComplete="current-password"
+            disabled={isLoading}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          {error && (
-            <Typography color="error" variant="body2">
-              {error}
-            </Typography>
-          )}
-          <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
-            Iniciar Sesión
+
+          <ApiErrorFeedback error={error} title="Error al iniciar sesión" sx={{ mt: 2 }} />
+
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            sx={{ mt: 3, mb: 2 }}
+            disabled={isLoading}
+            startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null}
+          >
+            {isLoading ? "Iniciando Sesión..." : "Iniciar Sesión"}
           </Button>
-          <Box sx={{ textAlign: "center" }}>
-            <Link component={RouterLink} to="/presupuesto" variant="body2">
-              Ir al presupuestador público
-            </Link>
-          </Box>
         </Box>
       </Box>
     </Container>

@@ -46,7 +46,7 @@ const MeasurementRuleSetPage: React.FC = () => {
     setLoading(true);
     try {
       // Llama al endpoint 'findAll' del controlador
-      const data = await get<MeasurementRuleSet>("/measurement-rule-sets");
+      const data = await get<MeasurementRuleSet[]>("/measurement-rule-sets");
       setRuleSets(data.map((rs) => ({ ...rs, id: rs._id })));
     } catch (error) {
       console.error("Error al cargar los sets de reglas:", error);

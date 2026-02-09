@@ -44,7 +44,7 @@ const AddonsPage: React.FC = () => {
   const loadAddons = async () => {
     setLoading(true);
     try {
-      const data = await get<Addon>("/addons");
+      const data = await get<Addon[]>("/addons");
       // Mapeamos _id a id para que DataGrid sea feliz
       setAddons(data.map((a) => ({ ...a, id: a._id })));
     } catch (error) {

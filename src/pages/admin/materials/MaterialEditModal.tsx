@@ -81,9 +81,9 @@ const MaterialEditModal: React.FC<MaterialEditModalProps> = ({ open, onClose, ma
   useEffect(() => {
     const loadAttributes = async () => {
       const [categoryData, typeData, allAttrs] = await Promise.all([
-        get<Attribute>("/attributes", { params: { type: "MAT_CATEGORIA" } }),
-        get<Attribute>("/attributes", { params: { type: "MAT_TIPO" } }),
-        get<Attribute>("/attributes"),
+        get<Attribute[]>("/attributes", { params: { type: "MAT_CATEGORIA" } }),
+        get<Attribute[]>("/attributes", { params: { type: "MAT_TIPO" } }),
+        get<Attribute[]>("/attributes"),
       ]);
       const uniqueTypes = Array.from(new Set(allAttrs.map((attr) => attr.type)));
 

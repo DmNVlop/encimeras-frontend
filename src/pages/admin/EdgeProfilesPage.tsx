@@ -38,7 +38,7 @@ const EdgeProfilesPage: React.FC = () => {
 
   const loadProfiles = async () => {
     try {
-      const data = await get<EdgeProfile>("/edge-profiles");
+      const data = await get<EdgeProfile[]>("/edge-profiles");
       setProfiles(data.map((p) => ({ ...p, id: p._id })));
     } catch (error) {
       alert(`Error al cargar los perfiles: ${error}`);

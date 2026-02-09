@@ -44,7 +44,7 @@ const CutoutsPage: React.FC = () => {
   const [cutoutTypes, setCutoutTypes] = useState<Attribute[]>([]);
 
   const loadCutouts = async () => {
-    const data = await get<Cutout>("/cutouts");
+    const data = await get<Cutout[]>("/cutouts");
     setCutouts(data);
   };
 
@@ -52,7 +52,7 @@ const CutoutsPage: React.FC = () => {
   useEffect(() => {
     loadCutouts();
     const loadCutoutTypes = async () => {
-      const types = await get<Attribute>("/attributes", { params: { type: "CUTOUT_TYPE" } });
+      const types = await get<Attribute[]>("/attributes", { params: { type: "CUTOUT_TYPE" } });
       setCutoutTypes(types);
     };
     loadCutoutTypes();

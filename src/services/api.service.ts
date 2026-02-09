@@ -53,12 +53,15 @@ apiClient.interceptors.response.use(
 
       // CASO CRÍTICO: 401 Unauthorized (Token vencido o inválido)
       if (status === 401) {
-        // Evitamos bucle infinito si el error viene del propio login
-        if (!error.config?.url?.includes("/login")) {
+        // Evitamos bucle infinito si el error viene del propio login o endpoints de auth
+        const isAuthRequest = error.config?.url?.includes("/auth") || error.config?.url?.includes("/login");
+
+        if (!isAuthRequest) {
           TokenStorage.clearToken(); // Limpiamos rastro
           window.location.href = "/admin/login"; // Hard Redirect
           return Promise.reject(new Error("Tu sesión ha expirado. Por favor ingresa nuevamente."));
         }
+        // Si es login, dejamos pasar el error tal cual para que el componente lo muestre
       }
 
       // CASO: 403 Forbidden (Sin permisos)
@@ -67,12 +70,8 @@ apiClient.interceptors.response.use(
       }
       // CASO: Errores controlados del backend (BadRequest con mensaje)
       else if (data) {
-        if (Array.isArray(data.message)) {
-          // Si el backend devuelve un array de validaciones (ej: class-validator)
-          errorMessage = data.message.join(", ");
-        } else if (typeof data.message === "string") {
-          errorMessage = data.message;
-        }
+        // Si tenemos data, devolvemos el objeto completo para que el componente decida qué mostrar
+        return Promise.reject(data);
       } else {
         errorMessage = error.response.statusText || errorMessage;
       }
@@ -86,9 +85,8 @@ apiClient.interceptors.response.use(
       errorMessage = error.message;
     }
 
-    // Rechazamos la promesa solo con el string del mensaje para facilitar la UI
-    // Opcional: Si necesitas el objeto error completo en algún lado, devuelve `error` en lugar del string.
-    return Promise.reject(errorMessage);
+    // Rechazamos la promesa con el objeto de error si existe la data, o con un objeto construido
+    return Promise.reject({ message: errorMessage, originalError: error });
   },
 );
 

@@ -27,7 +27,13 @@ export const ApiErrorFeedback: React.FC<ApiErrorFeedbackProps> = ({ error, title
       friendlyMsg = err;
       techMsg = err;
     }
-    // CASO 2: Error viene de Axios / NestJS (Objeto con response)
+    // CASO 2: Error estructurado del backend (NestJS standard)
+    // Formato esperado: { message: string, error: string, statusCode: number }
+    else if (err?.statusCode && err?.error) {
+      friendlyMsg = err.message || "Error desconocido";
+      techMsg = JSON.stringify(err, null, 2);
+    }
+    // CASO 3: Error de Axios con response (Legacy o errores no controlados arriba)
     else if (err?.response?.data) {
       const data = err.response.data;
 
@@ -47,6 +53,8 @@ export const ApiErrorFeedback: React.FC<ApiErrorFeedbackProps> = ({ error, title
       // Lógica específica para tu caso de Precios
       if (techMsg.includes("Price not found") || techMsg.includes("Pricing recipe")) {
         friendlyMsg = "Falta configuración de precio para la combinación de materiales seleccionada.";
+      } else if (data.statusCode === 401 || techMsg.toLowerCase().includes("unauthorized")) {
+        friendlyMsg = "Usuario o contraseña incorrectos.";
       } else if (data.statusCode === 404) {
         friendlyMsg = "No se encontraron datos para procesar la solicitud (404).";
       } else if (data.statusCode === 400) {
@@ -56,7 +64,12 @@ export const ApiErrorFeedback: React.FC<ApiErrorFeedbackProps> = ({ error, title
         friendlyMsg = techMsg.length < 150 ? techMsg : "Error de comunicación con el servidor.";
       }
     }
-    // CASO 3: Error de Red (Sin respuesta del servidor)
+    // CASO 3: Error Objeto Simple (generado manualmente o por lógica de UI)
+    else if (err?.message && !err?.response && !err?.request) {
+      friendlyMsg = err.message;
+      techMsg = JSON.stringify(err, null, 2);
+    }
+    // CASO 4: Error de Red (Sin respuesta del servidor, tiene request pero no response)
     else if (err?.message) {
       techMsg = err.message;
       friendlyMsg = "Error de conexión. Verifica tu internet o si el servidor está activo.";

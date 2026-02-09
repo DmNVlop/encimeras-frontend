@@ -41,12 +41,12 @@ const AttributesPage: React.FC = () => {
 
   const loadAttributes = async () => {
     const params = filterType ? { type: filterType } : {};
-    const data = await get<Attribute>("/attributes", { params });
+    const data = await get<Attribute[]>("/attributes", { params });
     setAttributes(data);
   };
 
   const loadAllTypes = async () => {
-    const allAttrs = await get<Attribute>("/attributes");
+    const allAttrs = await get<Attribute[]>("/attributes");
     const uniqueTypes = Array.from(new Set(allAttrs.map((attr) => attr.type)));
     setAllTypes(Array.from(new Set([...allTypes, ...uniqueTypes])));
   };

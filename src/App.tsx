@@ -8,6 +8,8 @@ import { AuthProvider } from "./context/AuthProvider";
 import { RoleGuard } from "./components/guards/RoleGuard";
 import { appRoutes } from "./config/routes.config";
 
+import { useAuth } from "./context/AuthProvider";
+
 // Loading Fallback Component
 const LoadingFallback = () => (
   <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
@@ -15,7 +17,12 @@ const LoadingFallback = () => (
   </Box>
 );
 
-function App() {
+/**
+ * Componente que contiene la lógica de rutas y tiene acceso al contexto de autenticación
+ */
+const AppRouter = () => {
+  const { isAuthenticated, isLoading } = useAuth();
+
   // Función recursiva para renderizar rutas y sub-rutas
   const renderRoutes = (routes: AppRouteConfig[]) => {
     return routes.map((route) => {
@@ -41,19 +48,37 @@ function App() {
     });
   };
 
+  if (isLoading) {
+    return <LoadingFallback />;
+  }
+
+  return (
+    <Router>
+      <Suspense fallback={<LoadingFallback />}>
+        <Routes>
+          {/* 
+            REDIRECCIÓN DE INICIO: 
+            Si el usuario llega a '/' y está autenticado, lo mandamos al dashboard.
+            Si no lo está, el RoleGuard de la ruta '/' (UserPortalLayout) se encargará de pedir login
+            o el renderRoutes pintará la ruta normal.
+          */}
+          {isAuthenticated && <Route path="/" element={<Navigate to="/dashboard" replace />} />}
+
+          {/* Generar todas las rutas desde la config */}
+          {renderRoutes(appRoutes)}
+
+          {/* Redirección por defecto para rutas no encontradas */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </Suspense>
+    </Router>
+  );
+};
+
+function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Suspense fallback={<LoadingFallback />}>
-          <Routes>
-            {/* Generar todas las rutas desde la config */}
-            {renderRoutes(appRoutes)}
-
-            {/* Redirección por defecto */}
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-        </Suspense>
-      </Router>
+      <AppRouter />
     </AuthProvider>
   );
 }

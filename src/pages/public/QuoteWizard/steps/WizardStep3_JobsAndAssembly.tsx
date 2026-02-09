@@ -210,7 +210,7 @@ export const WizardStep3_JobsAndAssembly: React.FC = () => {
     const loadData = async () => {
       try {
         setIsLoading(true);
-        const [addonsData, materialsData] = await Promise.all([get<Addon>("/addons"), get<Material>("/materials")]);
+        const [addonsData, materialsData] = await Promise.all([get<Addon[]>("/addons"), get<Material[]>("/materials")]);
         setAllAddons(addonsData);
         setAllMaterials(materialsData);
       } catch (error) {

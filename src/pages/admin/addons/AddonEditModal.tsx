@@ -62,9 +62,9 @@ const AddonEditModal: React.FC<AddonEditModalProps> = ({ open, onClose, onSave, 
       try {
         // Cargar RuleSets, Atributos y MATERIALES (para sacar sus categorías)
         const [ruleSetData, allAttrs, materialsData] = await Promise.all([
-          get<MeasurementRuleSet>("/measurement-rule-sets"),
-          get<Attribute>("/attributes"),
-          get<Material>("/materials"),
+          get<MeasurementRuleSet[]>("/measurement-rule-sets"),
+          get<Attribute[]>("/attributes"),
+          get<Material[]>("/materials"),
         ]);
 
         const uniqueAttrTypes = Array.from(new Set(allAttrs.map((attr) => attr.type))).filter((t) => t.startsWith("MAT_"));
