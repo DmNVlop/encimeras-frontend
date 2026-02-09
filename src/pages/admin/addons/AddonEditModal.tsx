@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Box, Modal, Typography, IconButton, type SelectChangeEvent } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { get, create, update } from "@/services/apiService";
+import { get, create, update } from "@/services/api.service";
 import type { Addon } from "@/interfases/addon.interfase";
 import type { MeasurementRuleSet } from "@/interfases/measurement-rule-set.interfase";
 import type { Attribute } from "@/interfases/attribute.interfase";
@@ -62,9 +62,9 @@ const AddonEditModal: React.FC<AddonEditModalProps> = ({ open, onClose, onSave, 
       try {
         // Cargar RuleSets, Atributos y MATERIALES (para sacar sus categorías)
         const [ruleSetData, allAttrs, materialsData] = await Promise.all([
-          get<MeasurementRuleSet>("/measurement-rule-sets"),
-          get<Attribute>("/attributes"),
-          get<Material>("/materials"),
+          get<MeasurementRuleSet[]>("/measurement-rule-sets"),
+          get<Attribute[]>("/attributes"),
+          get<Material[]>("/materials"),
         ]);
 
         const uniqueAttrTypes = Array.from(new Set(allAttrs.map((attr) => attr.type))).filter((t) => t.startsWith("MAT_"));

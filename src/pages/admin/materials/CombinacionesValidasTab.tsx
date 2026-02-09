@@ -18,7 +18,7 @@ import {
   TableBody,
   Chip,
 } from "@mui/material";
-import { get, create, update, remove } from "@/services/apiService";
+import { get, create, update, remove } from "@/services/api.service";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
@@ -55,14 +55,14 @@ const CombinacionesValidasTab: React.FC<CombinacionesValidasTabProps> = ({ mater
   // --- Lógica de Carga de Datos (sin cambios) ---
   const loadValidCombinations = async () => {
     if (materialId) {
-      const data = await get<ValidCombination>("/valid-combinations", { params: { materialId } });
+      const data = await get<ValidCombination[]>("/valid-combinations", { params: { materialId } });
       setValidCombinations(data);
     }
   };
 
   const loadAttributeValues = async (type: string) => {
     if (type && !attributesCache[type]) {
-      const values = await get<Attribute>("/attributes", { params: { type } });
+      const values = await get<Attribute[]>("/attributes", { params: { type } });
       setAttributesCache((prev) => ({ ...prev, [type]: values }));
     }
   };
@@ -70,7 +70,7 @@ const CombinacionesValidasTab: React.FC<CombinacionesValidasTabProps> = ({ mater
   useEffect(() => {
     loadValidCombinations();
     const loadPricingAttributeTypes = async () => {
-      const allAttrs = await get<Attribute>("/attributes");
+      const allAttrs = await get<Attribute[]>("/attributes");
       const uniqueTypes = Array.from(new Set(allAttrs.map((attr) => attr.type)));
       setPricingAttributeTypes(uniqueTypes.filter((type) => type.startsWith("MAT_")));
     };

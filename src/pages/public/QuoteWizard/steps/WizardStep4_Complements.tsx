@@ -25,7 +25,7 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 // --- IMPORTACIONES ---
 // Usamos rutas relativas asumiendo que este archivo está en src/pages/wizard/steps/
 import { useQuoteDispatch, useQuoteState } from "@/context/QuoteContext";
-import { get } from "@/services/apiService";
+import { get } from "@/services/api.service";
 
 import type { Material } from "@/interfases/materials.interfase";
 import type { Addon } from "@/interfases/addon.interfase";
@@ -228,7 +228,7 @@ export const WizardStep4_Complements: React.FC = () => {
     const loadData = async () => {
       try {
         setIsLoading(true);
-        const [addonsData, materialsData] = await Promise.all([get<Addon>("/addons"), get<Material>("/materials")]);
+        const [addonsData, materialsData] = await Promise.all([get<Addon[]>("/addons"), get<Material[]>("/materials")]);
         setAllAddons(addonsData);
         setAllMaterials(materialsData);
       } catch (error) {

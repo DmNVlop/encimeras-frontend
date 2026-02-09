@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Box, Typography, Button, Modal, TextField, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import { DataGrid, type GridColDef, GridActionsCellItem } from "@mui/x-data-grid";
 import { esES } from "@mui/x-data-grid/locales";
-import { get, create, update, remove } from "@/services/apiService";
+import { get, create, update, remove } from "@/services/api.service";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
@@ -44,7 +44,7 @@ const CutoutsPage: React.FC = () => {
   const [cutoutTypes, setCutoutTypes] = useState<Attribute[]>([]);
 
   const loadCutouts = async () => {
-    const data = await get<Cutout>("/cutouts");
+    const data = await get<Cutout[]>("/cutouts");
     setCutouts(data);
   };
 
@@ -52,7 +52,7 @@ const CutoutsPage: React.FC = () => {
   useEffect(() => {
     loadCutouts();
     const loadCutoutTypes = async () => {
-      const types = await get<Attribute>("/attributes", { params: { type: "CUTOUT_TYPE" } });
+      const types = await get<Attribute[]>("/attributes", { params: { type: "CUTOUT_TYPE" } });
       setCutoutTypes(types);
     };
     loadCutoutTypes();

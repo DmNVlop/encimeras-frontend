@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import { DataGrid, type GridColDef, GridActionsCellItem } from "@mui/x-data-grid";
 import { esES } from "@mui/x-data-grid/locales";
-import { get, remove } from "@/services/apiService";
+import { get, remove } from "@/services/api.service";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
@@ -46,7 +46,7 @@ const MeasurementRuleSetPage: React.FC = () => {
     setLoading(true);
     try {
       // Llama al endpoint 'findAll' del controlador
-      const data = await get<MeasurementRuleSet>("/measurement-rule-sets");
+      const data = await get<MeasurementRuleSet[]>("/measurement-rule-sets");
       setRuleSets(data.map((rs) => ({ ...rs, id: rs._id })));
     } catch (error) {
       console.error("Error al cargar los sets de reglas:", error);

@@ -9,7 +9,7 @@ import StraightenIcon from "@mui/icons-material/Straighten";
 import { useQuoteDispatch, useQuoteState } from "@/context/QuoteContext";
 
 // Importaciones REALES de tu API y Tipos
-import { get } from "@/services/apiService";
+import { get } from "@/services/api.service";
 import type { Material } from "@/interfases/materials.interfase";
 import { MaterialAttributeModal } from "@/pages/public/common/MaterialAttributeModal";
 
@@ -53,7 +53,7 @@ export const WizardStep2_ShapeAndMeasures: React.FC = () => {
     const fetchMaterials = async () => {
       try {
         setLoadingMaterials(true);
-        const data = await get<Material>("/materials");
+        const data = await get<Material[]>("/materials");
         setMaterialsList(data);
       } catch (error) {
         console.error("Error al cargar materiales:", error);

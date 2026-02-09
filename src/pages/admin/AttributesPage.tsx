@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Box, Typography, Button, Modal, TextField, Switch, FormControlLabel, Select, MenuItem, InputLabel, FormControl } from "@mui/material";
 import { DataGrid, type GridColDef, GridActionsCellItem } from "@mui/x-data-grid";
 import { esES } from "@mui/x-data-grid/locales";
-import { get, create, update, remove } from "@/services/apiService";
+import { get, create, update, remove } from "@/services/api.service";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
@@ -41,12 +41,12 @@ const AttributesPage: React.FC = () => {
 
   const loadAttributes = async () => {
     const params = filterType ? { type: filterType } : {};
-    const data = await get<Attribute>("/attributes", { params });
+    const data = await get<Attribute[]>("/attributes", { params });
     setAttributes(data);
   };
 
   const loadAllTypes = async () => {
-    const allAttrs = await get<Attribute>("/attributes");
+    const allAttrs = await get<Attribute[]>("/attributes");
     const uniqueTypes = Array.from(new Set(allAttrs.map((attr) => attr.type)));
     setAllTypes(Array.from(new Set([...allTypes, ...uniqueTypes])));
   };

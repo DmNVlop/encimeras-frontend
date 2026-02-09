@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import { DataGrid, type GridColDef, type GridRenderCellParams } from "@mui/x-data-grid";
 import { Box, Typography, Chip, Paper } from "@mui/material";
 
-import { get } from "@/services/apiService";
+import { get } from "@/services/api.service";
 
 import { useSocket } from "../../context/SocketContext";
 import { OrderPreviewDrawer } from "./OrderPreviewDrawer";
 import { useSearchParams } from "react-router-dom";
-import { ordersApi } from "@/services/orders.api";
+import { ordersApi } from "@/services/orders.service";
 
 // Definición de columnas basada en tu OrderHeader [cite: 82]
 const columns: GridColDef[] = [
@@ -20,7 +20,13 @@ const columns: GridColDef[] = [
     headerName: "Estado",
     width: 150,
     renderCell: (params: GridRenderCellParams) => {
-      const colors: any = { PENDING: "warning", MANUFACTURING: "info", SHIPPED: "success" };
+      const colors: any = {
+        PENDING: "warning",
+        APPROVED: "success",
+        REJECTED: "error",
+        MANUFACTURING: "info",
+        SHIPPED: "success",
+      };
       return <Chip label={params.value} color={colors[params.value] || "default"} size="small" />;
     },
   },
@@ -50,7 +56,7 @@ export const OrdersPage: React.FC = () => {
 
   const fetchOrders = async () => {
     try {
-      const data = await get("/orders");
+      const data: any[] = await get("/orders");
       // Aseguramos que cada fila tenga 'id' único para el DataGrid (usamos _id de Mongo)
       const mappedRows = data.map((order: any) => ({
         id: order._id || order.header.orderNumber, // Fallback ID
@@ -230,7 +236,6 @@ export const OrdersPage: React.FC = () => {
           sx={{ "& .MuiDataGrid-row": { cursor: "pointer" } }}
           // Aquí añadiremos la acción de "Ver Detalle" más adelante
           onRowClick={(params) => {
-            console.log("Ver detalle de:", params.id);
             handleRowClick(params);
           }}
         />
@@ -248,3 +253,5 @@ export const OrdersPage: React.FC = () => {
     </Box>
   );
 };
+
+export default OrdersPage;

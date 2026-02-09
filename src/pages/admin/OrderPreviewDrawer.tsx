@@ -18,8 +18,6 @@ export const OrderPreviewDrawer: React.FC<any> = ({ open, onClose, order, onAppr
   // Si está anidado en items[0], úsalo desde ahí.
   const technicalData = order.items?.[0]?.technicalSnapshot || order.technicalSnapshot || order;
 
-  console.log("Technical Data:", technicalData);
-
   return (
     <Drawer
       anchor="right"

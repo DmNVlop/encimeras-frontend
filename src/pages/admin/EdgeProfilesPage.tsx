@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Box, Typography, Button, Modal, TextField } from "@mui/material";
 import { DataGrid, GridActionsCellItem } from "@mui/x-data-grid";
-import { get, create, update, remove } from "@/services/apiService";
+import { get, create, update, remove } from "@/services/api.service";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
@@ -38,7 +38,7 @@ const EdgeProfilesPage: React.FC = () => {
 
   const loadProfiles = async () => {
     try {
-      const data = await get<EdgeProfile>("/edge-profiles");
+      const data = await get<EdgeProfile[]>("/edge-profiles");
       setProfiles(data.map((p) => ({ ...p, id: p._id })));
     } catch (error) {
       alert(`Error al cargar los perfiles: ${error}`);

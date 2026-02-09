@@ -1,6 +1,6 @@
 // src/services/drafts.api.ts
 import type { CreateDraftPayload, DraftResponse, GetDraftResponse } from "@/interfases/draft.interfase";
-import apiClient from "./apiService";
+import apiClient from "./api.service";
 
 export const draftsApi = {
   // 1. Guardar un NUEVO borrador (POST)

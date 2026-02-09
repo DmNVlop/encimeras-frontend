@@ -19,7 +19,7 @@ import TextureIcon from "@mui/icons-material/Texture";
 import { useQuoteDispatch, useQuoteState } from "@/context/QuoteContext";
 
 // Importar API Service
-import { get } from "@/services/apiService";
+import { get } from "@/services/api.service";
 
 import type { Material } from "@/interfases/materials.interfase";
 import { MaterialAttributeModal } from "@/pages/public/common/MaterialAttributeModal";
@@ -70,7 +70,7 @@ export const WizardStep1_Materials: React.FC = () => {
 
         // AQUI ESTÁ LA MAGIA
         // Pasamos el objeto de configuración con 'params'
-        const data = await get<Material>("/materials", {
+        const data = await get<Material[]>("/materials", {
           params: {
             // Lista separada por comas de los campos que REALMENTE usas en la vista y el modal
             fields: "name,category,imageUrl,selectableAttributes,_id",

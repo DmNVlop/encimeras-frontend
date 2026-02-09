@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import { DataGrid, type GridColDef, GridActionsCellItem } from "@mui/x-data-grid";
 import { esES } from "@mui/x-data-grid/locales";
-import { get, create, update, remove } from "@/services/apiService";
+import { get, create, update, remove } from "@/services/api.service";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
@@ -80,19 +80,19 @@ const PriceConfigsPage: React.FC = () => {
 
   // --- CARGA DE DATOS ---
   const loadPriceConfigs = async () => {
-    const data = await get<PriceConfig>("/price-configs");
+    const data = await get<PriceConfig[]>("/price-configs");
     setPriceConfigs(data);
   };
 
   const loadAllAttributeTypes = async () => {
-    const allAttrs = await get<AttributeToConfigPrice>("/attributes");
+    const allAttrs = await get<AttributeToConfigPrice[]>("/attributes");
     const uniqueTypes = Array.from(new Set(allAttrs.map((attr) => attr.type)));
     setAllAttributeTypes(uniqueTypes);
   };
 
   const loadAttributeValues = async (type: string) => {
     if (type && !attributeValuesCache[type]) {
-      const values = await get<AttributeToConfigPrice>("/attributes", { params: { type } });
+      const values = await get<AttributeToConfigPrice[]>("/attributes", { params: { type } });
       setAttributeValuesCache((prev) => ({ ...prev, [type]: values }));
     }
   };
@@ -108,7 +108,7 @@ const PriceConfigsPage: React.FC = () => {
     try {
       setIsLoadingTypes(true);
       // Asumimos que el endpoint es /product-types
-      const types = await get<string>("/dictionaries/product-types");
+      const types = await get<string[]>("/dictionaries/product-types");
       setProductTypesList(types);
     } catch (error) {
       console.error("Error cargando el diccionario de product types:", error);
