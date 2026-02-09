@@ -8,8 +8,8 @@ import { UserRole } from "@/types/auth.types";
 import { ApiErrorFeedback } from "../public/common/ApiErrorFeedback";
 
 const LoginPage: React.FC = () => {
-  const [username, setUsername] = useState("admin");
-  const [password, setPassword] = useState("admin123");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<any>(null);
   const navigate = useNavigate();
 
@@ -68,6 +68,7 @@ const LoginPage: React.FC = () => {
             label="Usuario"
             name="username"
             autoComplete="username"
+            placeholder="Nombre de Usuario, ej: usuario@usuario.com"
             autoFocus
             disabled={isLoading}
             value={username}
@@ -82,6 +83,7 @@ const LoginPage: React.FC = () => {
             type="password"
             id="password"
             autoComplete="current-password"
+            placeholder="Contraseña..."
             disabled={isLoading}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
