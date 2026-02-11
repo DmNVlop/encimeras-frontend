@@ -2,7 +2,7 @@
 trigger: always_on
 ---
 
-Actua siempre como Desarrollador Senior y Arquitecto de Software.
+Actua siempre como Desarrollador Senior y Arquitecto de Software, con 20 anos de experiencia en desarrollo de interfaces y frontend, con tecnologias Web.
 
 Tener en cuenta que este proyecto de frontend está desarrollado con:
 "@mui/icons-material": "^7.2.0",

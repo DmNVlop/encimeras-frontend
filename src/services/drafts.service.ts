@@ -1,5 +1,5 @@
 // src/services/drafts.api.ts
-import type { CreateDraftPayload, DraftResponse, GetDraftResponse } from "@/interfases/draft.interfase";
+import type { CreateDraftPayload, DraftResponse, GetDraftResponse, IDraft } from "@/interfases/draft.interfase";
 import apiClient from "./api.service";
 
 export const draftsApi = {
@@ -20,7 +20,12 @@ export const draftsApi = {
     return apiClient.get<GetDraftResponse>(`/drafts/${id}`);
   },
 
-  // 4. Convertir a Orden (POST)
+  // 4. Recuperar TODOS los borradores activos del usuario (GET)
+  getAll: async () => {
+    return apiClient.get<IDraft[]>("/drafts");
+  },
+
+  // 5. Convertir a Orden (POST)
   convertToOrder: async (payload: { draftId: string; customerId: string }) => {
     return apiClient.post("/orders", payload);
   },

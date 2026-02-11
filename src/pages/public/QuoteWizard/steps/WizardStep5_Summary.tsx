@@ -48,6 +48,7 @@ export const WizardStep5_Summary: React.FC = () => {
   // Estado local para el envío final
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // --- ESTADOS PARA BORRADORES ---
   const [isSavingDraft, setIsSavingDraft] = useState(false);
@@ -123,6 +124,7 @@ export const WizardStep5_Summary: React.FC = () => {
     // const customerName = formData.get("name") as string;
 
     try {
+      setSubmitError(null);
       // PASO 1: Garantizar que existe un Borrador actualizado
       let activeDraftId = currentDraftId;
 
@@ -159,7 +161,8 @@ export const WizardStep5_Summary: React.FC = () => {
       // dispatch({ type: "RESET_WIZARD" });
     } catch (err: any) {
       console.error("Submit Error:", err);
-      alert("Hubo un error al procesar tu pedido. Por favor, intenta guardar el borrador manualmente primero.");
+      const errorMessage = err.response?.data?.message || "Hubo un error al procesar tu pedido. Por favor, intenta de nuevo.";
+      setSubmitError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -429,6 +432,11 @@ export const WizardStep5_Summary: React.FC = () => {
                   <TextField fullWidth name="phone" label="Teléfono (Opcional)" />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
+                  {submitError && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                      {submitError}
+                    </Alert>
+                  )}
                   <Button
                     type="submit"
                     variant="contained"
