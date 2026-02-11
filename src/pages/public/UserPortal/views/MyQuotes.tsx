@@ -5,7 +5,6 @@ import {
   Button,
   Card,
   CardContent,
-  Chip,
   Stack,
   TextField,
   InputAdornment,
@@ -16,23 +15,21 @@ import {
   Stepper,
   Step,
   StepLabel,
-  useTheme,
-  useMediaQuery,
-  IconButton,
+  // useTheme,
   Divider,
 } from "@mui/material";
-import { Add as AddIcon, Search as SearchIcon, FilterList as FilterListIcon, ChevronRight, ReceiptLong } from "@mui/icons-material";
+import { Add as AddIcon, Search as SearchIcon, ChevronRight, ReceiptLong } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { ordersApi } from "@/services/orders.service";
 import type { Order, OrderStatus } from "@/interfases/orders.interfase";
 
 // Utility to format currency
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat("es-ES", {
-    style: "currency",
-    currency: "EUR",
-  }).format(amount);
-};
+// const formatCurrency = (amount: number) => {
+//   return new Intl.NumberFormat("es-ES", {
+//     style: "currency",
+//     currency: "EUR",
+//   }).format(amount);
+// };
 
 // Utility to format date
 const formatDate = (dateString: Date | string) => {
@@ -64,8 +61,8 @@ const steps = ["Confirmado", "Producción", "Enviado", "Entregado"];
 
 export default function MyQuotes() {
   const navigate = useNavigate();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  // const theme = useTheme();
+  // const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -302,7 +299,7 @@ function OrderCard({ order }: { order: Order }) {
                 SEGUIMIENTO DE FÁBRICA
               </Typography>
               <Stepper activeStep={activeStep} alternativeLabel>
-                {steps.map((label, index) => (
+                {steps.map((label, _index) => (
                   <Step key={label}>
                     <StepLabel>{label}</StepLabel>
                   </Step>
