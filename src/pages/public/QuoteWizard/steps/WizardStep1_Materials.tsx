@@ -77,7 +77,6 @@ export const WizardStep1_Materials: React.FC = () => {
           },
         });
 
-        console.log("Materiales optimizados cargados:", data);
         setMaterials(data);
       } catch (error) {
         console.error("Error al cargar materiales:", error);
