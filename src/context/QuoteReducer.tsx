@@ -1,6 +1,7 @@
 import type { QuoteAction } from "./QuoteActions";
 import { createDefaultPiece } from "./QuoteContext";
 import type { MainPiece, QuoteState } from "./QuoteInterfases";
+import { shapeVariations } from "@/pages/public/common/shapes-step2";
 
 /**
  * EL REDUCER (CON NUEVA LÓGICA)
@@ -235,19 +236,39 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
         error: action.payload.error, // Guarda el mensaje de error
       };
 
-    case "LOAD_SAVED_PROJECT":
+    case "LOAD_SAVED_PROJECT": {
+      const config = action.payload.configuration;
+      let shapeId = config.selectedShapeId;
+
+      // START INFERENCE: Si es un borrador antiguo sin shapeId
+      if (!shapeId && config.mainPieces && config.mainPieces.length > 0) {
+        const count = config.mainPieces.length;
+        // Buscamos candidatos con el mismo número de piezas
+        const candidates = shapeVariations.filter((v) => v.count === count);
+
+        if (candidates.length > 0) {
+          // Tomamos el primero por defecto (Mejor que nada para que no rompa la UI)
+          shapeId = candidates[0].id;
+        }
+      }
+
       return {
         ...state,
         // Restauramos la configuración
-        wizardTempMaterial: action.payload.configuration.wizardTempMaterial,
-        mainPieces: action.payload.configuration.mainPieces,
+        wizardTempMaterial: config.wizardTempMaterial,
+        mainPieces: config.mainPieces,
         // Es vital restaurar el material para que el Paso 1 se vea bien
+
+        // Restauramos también el shapeId (o el inferido)
+        selectedShapeId: shapeId || null,
+        activePieceIndex: config.mainPieces.length > 0 ? 0 : null,
 
         // Restauramos identidad y alertas
         currentDraftId: action.payload._id,
         isDraftRecalculated: action.payload.recalculated || false, // Flag que viene del backend
         calculationResult: { totalPoints: action.payload.currentPricePoints }, // Hidratamos el precio
       };
+    }
 
     // Cuando guardamos con éxito un borrador nuevo
     case "SET_DRAFT_ID":

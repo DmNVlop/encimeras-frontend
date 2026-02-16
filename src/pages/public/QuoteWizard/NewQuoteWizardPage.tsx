@@ -17,8 +17,10 @@ import {
   Snackbar,
   AlertTitle,
 } from "@mui/material";
-import { KeyboardArrowLeft, KeyboardArrowRight } from "@mui/icons-material";
+import { KeyboardArrowLeft, KeyboardArrowRight, Person } from "@mui/icons-material";
 import { QuoteProvider, useQuoteDispatch, useQuoteState } from "@/context/QuoteContext";
+import logo from "@/assets/logos/kuuk-logo.png";
+import { StepConnector } from "@mui/material";
 
 // Importar los pasos
 import { WizardStep1_Materials } from "./steps/WizardStep1_Materials";
@@ -26,8 +28,9 @@ import { WizardStep2_ShapeAndMeasures } from "./steps/WizardStep2_ShapeAndMeasur
 import { WizardStep3_JobsAndAssembly } from "./steps/WizardStep3_JobsAndAssembly";
 import { WizardStep4_Complements } from "./steps/WizardStep4_Complements";
 import { WizardStep5_Summary } from "./steps/WizardStep5_Summary";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { draftsApi } from "@/services/drafts.service";
+import { validateAssemblies } from "@/utils/quoteValidation";
 
 const steps = ["Material", "Forma y Medidas", "Trabajos y Ensamblaje", "Complementos", "Resumen"];
 
@@ -62,6 +65,7 @@ const WizardStepperContent: React.FC = () => {
   // --- HOOKS ---
   const dispatch = useQuoteDispatch(); // <--- Necesitas exponer esto en tu Context
   const location = useLocation(); // Para leer ?draftId=...
+  const navigate = useNavigate();
 
   // --- EFECTO DE CARGA PARA LEER RUTA ---
   React.useEffect(() => {
@@ -153,6 +157,15 @@ const WizardStepperContent: React.FC = () => {
       }
     }
 
+    // Para ir a pasos 3, 4 (Index > 2): Necesitamos Uniones (2)
+    if (stepIndex > 2) {
+      const v = validateAssemblies(mainPieces);
+      if (!v.isValid) {
+        setValidationError(v.error || "Falta completar las uniones (Paso 3).");
+        return;
+      }
+    }
+
     // Si pasa las validaciones, saltamos
     setActiveStep(stepIndex);
   };
@@ -169,6 +182,13 @@ const WizardStepperContent: React.FC = () => {
     if (activeStep === 1 && !isShapeValid()) {
       setValidationError("Debes elegir una forma y medidas válidas.");
       return;
+    }
+    if (activeStep === 2) {
+      const validation = validateAssemblies(mainPieces);
+      if (!validation.isValid) {
+        setValidationError(validation.error || "Falta completar las uniones.");
+        return;
+      }
     }
 
     setActiveStep((prev) => prev + 1);
@@ -206,32 +226,114 @@ const WizardStepperContent: React.FC = () => {
         }}
       >
         {/* --- A. CABECERA FIJA --- */}
+        {/* --- A. CABECERA FIJA --- */}
         <Box
           sx={{
-            p: { xs: 2, sm: 3 },
             flexShrink: 0,
+            backgroundColor: "#fff",
             borderBottom: "1px solid",
             borderColor: "divider",
           }}
         >
-          <Typography component="h1" variant="h5" align="center" gutterBottom sx={{ fontWeight: "bold" }}>
-            Configurador de Encimeras
-          </Typography>
+          {/* Main Header Row */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              p: { xs: 1, sm: 2 },
+              gap: 2,
+            }}
+          >
+            {/* 1. IZQUIERDA: Logo + Título */}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
+              <Box
+                component="img"
+                src={logo}
+                alt="Kuuk Logo"
+                onClick={() => navigate("/dashboard")}
+                sx={{
+                  maxHeight: { xs: 32, sm: 40 },
+                  width: "auto",
+                  objectFit: "contain",
+                  display: "block",
+                  cursor: "pointer",
+                }}
+              />
+              <Typography
+                variant={isMobile ? "subtitle1" : "h6"}
+                component="h1"
+                onClick={() => navigate("/dashboard")}
+                sx={{
+                  fontWeight: "bold",
+                  lineHeight: 1.2,
+                  display: { xs: "none", md: "block" },
+                  cursor: "pointer",
+                }}
+              >
+                Configurador de Encimeras
+              </Typography>
+              <Typography
+                variant="subtitle1"
+                component="h1"
+                onClick={() => navigate("/dashboard")}
+                sx={{
+                  fontWeight: "bold",
+                  lineHeight: 1.2,
+                  display: { xs: "block", md: "none" },
+                  cursor: "pointer",
+                }}
+              >
+                Configurador
+              </Typography>
+            </Box>
 
-          {!isMobile && (
-            <Stepper activeStep={activeStep} alternativeLabel nonLinear>
-              {steps.map((label, index) => (
-                <Step key={label} completed={activeStep > index}>
-                  <StepButton color="inherit" onClick={() => handleStepClick(index)}>
-                    {label}
-                  </StepButton>
-                </Step>
-              ))}
-            </Stepper>
-          )}
+            {/* 2. CENTRO: Stepper (Solo Desktop) */}
+            {!isMobile && (
+              <Box sx={{ flexGrow: 1, maxWidth: "800px", mx: 2 }}>
+                <Stepper
+                  activeStep={activeStep}
+                  alternativeLabel
+                  nonLinear
+                  connector={<StepConnector />}
+                  sx={{
+                    "& .MuiStepLabel-label": { mt: 0.5, fontSize: "0.75rem" },
+                    p: 0,
+                  }}
+                >
+                  {steps.map((label, index) => (
+                    <Step key={label} completed={activeStep > index}>
+                      <StepButton color="inherit" onClick={() => handleStepClick(index)}>
+                        {label}
+                      </StepButton>
+                    </Step>
+                  ))}
+                </Stepper>
+              </Box>
+            )}
 
+            {/* 3. DERECHA: Botón Portal Usuario */}
+            <Box sx={{ flexShrink: 0 }}>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<Person />}
+                onClick={() => navigate("/my-quotes")}
+                sx={{
+                  borderRadius: 50,
+                  textTransform: "none",
+                  whiteSpace: "nowrap",
+                  minWidth: "auto",
+                }}
+              >
+                {isMobile ? "Portal" : "Portal del Usuario"}
+              </Button>
+            </Box>
+          </Box>
+
+          {/* Error Alert */}
           {validationError && (
-            <Alert severity="error" sx={{ mt: 2 }}>
+            <Alert severity="error" sx={{ m: 0, borderRadius: 0 }}>
               {validationError}
             </Alert>
           )}

@@ -295,7 +295,10 @@ export const WizardStep3_JobsAndAssembly: React.FC = () => {
     if (addonDef) {
       const defaultMeasurements: Record<string, number> = {};
       addonDef.requiredMeasurements.forEach((m) => (defaultMeasurements[m] = m === "quantity" ? 1 : 0));
-      dispatch({ type: "ADD_ADDON_TO_PIECE", payload: { pieceIndex: targetPieceIndex, addon: { code: addonDef.code, measurements: defaultMeasurements } } });
+      dispatch({
+        type: "ADD_ADDON_TO_PIECE",
+        payload: { pieceIndex: targetPieceIndex, addon: { code: addonDef.code, measurements: defaultMeasurements, category: addonDef.category } },
+      });
     }
   };
 
@@ -322,7 +325,7 @@ export const WizardStep3_JobsAndAssembly: React.FC = () => {
         defaultMeasurements[m] = m === "quantity" ? 1 : 0;
       }
     });
-    const newAddon: AppliedAddon = { code: addon.code, measurements: defaultMeasurements };
+    const newAddon: AppliedAddon = { code: addon.code, measurements: defaultMeasurements, category: addon.category };
     dispatch({ type: "ADD_ADDON_TO_PIECE", payload: { pieceIndex, addon: newAddon } });
   };
 

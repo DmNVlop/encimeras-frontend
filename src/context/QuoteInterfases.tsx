@@ -20,7 +20,8 @@ export interface AppliedAddon {
     [key: string]: number | undefined;
   };
   // Opcional: atributos propios del accesorio, si aplica
-  // selectedAttributes?: SelectedAttributes;
+  category?: string; // Para distinguir, ej: 'ENSAMBLAJE'
+  selectedAttributes?: SelectedAttributes;
 }
 
 export interface PieceLayout {

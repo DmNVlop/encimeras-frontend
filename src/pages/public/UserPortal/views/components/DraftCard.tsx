@@ -1,15 +1,33 @@
+import { useState } from "react";
 import { Box, Card, CardContent, Typography, Button, LinearProgress, IconButton } from "@mui/material";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import type { IDraft } from "@/interfases/draft.interfase";
 
 interface DraftCardProps {
   draft: IDraft;
+  onDelete: (id: string) => void;
 }
 
-export default function DraftCard({ draft }: DraftCardProps) {
+export default function DraftCard({ draft, onDelete }: DraftCardProps) {
   const navigate = useNavigate();
+  const [openConfirm, setOpenConfirm] = useState(false);
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setOpenConfirm(true);
+  };
+
+  const handleConfirmDelete = () => {
+    setOpenConfirm(false);
+    onDelete(draft._id || (draft as any).id);
+  };
+
+  const handleCloseConfirm = () => {
+    setOpenConfirm(false);
+  };
 
   // Helper to calculate time ago
   const getTimeAgo = (dateString?: string) => {
@@ -105,8 +123,8 @@ export default function DraftCard({ draft }: DraftCardProps) {
             </Box>
           )}
 
-          <IconButton size="small" sx={{ color: "text.disabled" }}>
-            <ArrowForwardIcon fontSize="small" />
+          <IconButton size="small" sx={{ color: "error.main" }} onClick={handleDeleteClick}>
+            <DeleteOutlineIcon fontSize="small" />
           </IconButton>
         </Box>
 
@@ -190,6 +208,22 @@ export default function DraftCard({ draft }: DraftCardProps) {
           Continuar Editando
         </Button>
       </Box>
+      <Dialog open={openConfirm} onClose={handleCloseConfirm} aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description">
+        <DialogTitle id="alert-dialog-title">{"¿Eliminar borrador?"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            ¿Estás seguro de que quieres eliminar este borrador? Esta acción no se puede deshacer.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseConfirm} color="primary">
+            Cancelar
+          </Button>
+          <Button onClick={handleConfirmDelete} color="error" autoFocus>
+            Eliminar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Card>
   );
 }
