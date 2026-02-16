@@ -5,9 +5,6 @@ import {
   Typography,
   Paper,
   CircularProgress,
-  List,
-  ListItem,
-  ListItemText,
   Divider,
   TextField,
   Dialog,
@@ -224,10 +221,13 @@ export const WizardStep5_Summary: React.FC = () => {
   // ---------------------------------------------------------------------------
   // HANDLER: RENDERIZADO DEL DESGLOSE (Visualización de CalculationResponse)
   // ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // HANDLER: RENDERIZADO DEL DESGLOSE (Visualización de CalculationResponse)
+  // ---------------------------------------------------------------------------
   const renderBreakdown = () => {
     if (!calculationResult) return null;
 
-    // 1. Verificación reforzada: ¿Existe el resultado y tiene el array de piezas?
+    // 1. Verificación reforzada
     if (!calculationResult || !calculationResult.pieces) {
       return (
         <Alert severity="info" sx={{ mt: 2 }}>
@@ -235,15 +235,11 @@ export const WizardStep5_Summary: React.FC = () => {
         </Alert>
       );
     }
-    // Casta forzado seguro gracias a la interfaz
+
     const result = calculationResult as CalculationResponse;
 
     return (
       <Box sx={{ mt: 4, pb: 4 }}>
-        {/* <Typography variant="h6" gutterBottom sx={{ color: "primary.main", fontWeight: "bold" }}>
-          Desglose del Proyecto
-        </Typography> */}
-
         {/* --- TÍTULO DEL PASO --- */}
         <Box sx={{ mb: 4, display: "flex", alignItems: "center", gap: 2 }}>
           <Avatar sx={{ bgcolor: theme.palette.primary.main }}>
@@ -254,56 +250,138 @@ export const WizardStep5_Summary: React.FC = () => {
               Desglose del Proyecto
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Descripción de todo lo seleccionado durante el proceso.
+              Detalle precio por piezas y servicios adicionales.
             </Typography>
           </Box>
         </Box>
 
-        <Paper elevation={3} sx={{ overflow: "hidden" }}>
-          <List disablePadding>
-            {result.pieces.map((piece, idx) => (
-              <React.Fragment key={idx}>
-                {/* Cabecera de la Pieza */}
-                <ListItem sx={{ backgroundColor: "#f5f5f5", borderBottom: "1px solid #e0e0e0" }}>
-                  <ListItemText primary={piece.pieceName} primaryTypographyProps={{ fontWeight: "bold" }} />
-                  <Typography variant="body2" fontWeight="bold">
-                    {piece.subtotalPoints.toFixed(2)} Pts
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          {result.pieces.map((piece, idx) => (
+            <Paper
+              key={idx}
+              elevation={2}
+              sx={{
+                overflow: "hidden",
+                borderRadius: 3,
+                border: "1px solid",
+                borderColor: "divider",
+                transition: "transform 0.2s, box-shadow 0.2s",
+                "&:hover": {
+                  boxShadow: 6,
+                  borderColor: "primary.light",
+                },
+              }}
+            >
+              {/* Cabecera de la Pieza */}
+              <Box
+                sx={{
+                  bgcolor: (params) => (params.palette.mode === "dark" ? "grey.800" : "grey.50"),
+                  p: 2,
+                  borderBottom: "1px solid",
+                  borderColor: "divider",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Typography variant="subtitle1" fontWeight="bold">
+                  {piece.pieceName}
+                </Typography>
+                <Typography variant="h6" color="primary.main" fontWeight="bold">
+                  {piece.subtotalPoints.toFixed(2)} Pts
+                </Typography>
+              </Box>
+
+              {/* Detalles de la Pieza */}
+              <Box sx={{ p: 2 }}>
+                {/* Material Base */}
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Material Base (Encimera)
                   </Typography>
-                </ListItem>
-
-                {/* Detalles de la Pieza */}
-                <Box sx={{ pl: 2, pr: 2, py: 1 }}>
-                  {/* Base Material */}
-                  <Box sx={{ display: "flex", justifyContent: "space-between", py: 0.5 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Encimera (Material Base)
-                    </Typography>
-                    <Typography variant="body2">{piece.basePricePoints.toFixed(2)} Pts</Typography>
-                  </Box>
-
-                  {/* Addons */}
-                  {piece.addons.map((addon, aIdx) => (
-                    <Box key={aIdx} sx={{ display: "flex", justifyContent: "space-between", py: 0.5 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        + {addon.addonName}
-                      </Typography>
-                      <Typography variant="body2">{addon.pricePoints.toFixed(2)} Pts</Typography>
-                    </Box>
-                  ))}
+                  <Typography variant="body2" fontWeight="medium">
+                    {piece.basePricePoints.toFixed(2)} Pts
+                  </Typography>
                 </Box>
-                <Divider />
-              </React.Fragment>
-            ))}
 
-            {/* TOTAL FINAL */}
-            <ListItem sx={{ backgroundColor: "primary.main", color: "white" }}>
-              <ListItemText primary="TOTAL PUNTOS" primaryTypographyProps={{ variant: "h6" }} />
+                {piece.addons.length > 0 && <Divider sx={{ my: 1.5 }} />}
+
+                {/* Addons List */}
+                {piece.addons.map((addon, aIdx) => (
+                  <Box
+                    key={aIdx}
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      mb: 1.5,
+                      "&:last-child": { mb: 0 },
+                    }}
+                  >
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                      {/* Imagen del Addon si existe */}
+                      {addon.imageUrl ? (
+                        <Avatar
+                          src={addon.imageUrl}
+                          alt={addon.name || addon.addonName}
+                          variant="rounded"
+                          sx={{ width: 40, height: 40, border: "1px solid #eee" }}
+                        />
+                      ) : (
+                        <Avatar variant="rounded" sx={{ width: 40, height: 40, bgcolor: "grey.200", color: "grey.500", fontSize: "0.75rem" }}>
+                          IMG
+                        </Avatar>
+                      )}
+
+                      <Box>
+                        <Typography variant="body2" fontWeight="bold" sx={{ color: "#333" }}>
+                          {addon.name || addon.addonName}
+                        </Typography>
+                        {/* Si tenemos el nombre amigable, mostramos el código abajo como secundario, si no, nada */}
+                        {addon.name && addon.name !== addon.addonName && (
+                          <Typography variant="caption" color="text.secondary" display="block">
+                            REF: {addon.addonName}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
+
+                    <Typography variant="body2" fontWeight="bold">
+                      {addon.pricePoints > 0 ? `+ ${addon.pricePoints.toFixed(2)} Pts` : "Incluido"}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Paper>
+          ))}
+
+          {/* TOTAL FINAL */}
+          <Paper
+            elevation={4}
+            sx={{
+              p: 3,
+              bgcolor: "primary.main",
+              color: "primary.contrastText",
+              borderRadius: 3,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mt: 2,
+            }}
+          >
+            <Box>
               <Typography variant="h5" fontWeight="bold">
-                {result.totalPoints.toFixed(2)}
+                TOTAL PUNTOS
               </Typography>
-            </ListItem>
-          </List>
-        </Paper>
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                Presupuesto calculado
+              </Typography>
+            </Box>
+            <Typography variant="h3" fontWeight="bold">
+              {result.totalPoints.toFixed(2)}
+            </Typography>
+          </Paper>
+        </Box>
       </Box>
     );
   };

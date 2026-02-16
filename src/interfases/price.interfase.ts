@@ -14,6 +14,8 @@ export interface PriceRuleAttribute {
 // =============================================================================
 export interface BreakdownAddon {
   addonName: string;
+  name?: string;
+  imageUrl?: string;
   pricePoints: number;
 }
 

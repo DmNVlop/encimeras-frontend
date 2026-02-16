@@ -29,4 +29,9 @@ export const draftsApi = {
   convertToOrder: async (payload: { draftId: string; customerId: string }) => {
     return apiClient.post("/orders", payload);
   },
+
+  // 6. Eliminar un borrador (DELETE)
+  delete: async (id: string) => {
+    return apiClient.delete(`/drafts/${id}`);
+  },
 };

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Snackbar, Alert } from "@mui/material";
 import { draftsApi } from "@/services/drafts.service"; // Ensure this path is correct
 import type { IDraft } from "@/interfases/draft.interfase";
 import DraftCard from "./components/DraftCard";
@@ -8,10 +8,17 @@ import NewDraftCard from "./components/NewDraftCard";
 export default function Drafts() {
   const [drafts, setDrafts] = useState<IDraft[]>([]);
   const [loading, setLoading] = useState(true);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">("success");
 
   useEffect(() => {
     fetchDrafts();
   }, []);
+
+  const handleCloseSnackbar = () => {
+    setSnackbarOpen(false);
+  };
 
   const fetchDrafts = async () => {
     try {
@@ -47,7 +54,24 @@ export default function Drafts() {
         {/* Render existing drafts */}
         {drafts.map((draft) => (
           <Box key={draft._id || (draft as any).id}>
-            <DraftCard draft={draft} />
+            <DraftCard
+              draft={draft}
+              onDelete={async (id) => {
+                try {
+                  await draftsApi.delete(id);
+                  setDrafts((prev) => prev.filter((d) => (d._id || (d as any).id) !== id));
+                  setSnackbarMessage("Borrador eliminado correctamente");
+                  setSnackbarSeverity("success");
+                  setSnackbarOpen(true);
+                } catch (error: any) {
+                  console.error("Error deleting draft:", error);
+                  const errorMessage = error.response?.data?.message || "Error al eliminar el borrador";
+                  setSnackbarMessage(errorMessage);
+                  setSnackbarSeverity("error");
+                  setSnackbarOpen(true);
+                }
+              }}
+            />
           </Box>
         ))}
 
@@ -58,6 +82,12 @@ export default function Drafts() {
           <NewDraftCard />
         </Box>
       </Box>
+
+      <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
+        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: "100%" }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
