@@ -19,6 +19,7 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
+import { validateAssemblies } from "@/utils/quoteValidation";
 import Grid from "@mui/material/Grid";
 import SendIcon from "@mui/icons-material/Send";
 import CalculateIcon from "@mui/icons-material/Calculate";
@@ -42,7 +43,7 @@ import { draftsApi } from "@/services/drafts.service";
 export const WizardStep5_Summary: React.FC = () => {
   const theme = useTheme();
 
-  const { mainPieces, isCalculating, calculationResult, error, currentDraftId, wizardTempMaterial } = useQuoteState();
+  const { mainPieces, selectedShapeId, isCalculating, calculationResult, error, currentDraftId, wizardTempMaterial } = useQuoteState();
   const dispatch = useQuoteDispatch();
 
   // Estado local para el envío final
@@ -93,6 +94,16 @@ export const WizardStep5_Summary: React.FC = () => {
       return;
     }
 
+    // --- VALIDACIÓN DE UNIONES ---
+    const assemblyValidation = validateAssemblies(mainPieces);
+    if (!assemblyValidation.isValid) {
+      dispatch({
+        type: "CALCULATION_ERROR",
+        payload: { error: assemblyValidation.error || "Faltan uniones por seleccionar. Revisa el paso 3." },
+      });
+      return;
+    }
+
     try {
       // Usamos el helper para generar el payload
       const payload = mapStateToApiPayload(mainPieces);
@@ -130,7 +141,7 @@ export const WizardStep5_Summary: React.FC = () => {
 
       // Payload actual del contexto
       const currentPayload = {
-        configuration: { wizardTempMaterial, mainPieces },
+        configuration: { wizardTempMaterial, mainPieces, selectedShapeId },
         currentPricePoints: calculationResult?.totalPoints || 0,
       };
 
@@ -179,6 +190,7 @@ export const WizardStep5_Summary: React.FC = () => {
       configuration: {
         wizardTempMaterial: wizardTempMaterial,
         mainPieces: mainPieces,
+        selectedShapeId: selectedShapeId,
       },
       currentPricePoints: calculationResult?.totalPoints || 0,
     };

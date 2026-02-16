@@ -30,6 +30,7 @@ import { WizardStep4_Complements } from "./steps/WizardStep4_Complements";
 import { WizardStep5_Summary } from "./steps/WizardStep5_Summary";
 import { useLocation, useNavigate } from "react-router-dom";
 import { draftsApi } from "@/services/drafts.service";
+import { validateAssemblies } from "@/utils/quoteValidation";
 
 const steps = ["Material", "Forma y Medidas", "Trabajos y Ensamblaje", "Complementos", "Resumen"];
 
@@ -156,6 +157,15 @@ const WizardStepperContent: React.FC = () => {
       }
     }
 
+    // Para ir a pasos 3, 4 (Index > 2): Necesitamos Uniones (2)
+    if (stepIndex > 2) {
+      const v = validateAssemblies(mainPieces);
+      if (!v.isValid) {
+        setValidationError(v.error || "Falta completar las uniones (Paso 3).");
+        return;
+      }
+    }
+
     // Si pasa las validaciones, saltamos
     setActiveStep(stepIndex);
   };
@@ -172,6 +182,13 @@ const WizardStepperContent: React.FC = () => {
     if (activeStep === 1 && !isShapeValid()) {
       setValidationError("Debes elegir una forma y medidas válidas.");
       return;
+    }
+    if (activeStep === 2) {
+      const validation = validateAssemblies(mainPieces);
+      if (!validation.isValid) {
+        setValidationError(validation.error || "Falta completar las uniones.");
+        return;
+      }
     }
 
     setActiveStep((prev) => prev + 1);
