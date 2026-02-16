@@ -21,7 +21,7 @@ const LoadingFallback = () => (
  * Componente que contiene la lógica de rutas y tiene acceso al contexto de autenticación
  */
 const AppRouter = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isInitializing } = useAuth();
 
   // Función recursiva para renderizar rutas y sub-rutas
   const renderRoutes = (routes: AppRouteConfig[]) => {
@@ -48,7 +48,7 @@ const AppRouter = () => {
     });
   };
 
-  if (isLoading) {
+  if (isInitializing) {
     return <LoadingFallback />;
   }
 

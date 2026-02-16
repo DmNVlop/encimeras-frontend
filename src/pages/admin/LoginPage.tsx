@@ -11,13 +11,15 @@ const LoginPage: React.FC = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<any>(null);
+  const [localLoading, setLocalLoading] = useState(false);
   const navigate = useNavigate();
 
-  const { login, isLoading, isAuthenticated, user } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
 
   // redirection logic based on roles
   useEffect(() => {
     if (isAuthenticated && user) {
+      console.log("LoginPage: Authenticated, redirecting...");
       const userRoles = user.roles || [];
 
       // Logic for hierarchy redirection
@@ -31,19 +33,38 @@ const LoginPage: React.FC = () => {
     }
   }, [isAuthenticated, user, navigate]);
 
-  const handleLogin = async (event: React.FormEvent) => {
-    event.preventDefault();
+  // Log para ver cambios en error
+  useEffect(() => {
+    console.log("LoginPage: State 'error' changed:", error);
+  }, [error]);
+
+  console.log("LoginPage: Render. localLoading:", localLoading, "Error:", error);
+
+  const handleLogin = async (event?: React.FormEvent) => {
+    if (event) event.preventDefault();
+    console.log("LoginPage: handleLogin started.");
+
+    // Clear previous error
     setError(null);
+    setLocalLoading(true);
 
     try {
+      console.log("LoginPage: Calling login context...");
       await login(username, password);
-      // navigation handled by useEffect
     } catch (err: any) {
-      console.error("Login Error:", err);
-      // api.service returns a string for errors, which ApiErrorFeedback handles gracefully.
-      // We pass it directly to avoid misinterpretation as a network error by the component.
-      setError(err);
+      console.error("LoginPage: CATCH triggered.", err);
+
+      // Intentional delay to ensure UI stability before showing error
+      setLocalLoading(false);
+      setTimeout(() => {
+        console.log("LoginPage: Setting error state now:", err);
+        setError(err);
+      }, 100);
+      return;
     }
+
+    // Only turn off loading here if successful (catch returns early)
+    setLocalLoading(false);
   };
 
   return (
@@ -70,7 +91,7 @@ const LoginPage: React.FC = () => {
             autoComplete="username"
             placeholder="Nombre de Usuario, ej: usuario@usuario.com"
             autoFocus
-            disabled={isLoading}
+            disabled={localLoading}
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
@@ -84,7 +105,7 @@ const LoginPage: React.FC = () => {
             id="password"
             autoComplete="current-password"
             placeholder="Contraseña..."
-            disabled={isLoading}
+            disabled={localLoading}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
@@ -96,10 +117,10 @@ const LoginPage: React.FC = () => {
             fullWidth
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
-            disabled={isLoading}
-            startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null}
+            disabled={localLoading}
+            startIcon={localLoading ? <CircularProgress size={20} color="inherit" /> : null}
           >
-            {isLoading ? "Iniciando Sesión..." : "Iniciar Sesión"}
+            {localLoading ? "Iniciando Sesión..." : "Iniciar Sesión"}
           </Button>
         </Box>
       </Box>

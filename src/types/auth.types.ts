@@ -27,7 +27,8 @@ export interface AppRouteConfig {
 export interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  isLoading: boolean; // Vital para no redirigir mientras cargamos sesión
+  isLoading: boolean; // Para acciones (login/logout)
+  isInitializing: boolean; // Para el arranque de la app
   login: (email: string, password: string) => Promise<AuthResponse>;
   logout: () => void;
 }

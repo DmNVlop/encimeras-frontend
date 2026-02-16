@@ -14,65 +14,45 @@ interface ApiErrorFeedbackProps {
 export const ApiErrorFeedback: React.FC<ApiErrorFeedbackProps> = ({ error, title = "No se pudo completar la acción", onRetry, sx }) => {
   const [showDetails, setShowDetails] = useState(false);
 
-  if (!error) return null;
-
   // --- LÓGICA DE TRADUCCIÓN E EXTRACCIÓN ---
   const parseErrorMessage = (err: any) => {
     // Valores por defecto
     let friendlyMsg = "Ha ocurrido un error inesperado.";
     let techMsg = "";
+    let statusCode = 0;
 
-    // CASO 1: Error es un String simple (Legacy o errores manuales)
+    if (!err) return { friendlyMsg: "", techMsg: "" };
+
+    // 1. Extracción de Datos y Status (Normalización)
+    const responseData = err?.response?.data || (err?.statusCode ? err : null) || err;
+    statusCode = err?.response?.status || err?.statusCode || responseData?.statusCode || 0;
+
+    // 2. Extracción del Mensaje Técnico (techMsg)
     if (typeof err === "string") {
-      friendlyMsg = err;
       techMsg = err;
-    }
-    // CASO 2: Error estructurado del backend (NestJS standard)
-    // Formato esperado: { message: string, error: string, statusCode: number }
-    else if (err?.statusCode && err?.error) {
-      friendlyMsg = err.message || "Error desconocido";
-      techMsg = JSON.stringify(err, null, 2);
-    }
-    // CASO 3: Error de Axios con response (Legacy o errores no controlados arriba)
-    else if (err?.response?.data) {
-      const data = err.response.data;
-
-      // A. Extracción del Mensaje Técnico (Para el Collapse)
-      // NestJS suele devolver: { message: "...", error: "...", statusCode: ... }
-      if (typeof data.message === "string") {
-        techMsg = data.message;
-      } else if (Array.isArray(data.message)) {
-        // Validación de DTOs (Array de errores)
-        techMsg = data.message.join("\n");
-      } else {
-        // Fallback: mostrar todo el JSON
-        techMsg = JSON.stringify(data, null, 2);
-      }
-
-      // B. Mensaje Amigable (Para el Usuario)
-      // Lógica específica para tu caso de Precios
-      if (techMsg.includes("Price not found") || techMsg.includes("Pricing recipe")) {
-        friendlyMsg = "Falta configuración de precio para la combinación de materiales seleccionada.";
-      } else if (data.statusCode === 401 || techMsg.toLowerCase().includes("unauthorized")) {
-        friendlyMsg = "Usuario o contraseña incorrectos.";
-      } else if (data.statusCode === 404) {
-        friendlyMsg = "No se encontraron datos para procesar la solicitud (404).";
-      } else if (data.statusCode === 400) {
-        friendlyMsg = "Revisa los datos seleccionados, hay información incompatible.";
-      } else {
-        // Si no reconocemos el error, mostramos el mensaje del backend si no es muy largo
-        friendlyMsg = techMsg.length < 150 ? techMsg : "Error de comunicación con el servidor.";
-      }
-    }
-    // CASO 3: Error Objeto Simple (generado manualmente o por lógica de UI)
-    else if (err?.message && !err?.response && !err?.request) {
-      friendlyMsg = err.message;
-      techMsg = JSON.stringify(err, null, 2);
-    }
-    // CASO 4: Error de Red (Sin respuesta del servidor, tiene request pero no response)
-    else if (err?.message) {
+    } else if (responseData?.message) {
+      techMsg = Array.isArray(responseData.message) ? responseData.message.join("\n") : responseData.message;
+    } else if (err?.message) {
       techMsg = err.message;
-      friendlyMsg = "Error de conexión. Verifica tu internet o si el servidor está activo.";
+    } else {
+      techMsg = JSON.stringify(err, null, 2);
+    }
+
+    // 3. Traducción a Mensaje Amigable (friendlyMsg)
+    if (statusCode === 401 || techMsg.toLowerCase().includes("unauthorized")) {
+      friendlyMsg = "Usuario o contraseña incorrectos.";
+    } else if (statusCode === 403) {
+      friendlyMsg = "No tienes permisos para realizar esta acción.";
+    } else if (statusCode === 404) {
+      friendlyMsg = "El recurso solicitado no existe (404).";
+    } else if (statusCode === 400) {
+      friendlyMsg = "Los datos enviados son inválidos o incompatibles.";
+    } else if (techMsg.includes("Price not found") || techMsg.includes("Pricing recipe")) {
+      friendlyMsg = "Falta configuración de precio para la combinación seleccionada.";
+    } else if (techMsg.includes("Network Error") || (err && !statusCode)) {
+      friendlyMsg = "Error de conexión. Verifica tu internet o el estado del servidor.";
+    } else if (techMsg && techMsg.length < 100) {
+      friendlyMsg = techMsg;
     }
 
     return { friendlyMsg, techMsg };
@@ -80,11 +60,13 @@ export const ApiErrorFeedback: React.FC<ApiErrorFeedbackProps> = ({ error, title
 
   const { friendlyMsg, techMsg } = parseErrorMessage(error);
 
+  // Si no hay error, no mostramos nada
+  if (!error) return null;
+
   return (
     <Alert
       severity="error"
-      sx={{ mt: 2, mb: 2, ...sx }}
-      className="mt-2"
+      sx={{ mt: 2, mb: 2, border: "1px solid #d32f2f", ...sx }}
       action={
         onRetry && (
           <Button color="inherit" size="small" startIcon={<RefreshIcon />} onClick={onRetry}>
@@ -95,12 +77,10 @@ export const ApiErrorFeedback: React.FC<ApiErrorFeedbackProps> = ({ error, title
     >
       <AlertTitle sx={{ fontWeight: "bold" }}>{title}</AlertTitle>
 
-      {/* Mensaje para el Usuario Final */}
       <Typography variant="body2" sx={{ mb: 1 }}>
         {friendlyMsg}
       </Typography>
 
-      {/* Sección de Detalles Técnicos */}
       <Box sx={{ mt: 1 }}>
         <Box
           sx={{
@@ -128,13 +108,12 @@ export const ApiErrorFeedback: React.FC<ApiErrorFeedbackProps> = ({ error, title
               bgcolor: "#fff",
               border: "1px solid #ffcdd2",
               borderRadius: 1,
-              fontFamily: "Monaco, Consolas, 'Courier New', monospace", // Fuente monoespaciada vital para leer JSON/Logs
+              fontFamily: "Monaco, Consolas, 'Courier New', monospace",
               fontSize: "0.8rem",
               color: "#d32f2f",
               overflowX: "auto",
             }}
           >
-            {/* Aquí se imprime el mensaje tal cual viene del Backend */}
             <strong>Server Message:</strong>
             <br />
             {techMsg || "No details provided."}

@@ -53,15 +53,20 @@ apiClient.interceptors.response.use(
 
       // CASO CRÍTICO: 401 Unauthorized (Token vencido o inválido)
       if (status === 401) {
-        // Evitamos bucle infinito si el error viene del propio login o endpoints de auth
-        const isAuthRequest = error.config?.url?.includes("/auth") || error.config?.url?.includes("/login");
+        const url = error.config?.url || "";
+        const isAuthRequest = url.includes("/auth/") || url.includes("/login");
+
+        console.log("Interceptor 401. URL:", url, "IsAuthRequest:", isAuthRequest);
 
         if (!isAuthRequest) {
-          TokenStorage.clearToken(); // Limpiamos rastro
-          window.location.href = "/admin/login"; // Hard Redirect
+          TokenStorage.clearToken();
+          console.warn("Interceptor: Redirigiendo a /login (Hard Redirect)");
+          window.location.href = "/login";
           return Promise.reject(new Error("Tu sesión ha expirado. Por favor ingresa nuevamente."));
         }
-        // Si es login, dejamos pasar el error tal cual para que el componente lo muestre
+
+        console.log("Interceptor: Pass-through (Auth Request detected)");
+        return Promise.reject(data);
       }
 
       // CASO: 403 Forbidden (Sin permisos)
