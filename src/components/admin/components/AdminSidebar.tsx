@@ -22,7 +22,7 @@ const menuConfig: NavItem[] = [
   { text: "Dashboard", icon: <DashboardIcon />, path: "/admin/dashboard", type: "item" },
   { text: "Presupuestador", icon: <CalculateIcon />, path: "/dashboard", type: "item" },
   { text: "Ordenes", icon: <ShoppingBagIcon />, path: "/admin/orders", type: "item" },
-  { text: "Borradores", icon: <ReceiptLongIcon />, path: "/admin/drafts", type: "item" },
+  // { text: "Borradores", icon: <ReceiptLongIcon />, path: "/admin/drafts", type: "item" },
   { text: "divider", type: "divider" },
   { text: "ADMINISTRACIÓN", type: "subheader" },
   {
@@ -32,7 +32,7 @@ const menuConfig: NavItem[] = [
     children: [
       { text: "Usuarios", path: "/admin/users" },
       { text: "Clientes", path: "/admin/customers" },
-      { text: "Identidad", path: "/admin/identity" },
+      // { text: "Identidad", path: "/admin/identity" },
     ],
   },
   {
