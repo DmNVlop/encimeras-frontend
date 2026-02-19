@@ -38,7 +38,7 @@ import { getAnalyticsSummary, type AnalyticsSummaryResponse, type AnalyticsFilte
 /**
  * KPI Card Component with Glassmorphism and Premium feel
  */
-const StatCard = ({ title, value, subtitle, icon, loading, color }: any) => {
+const StatCard = ({ title, value, subtitle, icon, loading, color, info }: any) => {
   const theme = useTheme();
   return (
     <Card
@@ -72,9 +72,16 @@ const StatCard = ({ title, value, subtitle, icon, loading, color }: any) => {
       <CardContent sx={{ p: 3 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
           <Box sx={{ flexGrow: 1 }}>
-            <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 1.2, display: "block", mb: 1, opacity: 0.8 }}>
-              {title}
-            </Typography>
+            <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 1 }}>
+              <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 1.2, display: "block", opacity: 0.8 }}>
+                {title}
+              </Typography>
+              {info && (
+                <Tooltip title={info} arrow placement="top">
+                  <InfoOutlinedIcon sx={{ fontSize: 14, color: "text.secondary", opacity: 0.5, cursor: "help" }} />
+                </Tooltip>
+              )}
+            </Stack>
             {loading ? (
               <Skeleton width="60%" height={48} sx={{ my: 0.5 }} />
             ) : (
@@ -327,6 +334,7 @@ const DashboardPage: React.FC = () => {
             loading={loading}
             color={theme.palette.primary.main}
             subtitle="Volumen total de documentos"
+            info="Cantidad acumulada de presupuestos creados, incluyendo tanto borradores activos como pedidos ya confirmados."
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4 }}>
@@ -337,6 +345,7 @@ const DashboardPage: React.FC = () => {
             loading={loading}
             color={theme.palette.secondary.main}
             subtitle="Potencial de negocio"
+            info="Valor total acumulado del negocio. Suma el precio de los pedidos vendidos y el valor de las cotizaciones en curso."
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4 }}>
@@ -347,6 +356,7 @@ const DashboardPage: React.FC = () => {
             loading={loading}
             color={theme.palette.success.main}
             subtitle="Rentabilidad media"
+            info="Indica la rentabilidad media por cada presupuesto. Se calcula dividiendo el valor total en puntos por la cantidad de proyectos."
           />
         </Grid>
 
@@ -358,6 +368,7 @@ const DashboardPage: React.FC = () => {
             icon={<LayersIcon />}
             loading={loading}
             color={theme.palette.info.main}
+            info="Suma de la superficie total de todas las piezas (largo * ancho) convertida a metros cuadrados."
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -367,6 +378,7 @@ const DashboardPage: React.FC = () => {
             icon={<StraightenIcon />}
             loading={loading}
             color={theme.palette.warning.main}
+            info="Longitud total en metros lineales de acabados como copetes, cantos y otros añadidos que requieren mecanizado lineal."
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -377,6 +389,7 @@ const DashboardPage: React.FC = () => {
             loading={loading}
             color={theme.palette.error.main}
             subtitle="Complejidad técnica media"
+            info="Promedio de piezas físicas que componen cada presupuesto. A mayor número, mayor complejidad técnica y logística del proyecto."
           />
         </Grid>
 
@@ -401,7 +414,7 @@ const DashboardPage: React.FC = () => {
                   Comparativa de volumen de presupuesto y valor acumulado
                 </Typography>
               </Box>
-              <Tooltip title="Muestra la progresión diaria de actividad comercial">
+              <Tooltip title="Muestra la tendencia diaria comparando cuántos presupuestos se crean frente al valor que representan. Ideal para detectar picos de demanda.">
                 <IconButton size="small" sx={{ opacity: 0.6 }}>
                   <InfoOutlinedIcon fontSize="small" />
                 </IconButton>
@@ -490,8 +503,11 @@ const DashboardPage: React.FC = () => {
               boxShadow: "0 15px 35px -10px rgba(0,0,0,0.03)",
             }}
           >
-            <Typography variant="h6" sx={{ mb: 4, fontWeight: 900, fontSize: "1.25rem", letterSpacing: -0.5 }}>
+            <Typography variant="h6" sx={{ mb: 4, fontWeight: 900, fontSize: "1.25rem", letterSpacing: -0.5, display: "flex", alignItems: "center", gap: 1 }}>
               Distribución de Materiales
+              <Tooltip title="Análisis de los materiales más solicitados. El porcentaje representa la 'cuota de mercado' interna dentro de la fábrica.">
+                <InfoOutlinedIcon sx={{ fontSize: 16, color: "text.secondary", opacity: 0.5, cursor: "help" }} />
+              </Tooltip>
             </Typography>
             <Box sx={{ height: 350, display: "flex", justifyContent: "center", position: "relative" }}>
               {loading ? (
@@ -574,8 +590,11 @@ const DashboardPage: React.FC = () => {
               boxShadow: "0 15px 35px -10px rgba(0,0,0,0.03)",
             }}
           >
-            <Typography variant="h6" sx={{ mb: 4, fontWeight: 900, fontSize: "1.25rem", letterSpacing: -0.5 }}>
+            <Typography variant="h6" sx={{ mb: 4, fontWeight: 900, fontSize: "1.25rem", letterSpacing: -0.5, display: "flex", alignItems: "center", gap: 1 }}>
               Top Complementos Solicitados
+              <Tooltip title="Muestra los extras (fregaderos, taladros, encastres, etc.) más frecuentes en los presupuestos para identificar tendencias de consumo y equipamiento.">
+                <InfoOutlinedIcon sx={{ fontSize: 16, color: "text.secondary", opacity: 0.5, cursor: "help" }} />
+              </Tooltip>
             </Typography>
             <Box sx={{ height: 350 }}>
               {loading ? (
