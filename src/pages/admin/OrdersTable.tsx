@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { DataGrid, type GridColDef, type GridRenderCellParams } from "@mui/x-data-grid";
-import { Box, Typography, Chip, Paper } from "@mui/material";
+import { Box, Chip, Paper } from "@mui/material";
+import AdminPageTitle from "./components/AdminPageTitle";
 
 import { get } from "@/services/api.service";
 
@@ -217,10 +218,8 @@ export const OrdersPage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p: 3, height: "85vh", display: "flex", flexDirection: "column" }}>
-      <Typography variant="h4" fontWeight="bold" mb={2}>
-        Gestión de Órdenes
-      </Typography>
+    <Box>
+      <AdminPageTitle mb={2}>Gestión de Órdenes</AdminPageTitle>
 
       <Paper sx={{ flexGrow: 1 }}>
         <DataGrid

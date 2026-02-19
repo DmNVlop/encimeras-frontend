@@ -26,7 +26,6 @@ import {
 } from "@mui/material";
 import { Add, KeyboardArrowLeft, KeyboardArrowRight, Person } from "@mui/icons-material";
 import { QuoteProvider, useQuoteDispatch, useQuoteState } from "@/context/QuoteContext";
-import logo from "@/assets/logos/kuuk-logo.png";
 import { StepConnector } from "@mui/material";
 
 // Importar los pasos
@@ -40,6 +39,8 @@ import { draftsApi } from "@/services/drafts.service";
 import { validateAssemblies } from "@/utils/quoteValidation";
 
 const steps = ["Material", "Forma y Medidas", "Trabajos y Ensamblaje", "Complementos", "Resumen"];
+
+const logo = "/logos/kuuk-logo.png";
 
 const WizardContent: React.FC<{ activeStep: number }> = ({ activeStep }) => {
   switch (activeStep) {

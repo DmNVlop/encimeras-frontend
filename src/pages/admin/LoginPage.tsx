@@ -1,4 +1,5 @@
 // src/pages/admin/LoginPage.tsx
+// Seguimiento de Documentación Técnica: Autenticación (Login)
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -9,12 +10,13 @@ import { ApiErrorFeedback } from "../public/common/ApiErrorFeedback";
 import { SettingsService } from "@/services/settings.service";
 import type { LoginSettings } from "@/types/settings.types";
 
+const logo = "/logos/kuuk-logo.png";
+
 const DEFAULT_SETTINGS: LoginSettings = {
   title: "Presupuestador Kuuk",
   description: "Ingresa tus credenciales para continuar",
   imageUrl: "/encimeras_1920x1080.jpg",
-  logoUrl:
-    "https://sp-ao.shortpixel.ai/client/to_webp,q_glossy,ret_img,w_124,h_53/https://kuukencimeras.com/wp-content/uploads/2021/02/cropped-cropped-Logo-kuuk-bok-1-e1714466793783.png",
+  logoUrl: logo,
 };
 
 const LoginPage: React.FC = () => {
@@ -51,7 +53,7 @@ const LoginPage: React.FC = () => {
       const userRoles = user.roles || [];
 
       // Logic for hierarchy redirection
-      if (userRoles.includes(UserRole.ADMIN) || userRoles.includes(UserRole.SALES_FACTORY)) {
+      if (userRoles.includes(UserRole.ADMIN) || userRoles.includes(UserRole.SALES)) {
         navigate("/admin/orders", { replace: true });
       } else if (userRoles.includes(UserRole.WORKER)) {
         navigate("/factory/queue", { replace: true });
@@ -145,7 +147,7 @@ const LoginPage: React.FC = () => {
                 required
                 fullWidth
                 id="username"
-                label="Usuario"
+                label="Usuario / Email"
                 name="username"
                 autoComplete="username"
                 disabled={localLoading}

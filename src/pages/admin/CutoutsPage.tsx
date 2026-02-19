@@ -8,7 +8,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 
-// Interfaces
+import AdminPageTitle from "./components/AdminPageTitle";
 interface Cutout {
   _id: string;
   name: string;
@@ -110,7 +110,7 @@ const CutoutsPage: React.FC = () => {
   return (
     <Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-        <Typography variant="h4">Gestión de Cortes y Acabados</Typography>
+        <AdminPageTitle>Gestión de Cortes y Acabados</AdminPageTitle>
         <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpen()}>
           Añadir Corte
         </Button>

@@ -1,34 +1,14 @@
-// src/components/admin/AdminLayout.tsx
 import React, { useState } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 
-import {
-  AppBar,
-  Toolbar,
-  Typography,
-  Box,
-  Drawer,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  ListItemButton,
-  Avatar,
-  Menu,
-  MenuItem,
-  IconButton,
-  Divider,
-} from "@mui/material";
-import PriceCheckIcon from "@mui/icons-material/PriceCheck";
-import SettingsIcon from "@mui/icons-material/Tune";
-import StoneIcon from "@mui/icons-material/SquareFoot";
+import { AppBar, Toolbar, Typography, Box, Avatar, Menu, MenuItem, IconButton, Divider, ListItemIcon } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
-
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import logo from "@/assets/logos/kuuk-logo.png";
 import { useAuth } from "@/context/AuthProvider";
 
-const drawerWidth = 240;
+import AdminSidebar from "./components/AdminSidebar";
+
+const logo = "/logos/kuuk-logo.png";
+const drawerWidth = 260;
 
 const AdminLayout: React.FC = () => {
   const navigate = useNavigate();
@@ -48,17 +28,6 @@ const AdminLayout: React.FC = () => {
     setAnchorEl(null);
     navigate("/login");
   };
-
-  const menuItems = [
-    { text: "Dashboard", icon: <DashboardIcon />, path: "/admin/dashboard" },
-    { text: "Atributos", path: "/admin/attributes", icon: <SettingsIcon /> },
-    { text: "Materiales", icon: <StoneIcon />, path: "/admin/materials" },
-    { text: "Reglas Medidas", icon: <StoneIcon />, path: "/admin/rule-sets" },
-    { text: "Complementos", icon: <StoneIcon />, path: "/admin/addons" },
-    { text: "Precios", icon: <PriceCheckIcon />, path: "/admin/price-configs" },
-    { text: "-------------------", icon: "", path: "#" },
-    { text: "Órdenes", icon: <PriceCheckIcon />, path: "/admin/orders" },
-  ];
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -142,29 +111,7 @@ const AdminLayout: React.FC = () => {
           </Box>
         </Toolbar>
       </AppBar>
-      <Drawer
-        variant="permanent"
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: "border-box" },
-        }}
-      >
-        <Toolbar />
-        <Box sx={{ overflow: "auto" }}>
-          <List>
-            {menuItems.map((item) => (
-              // 3. Usamos ListItem como contenedor y ListItemButton para la interacción
-              <ListItem key={item.text} disablePadding>
-                <ListItemButton component={NavLink} to={item.path}>
-                  <ListItemIcon>{item.icon}</ListItemIcon>
-                  <ListItemText primary={item.text} />
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
-        </Box>
-      </Drawer>
+      <AdminSidebar drawerWidth={drawerWidth} />
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
         <Toolbar />
         <Outlet />

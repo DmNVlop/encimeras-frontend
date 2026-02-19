@@ -64,7 +64,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsAuthenticated(false);
   };
 
-  return <AuthContext.Provider value={{ user, isAuthenticated, isLoading, isInitializing, login, logout }}>{children}</AuthContext.Provider>;
+  const refreshUser = async () => {
+    try {
+      const userData = await AuthService.getMe();
+      setUser(userData);
+    } catch (error) {
+      console.error("Error refreshing user data:", error);
+    }
+  };
+
+  return <AuthContext.Provider value={{ user, isAuthenticated, isLoading, isInitializing, login, logout, refreshUser }}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {

@@ -15,6 +15,7 @@ const CutoutsPage = lazy(() => import("@/pages/admin/CutoutsPage"));
 const PriceConfigsPage = lazy(() => import("@/pages/admin/PriceConfigsPage"));
 const AttributesPage = lazy(() => import("@/pages/admin/AttributesPage"));
 const OrdersPage = lazy(() => import("@/pages/admin/OrdersTable"));
+const UsersPage = lazy(() => import("@/pages/admin/UsersPage"));
 
 // USER PORTAL
 const UserPortalLayout = lazy(() => import("@/pages/public/UserPortal/layout/UserPortalLayout"));
@@ -42,7 +43,7 @@ export const appRoutes: AppRouteConfig[] = [
     path: "/quote",
     component: NewQuoteWizardPage,
     // Array vacío o null significa "Público"
-    allowedRoles: [UserRole.ADMIN, UserRole.SALES_FACTORY, UserRole.SALES_SHOP, UserRole.USER],
+    allowedRoles: [UserRole.ADMIN, UserRole.SALES, UserRole.USER],
   },
 
   // 3. USER PORTAL (Client)
@@ -74,6 +75,7 @@ export const appRoutes: AppRouteConfig[] = [
       { path: "price-configs", component: PriceConfigsPage, allowedRoles: [UserRole.ADMIN] },
       { path: "attributes", component: AttributesPage, allowedRoles: [UserRole.ADMIN] },
       { path: "orders", component: OrdersPage, allowedRoles: [UserRole.ADMIN] },
+      { path: "users", component: UsersPage, allowedRoles: [UserRole.ADMIN] },
     ],
   },
 ];

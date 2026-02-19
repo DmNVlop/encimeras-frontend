@@ -8,6 +8,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import type { Attribute } from "@/interfases/attribute.interfase";
+import AdminPageTitle from "./components/AdminPageTitle";
 
 const modalStyle = {
   position: "absolute" as "absolute",
@@ -112,11 +113,9 @@ const AttributesPage: React.FC = () => {
 
   return (
     <Box>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
         <Box sx={{ display: "flex", justifyContent: "flex-start" }}>
-          <Typography variant="h4" sx={{ mr: 4 }}>
-            Gestión de Atributos
-          </Typography>
+          <AdminPageTitle sx={{ mr: 4 }}>Gestión de Atributos</AdminPageTitle>
 
           <FormControl sx={{ minWidth: 240, mb: 2 }}>
             <InputLabel id="filter-type-label">Filtrar por tipo</InputLabel>
