@@ -8,6 +8,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import TuneIcon from "@mui/icons-material/Tune";
 import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
+import CalculateIcon from "@mui/icons-material/Calculate";
 
 interface NavItem {
   text: string;
@@ -19,6 +20,7 @@ interface NavItem {
 
 const menuConfig: NavItem[] = [
   { text: "Dashboard", icon: <DashboardIcon />, path: "/admin/dashboard", type: "item" },
+  { text: "Presupuestador", icon: <CalculateIcon />, path: "/dashboard", type: "item" },
   { text: "Ordenes", icon: <ShoppingBagIcon />, path: "/admin/orders", type: "item" },
   { text: "Borradores", icon: <ReceiptLongIcon />, path: "/admin/drafts", type: "item" },
   { text: "divider", type: "divider" },

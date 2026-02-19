@@ -28,8 +28,10 @@ import {
   Person as PersonIcon,
   Logout as LogoutIcon,
   ChevronLeft as ChevronLeftIcon,
+  AdminPanelSettings as AdminPanelSettingsIcon,
 } from "@mui/icons-material";
-import { useAuth } from "@/context/AuthProvider"; // Assuming this exists based on context
+import { useAuth } from "@/context/AuthProvider";
+import { Role } from "@/interfases/user.interfase";
 
 const drawerWidth = 240;
 const logo = "/logos/kuuk-logo.png";
@@ -47,7 +49,13 @@ export default function UserPortalLayout() {
   const [open, setOpen] = useState(!isMobile);
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout, user } = useAuth(); // Assuming useAuth provides user and logout
+  const { logout, user } = useAuth();
+  const isAdmin = user?.roles?.includes(Role.ADMIN);
+
+  const sidebarItems = [
+    ...(isAdmin ? [{ text: "Panel Admin", icon: <AdminPanelSettingsIcon sx={{ color: theme.palette.primary.main }} />, path: "/admin/orders" }] : []),
+    ...menuItems,
+  ];
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -153,6 +161,20 @@ export default function UserPortalLayout() {
               >
                 Perfil
               </MenuItem>
+              {isAdmin && (
+                <MenuItem
+                  onClick={() => {
+                    handleClose();
+                    navigate("/admin/orders");
+                  }}
+                  sx={{ color: "primary.main", fontWeight: "bold" }}
+                >
+                  <ListItemIcon>
+                    <AdminPanelSettingsIcon fontSize="small" color="primary" />
+                  </ListItemIcon>
+                  Panel Admin
+                </MenuItem>
+              )}
               <Divider />
               <MenuItem onClick={handleLogout}>
                 <ListItemIcon>
@@ -186,7 +208,7 @@ export default function UserPortalLayout() {
         <Toolbar /> {/* Spacer for AppBar */}
         <Box sx={{ overflow: "auto", mt: 2 }}>
           <List>
-            {menuItems.map((item) => (
+            {sidebarItems.map((item) => (
               <ListItem key={item.text} disablePadding sx={{ display: "block", mb: 1 }}>
                 <ListItemButton
                   selected={location.pathname === item.path}
