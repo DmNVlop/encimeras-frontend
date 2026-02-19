@@ -24,6 +24,7 @@ import BuildIcon from "@mui/icons-material/Build"; // Icono para el asistente
 
 // --- Importar el nuevo componente ---
 import { KeyBuilderAssistant } from "./price-configs/KeyBuilderAssistant";
+import AdminPageTitle from "./components/AdminPageTitle";
 
 // --- Interfaces (Asegúrate de que coincidan con tus archivos) ---
 import type { AttributeToConfigPrice } from "@/interfases/attribute.interfase";
@@ -232,7 +233,7 @@ const PriceConfigsPage: React.FC = () => {
   return (
     <Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-        <Typography variant="h4">Configuración de Precios</Typography>
+        <AdminPageTitle>Configuración de Precios</AdminPageTitle>
         <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpen(undefined, "create")}>
           Añadir Configuración
         </Button>

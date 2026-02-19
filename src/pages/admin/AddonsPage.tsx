@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import {
   Box,
-  Typography,
   Button,
   CircularProgress,
   Paper, // DataGrid se ve mejor dentro de un Paper
@@ -17,6 +16,7 @@ import AddIcon from "@mui/icons-material/Add";
 // Importamos nuestra nueva interfaz
 import type { Addon } from "@/interfases/addon.interfase";
 import AddonEditModal from "./addons/AddonEditModal";
+import AdminPageTitle from "./components/AdminPageTitle";
 
 // =============================================================================
 // COMPONENTE PRINCIPAL: AddonsPage
@@ -171,7 +171,7 @@ const AddonsPage: React.FC = () => {
           mb: 2,
         }}
       >
-        <Typography variant="h4">Gestión de Complementos</Typography>
+        <AdminPageTitle>Gestión de Complementos</AdminPageTitle>
         <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenModal()}>
           Añadir Complemento
         </Button>

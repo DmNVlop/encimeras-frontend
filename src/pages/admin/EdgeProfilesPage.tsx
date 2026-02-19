@@ -9,6 +9,7 @@ import AddIcon from "@mui/icons-material/Add";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import type { GridColDef } from "@mui/x-data-grid";
 import { esES } from "@mui/x-data-grid/locales";
+import AdminPageTitle from "./components/AdminPageTitle";
 
 // Define la estructura del tipo EdgeProfile
 interface EdgeProfile {
@@ -157,7 +158,7 @@ const EdgeProfilesPage: React.FC = () => {
   return (
     <Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-        <Typography variant="h4">Gestión de Tipos de Canto</Typography>
+        <AdminPageTitle>Gestión de Tipos de Canto</AdminPageTitle>
         <Box>
           <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} style={{ display: "none" }} />
           <Button variant="outlined" startIcon={<UploadFileIcon />} onClick={handleImportClick} sx={{ mr: 1 }}>

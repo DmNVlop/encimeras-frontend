@@ -1,6 +1,6 @@
 // src/pages/admin/MaterialsPage.tsx
 import React, { useState, useEffect, useRef } from "react";
-import { Box, Typography, Button, CircularProgress, Chip } from "@mui/material";
+import { Box, Button, CircularProgress, Chip } from "@mui/material";
 import { DataGrid, type GridColDef, GridActionsCellItem, type GridRowId, type GridRowSelectionModel } from "@mui/x-data-grid";
 import { esES } from "@mui/x-data-grid/locales";
 import { create, get, remove } from "@/services/api.service";
@@ -10,6 +10,7 @@ import AddIcon from "@mui/icons-material/Add";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import type { Material, PricingRecipe } from "@/interfases/materials.interfase";
 import MaterialEditModal from "./materials/MaterialEditModal";
+import AdminPageTitle from "./components/AdminPageTitle";
 
 // =============================================================================
 // COMPONENTE PRINCIPAL: MaterialsPage
@@ -215,7 +216,7 @@ const MaterialsPage: React.FC = () => {
   return (
     <Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-        <Typography variant="h4">Gestión de Materiales</Typography>
+        <AdminPageTitle>Gestión de Materiales</AdminPageTitle>
         <Box>
           <input type="file" accept=".csv" ref={fileInputRef} style={{ display: "none" }} onChange={handleFileUpload} />
           <Button variant="outlined" startIcon={<UploadFileIcon />} onClick={() => fileInputRef.current?.click()} sx={{ mr: 1 }}>

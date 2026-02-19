@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import {
   Box,
-  Typography,
   Button,
   CircularProgress,
   Paper,
@@ -18,6 +17,7 @@ import AddIcon from "@mui/icons-material/Add";
 // 1. Importamos nuestra nueva interfaz
 import type { MeasurementRuleSet, MeasurementRange } from "@/interfases/measurement-rule-set.interfase";
 import MeasurementRuleSetEditModal from "./measurement-rule-sets/MeasurementRuleSetEditModal";
+import AdminPageTitle from "./components/AdminPageTitle";
 
 // =============================================================================
 // COMPONENTE PRINCIPAL: MeasurementRuleSetPage
@@ -164,7 +164,7 @@ const MeasurementRuleSetPage: React.FC = () => {
           mb: 2,
         }}
       >
-        <Typography variant="h4">Gestión de Reglas de Medición</Typography>
+        <AdminPageTitle>Gestión de Reglas de Medición</AdminPageTitle>
         <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenModal()}>
           Añadir Set de Reglas
         </Button>
