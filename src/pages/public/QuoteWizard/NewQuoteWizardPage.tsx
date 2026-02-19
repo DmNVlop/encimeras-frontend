@@ -216,8 +216,8 @@ const WizardStepperContent: React.FC = () => {
     navigate(location.pathname, { replace: true });
   };
 
-  // --- HANDLER: GUARDAR Y REINICIAR ---
-  const handleSaveAndReset = async () => {
+  // --- HANDLER: GUARDAR COMO NUEVO Y REINICIAR ---
+  const handleSaveAsNewAndReset = async () => {
     setIsSavingAndResetting(true);
     try {
       const payload = {
@@ -225,18 +225,37 @@ const WizardStepperContent: React.FC = () => {
         currentPricePoints: calculationResult?.totalPoints || 0,
       };
 
-      if (currentDraftId) {
-        await draftsApi.update(currentDraftId, payload);
-      } else {
-        await draftsApi.create(payload);
-      }
+      await draftsApi.create(payload);
 
       // Reiniciar después de guardar
       handleReset();
       setOpenResetDialog(false);
     } catch (err) {
-      console.error("Save & Reset Error:", err);
-      setLoadError("No se pudo guardar el borrador antes de reiniciar.");
+      console.error("Save New & Reset Error:", err);
+      setLoadError("No se pudo crear el nuevo borrador.");
+    } finally {
+      setIsSavingAndResetting(false);
+    }
+  };
+
+  // --- HANDLER: ACTUALIZAR Y REINICIAR ---
+  const handleUpdateAndReset = async () => {
+    if (!currentDraftId) return;
+    setIsSavingAndResetting(true);
+    try {
+      const payload = {
+        configuration: { wizardTempMaterial, mainPieces, selectedShapeId },
+        currentPricePoints: calculationResult?.totalPoints || 0,
+      };
+
+      await draftsApi.update(currentDraftId, payload);
+
+      // Reiniciar después de actualizar
+      handleReset();
+      setOpenResetDialog(false);
+    } catch (err) {
+      console.error("Update & Reset Error:", err);
+      setLoadError("No se pudo actualizar el borrador.");
     } finally {
       setIsSavingAndResetting(false);
     }
@@ -520,17 +539,34 @@ const WizardStepperContent: React.FC = () => {
           >
             Nuevo (Comenzar de cero)
           </Button>
+
+          {/* Botón Actualizar (Solo si ya existe un presupuesto guardado) */}
+          {currentDraftId && (
+            <Button
+              fullWidth
+              variant="outlined"
+              color="success"
+              onClick={handleUpdateAndReset}
+              disabled={isSavingAndResetting || mainPieces.length === 0}
+              startIcon={isSavingAndResetting ? <CircularProgress size={20} /> : null}
+              sx={{ py: 1.5 }}
+            >
+              {isSavingAndResetting ? "Actualizando..." : "Actualizar Borrador y Nuevo"}
+            </Button>
+          )}
+
           <Button
             fullWidth
             variant="outlined"
             color="primary"
-            onClick={handleSaveAndReset}
+            onClick={handleSaveAsNewAndReset}
             disabled={isSavingAndResetting || mainPieces.length === 0}
             startIcon={isSavingAndResetting ? <CircularProgress size={20} /> : null}
             sx={{ py: 1.5 }}
           >
-            {isSavingAndResetting ? "Guardando..." : "Guardar Borrador y Nuevo"}
+            {isSavingAndResetting ? "Guardando..." : currentDraftId ? "Guardar como copia y Nuevo" : "Guardar Borrador y Nuevo"}
           </Button>
+
           <Button fullWidth variant="text" color="inherit" onClick={() => setOpenResetDialog(false)} disabled={isSavingAndResetting} sx={{ py: 1 }}>
             Cancelar
           </Button>
