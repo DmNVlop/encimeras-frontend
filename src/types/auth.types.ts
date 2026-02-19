@@ -24,4 +24,5 @@ export interface AuthContextType {
   isInitializing: boolean; // Para el arranque de la app
   login: (email: string, password: string) => Promise<AuthResponse>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
 }
