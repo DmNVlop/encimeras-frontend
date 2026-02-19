@@ -121,10 +121,10 @@ export default function UserProfile() {
 
         <Box component="form" onSubmit={handleSave}>
           <Grid container spacing={3}>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField fullWidth label="Nombre Completo / Razón Social" name="name" value={formData.name} onChange={handleChange} variant="outlined" />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Nombre de Usuario"
@@ -134,13 +134,13 @@ export default function UserProfile() {
                 helperText="El nombre de usuario no se puede cambiar"
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField fullWidth label="Correo Electrónico" name="email" type="email" value={formData.email} onChange={handleChange} variant="outlined" />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField fullWidth label="Teléfono de Contacto" name="phone" value={formData.phone} onChange={handleChange} variant="outlined" />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Box sx={{ mt: 2, p: 3, bgcolor: "rgba(0,0,0,0.02)", borderRadius: "12px" }}>
                 <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
                   Seguridad
