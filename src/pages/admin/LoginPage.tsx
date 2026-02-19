@@ -9,12 +9,13 @@ import { ApiErrorFeedback } from "../public/common/ApiErrorFeedback";
 import { SettingsService } from "@/services/settings.service";
 import type { LoginSettings } from "@/types/settings.types";
 
+const logo = "/logos/kuuk-logo.png";
+
 const DEFAULT_SETTINGS: LoginSettings = {
   title: "Presupuestador Kuuk",
   description: "Ingresa tus credenciales para continuar",
   imageUrl: "/encimeras_1920x1080.jpg",
-  logoUrl:
-    "https://sp-ao.shortpixel.ai/client/to_webp,q_glossy,ret_img,w_124,h_53/https://kuukencimeras.com/wp-content/uploads/2021/02/cropped-cropped-Logo-kuuk-bok-1-e1714466793783.png",
+  logoUrl: logo,
 };
 
 const LoginPage: React.FC = () => {
