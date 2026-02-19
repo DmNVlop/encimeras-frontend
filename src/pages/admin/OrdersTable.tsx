@@ -218,7 +218,7 @@ export const OrdersPage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p: 3, height: "85vh", display: "flex", flexDirection: "column" }}>
+    <Box>
       <AdminPageTitle mb={2}>Gestión de Órdenes</AdminPageTitle>
 
       <Paper sx={{ flexGrow: 1 }}>

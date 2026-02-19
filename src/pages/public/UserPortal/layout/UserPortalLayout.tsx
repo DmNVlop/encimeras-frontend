@@ -30,9 +30,9 @@ import {
   ChevronLeft as ChevronLeftIcon,
 } from "@mui/icons-material";
 import { useAuth } from "@/context/AuthProvider"; // Assuming this exists based on context
-import logo from "@/assets/logos/kuuk-logo.png";
 
 const drawerWidth = 240;
+const logo = "/logos/kuuk-logo.png";
 
 const menuItems = [
   { text: "Resumen", icon: <DashboardIcon />, path: "/dashboard" },

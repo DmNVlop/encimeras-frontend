@@ -1,16 +1,9 @@
-import type { User } from "@/interfases/user.interfase";
+import { Role, type User } from "@/interfases/user.interfase";
 import type { AuthResponse } from "@/interfases/login-credentials.interfase";
 
-// Enum para asegurar que los roles sean constantes inmutables
-export const UserRole = {
-  ADMIN: "ADMIN",
-  SALES_FACTORY: "SALES_FACTORY",
-  WORKER: "WORKER",
-  SALES_SHOP: "SALES_SHOP",
-  USER: "USER",
-} as const;
-
-export type UserRole = (typeof UserRole)[keyof typeof UserRole];
+// Usamos los roles definidos en la interfaz de usuario
+export const UserRole = Role;
+export type UserRole = Role;
 
 // Definición de la estructura de una Ruta Protegida
 export interface AppRouteConfig {

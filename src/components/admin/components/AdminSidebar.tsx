@@ -20,7 +20,7 @@ interface NavItem {
 const menuConfig: NavItem[] = [
   { text: "Dashboard", icon: <DashboardIcon />, path: "/admin/dashboard", type: "item" },
   { text: "Ordenes", icon: <ShoppingBagIcon />, path: "/admin/orders", type: "item" },
-  { text: "Presupuestos", icon: <ReceiptLongIcon />, path: "/admin/budgets", type: "item" },
+  { text: "Borradores", icon: <ReceiptLongIcon />, path: "/admin/drafts", type: "item" },
   { text: "divider", type: "divider" },
   { text: "ADMINISTRACIÓN", type: "subheader" },
   {

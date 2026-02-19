@@ -12,7 +12,7 @@ const AdminPageTitle: React.FC<AdminPageTitleProps> = ({ children, sx, ...props 
       variant="h4"
       sx={{
         fontWeight: "bold",
-        fontSize: "1.8rem",
+        fontSize: "1.6rem",
         color: "text.primary",
         ...sx,
       }}

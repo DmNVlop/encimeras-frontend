@@ -113,7 +113,7 @@ const AttributesPage: React.FC = () => {
 
   return (
     <Box>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
         <Box sx={{ display: "flex", justifyContent: "flex-start" }}>
           <AdminPageTitle sx={{ mr: 4 }}>Gestión de Atributos</AdminPageTitle>
 

@@ -1,4 +1,5 @@
 // src/pages/admin/LoginPage.tsx
+// Seguimiento de Documentación Técnica: Autenticación (Login)
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -52,7 +53,7 @@ const LoginPage: React.FC = () => {
       const userRoles = user.roles || [];
 
       // Logic for hierarchy redirection
-      if (userRoles.includes(UserRole.ADMIN) || userRoles.includes(UserRole.SALES_FACTORY)) {
+      if (userRoles.includes(UserRole.ADMIN) || userRoles.includes(UserRole.SALES)) {
         navigate("/admin/orders", { replace: true });
       } else if (userRoles.includes(UserRole.WORKER)) {
         navigate("/factory/queue", { replace: true });
@@ -146,7 +147,7 @@ const LoginPage: React.FC = () => {
                 required
                 fullWidth
                 id="username"
-                label="Usuario"
+                label="Usuario / Email"
                 name="username"
                 autoComplete="username"
                 disabled={localLoading}
