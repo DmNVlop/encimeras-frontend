@@ -277,6 +277,19 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
         currentDraftId: action.payload,
       };
 
+    case "RESET_WIZARD":
+      return {
+        mainPieces: [],
+        activePieceIndex: null,
+        selectedShapeId: null,
+        wizardTempMaterial: null,
+        isCalculating: false,
+        calculationResult: null,
+        error: null,
+        currentDraftId: null,
+        isDraftRecalculated: false,
+      };
+
     default:
       return state;
   }
