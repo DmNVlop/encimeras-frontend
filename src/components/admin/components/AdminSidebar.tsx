@@ -3,7 +3,6 @@ import { NavLink, useLocation } from "react-router-dom";
 import { Box, Drawer, List, ListItem, ListItemText, ListItemIcon, ListItemButton, Divider, Collapse, ListSubheader, Toolbar } from "@mui/material";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
-import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import SettingsIcon from "@mui/icons-material/Settings";
 import TuneIcon from "@mui/icons-material/Tune";
 import ExpandLess from "@mui/icons-material/ExpandLess";

@@ -430,7 +430,7 @@ const DashboardPage: React.FC = () => {
                     {
                       data: trendsData.map((d) => new Date(d.date)),
                       scaleType: "time",
-                      valueFormatter: (v) =>
+                      valueFormatter: (v: Date) =>
                         v.toLocaleDateString("es-ES", {
                           day: "2-digit",
                           month: "short",
@@ -448,24 +448,27 @@ const DashboardPage: React.FC = () => {
                     {
                       data: trendsData.map((d) => d.points),
                       label: "Valor (Pts)",
-                      yAxisKey: "points-axis",
+                      yAxisId: "points-axis",
                       curve: "catmullRom",
                       color: theme.palette.secondary.main,
-                      strokeWidth: 3,
                     },
                   ]}
                   yAxis={[
                     { id: "orders-axis", label: "Cantidad" },
-                    { id: "points-axis", orientation: "right", label: "Puntos" },
+                    { id: "points-axis", position: "right", label: "Puntos" },
                   ]}
                   height={400}
                   margin={{ top: 20, bottom: 50, left: 60, right: 80 }}
+                  sx={{
+                    "& .MuiLineElement-root:nth-of-type(2)": {
+                      strokeWidth: 3,
+                    },
+                  }}
                   slotProps={{
                     legend: {
-                      direction: "row",
-                      position: { vertical: "top", horizontal: "right" },
-                      padding: 0,
-                    },
+                      direction: "horizontal",
+                      position: { vertical: "top", horizontal: "end" },
+                    } as any,
                   }}
                 />
               ) : (
@@ -522,21 +525,21 @@ const DashboardPage: React.FC = () => {
                         outerRadius: 140,
                         paddingAngle: 3,
                         cornerRadius: 10,
-                        highlightScope: { faded: "global", highlighted: "item" },
+                        highlightScope: { fade: "global", highlight: "item" },
                         cx: "50%",
                       },
                     ]}
                     height={350}
                     slotProps={{
                       legend: {
-                        direction: "column",
-                        position: { vertical: "middle", horizontal: "right" },
+                        direction: "vertical",
+                        position: { vertical: "middle", horizontal: "end" },
                         itemMarkWidth: 12,
                         itemMarkHeight: 12,
                         markGap: 8,
                         itemGap: 15,
                         labelStyle: { fontSize: 13, fontWeight: 500 },
-                      },
+                      } as any,
                     }}
                   />
                   {/* Total indicator in center */}
@@ -613,7 +616,6 @@ const DashboardPage: React.FC = () => {
                     {
                       scaleType: "band",
                       dataKey: "label",
-                      tickLabelStyle: { fontSize: 12, fontWeight: 500 },
                     },
                   ]}
                   series={[
@@ -621,13 +623,19 @@ const DashboardPage: React.FC = () => {
                       dataKey: "count",
                       label: "Frecuencia de Uso",
                       color: theme.palette.info.main,
-                      valueFormatter: (v) => `${v} veces`,
+                      valueFormatter: (v: number | null) => `${v ?? 0} veces`,
                     },
                   ]}
                   layout="horizontal"
                   height={350}
                   margin={{ left: 150, right: 40, top: 10, bottom: 40 }}
                   borderRadius={8}
+                  sx={{
+                    "& .MuiChartsAxis-left .MuiChartsAxis-tickLabel": {
+                      fontSize: 12,
+                      fontWeight: 500,
+                    },
+                  }}
                 />
               ) : (
                 <Box
