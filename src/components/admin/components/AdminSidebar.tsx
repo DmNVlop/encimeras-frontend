@@ -3,7 +3,6 @@ import { NavLink, useLocation } from "react-router-dom";
 import { Box, Drawer, List, ListItem, ListItemText, ListItemIcon, ListItemButton, Divider, Collapse, ListSubheader, Toolbar } from "@mui/material";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
-import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import SettingsIcon from "@mui/icons-material/Settings";
 import TuneIcon from "@mui/icons-material/Tune";
 import ExpandLess from "@mui/icons-material/ExpandLess";
@@ -22,7 +21,7 @@ const menuConfig: NavItem[] = [
   { text: "Dashboard", icon: <DashboardIcon />, path: "/admin/dashboard", type: "item" },
   { text: "Presupuestador", icon: <CalculateIcon />, path: "/dashboard", type: "item" },
   { text: "Ordenes", icon: <ShoppingBagIcon />, path: "/admin/orders", type: "item" },
-  { text: "Borradores", icon: <ReceiptLongIcon />, path: "/admin/drafts", type: "item" },
+  // { text: "Borradores", icon: <ReceiptLongIcon />, path: "/admin/drafts", type: "item" },
   { text: "divider", type: "divider" },
   { text: "ADMINISTRACIÓN", type: "subheader" },
   {
@@ -32,7 +31,7 @@ const menuConfig: NavItem[] = [
     children: [
       { text: "Usuarios", path: "/admin/users" },
       { text: "Clientes", path: "/admin/customers" },
-      { text: "Identidad", path: "/admin/identity" },
+      // { text: "Identidad", path: "/admin/identity" },
     ],
   },
   {
