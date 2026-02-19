@@ -3,6 +3,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 
 import { AppBar, Toolbar, Typography, Box, Avatar, Menu, MenuItem, IconButton, Divider, ListItemIcon } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
+import CalculateIcon from "@mui/icons-material/Calculate";
 import { useAuth } from "@/context/AuthProvider";
 
 import AdminSidebar from "./components/AdminSidebar";
@@ -99,6 +100,18 @@ const AdminLayout: React.FC = () => {
                 }}
               >
                 Perfil
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  handleClose();
+                  navigate("/dashboard");
+                }}
+                sx={{ color: "primary.main", fontWeight: "bold" }}
+              >
+                <ListItemIcon>
+                  <CalculateIcon fontSize="small" color="primary" />
+                </ListItemIcon>
+                Presupuestador
               </MenuItem>
               <Divider />
               <MenuItem onClick={handleLogout}>
