@@ -15,6 +15,7 @@ import {
   Avatar,
   Snackbar,
   Alert,
+  Chip,
 } from "@mui/material";
 import { validateAssemblies } from "@/utils/quoteValidation";
 import Grid from "@mui/material/Grid";
@@ -24,6 +25,9 @@ import CloseIcon from "@mui/icons-material/Close";
 import SaveIcon from "@mui/icons-material/Save";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import SummarizeIcon from "@mui/icons-material/Summarize";
+import StraightenIcon from "@mui/icons-material/Straighten";
+import { shapeVariations } from "@/pages/public/common/shapes-step2";
+import EncimeraPreview from "@/pages/public/common/EncimeraPreview/encimera-preview";
 
 // 1. Importar Contexto
 import { useQuoteState, useQuoteDispatch } from "@/context/QuoteContext";
@@ -255,6 +259,84 @@ export const WizardStep5_Summary: React.FC = () => {
           </Box>
         </Box>
 
+        {/* --- PROYECTO GLOBAL SUMMARY --- */}
+        <Paper
+          elevation={0}
+          sx={{
+            mb: 4,
+            p: 2.5,
+            borderRadius: 3,
+            bgcolor: (theme) => (theme.palette.mode === "dark" ? "rgba(25, 118, 210, 0.08)" : "rgba(25, 118, 210, 0.04)"),
+            border: "1px dashed",
+            borderColor: "primary.light",
+          }}
+        >
+          <Grid container spacing={3}>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: "bold", textTransform: "uppercase", display: "block", mb: 0.5 }}>
+                Material Principal
+              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                <Avatar src={wizardTempMaterial?.materialImage} sx={{ width: 24, height: 24 }} />
+                <Typography variant="body1" fontWeight="800">
+                  {wizardTempMaterial?.materialName}
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: "bold", textTransform: "uppercase", display: "block", mb: 0.5 }}>
+                Forma de Encimera
+              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                {selectedShapeId && (
+                  <Box
+                    sx={{
+                      width: 50,
+                      height: 30,
+                      bgcolor: "background.paper",
+                      borderRadius: 1,
+                      border: "1px solid #e0e0e0",
+                      overflow: "hidden",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      "& .encimera-preview-container": {
+                        minHeight: "unset",
+                        height: "100%",
+                        width: "100%",
+                        p: 0.5,
+                      },
+                      "& .encimera-pieza": {
+                        backgroundSize: "8px 8px",
+                      },
+                    }}
+                  >
+                    <EncimeraPreview
+                      config={{
+                        id: selectedShapeId,
+                        name: shapeVariations.find((s) => s.id === selectedShapeId)?.name || "",
+                        grid: shapeVariations.find((s) => s.id === selectedShapeId)?.grid || { columns: "", rows: "" },
+                        pieces: shapeVariations.find((s) => s.id === selectedShapeId)?.pieces || [],
+                      }}
+                    />
+                  </Box>
+                )}
+                <Typography variant="body1" fontWeight="800">
+                  {shapeVariations.find((s) => s.id === selectedShapeId)?.name || "Configuración Personalizada"}
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: "bold", textTransform: "uppercase", display: "block", mb: 0.5 }}>
+                Número de Piezas
+              </Typography>
+              <Typography variant="body1" fontWeight="800">
+                {mainPieces.length} {mainPieces.length === 1 ? "Pieza" : "Piezas"}
+              </Typography>
+            </Grid>
+          </Grid>
+        </Paper>
+
         <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
           {result.pieces.map((piece, idx) => (
             <Paper
@@ -294,14 +376,108 @@ export const WizardStep5_Summary: React.FC = () => {
 
               {/* Detalles de la Pieza */}
               <Box sx={{ p: 2 }}>
-                {/* Material Base */}
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Material Base (Encimera)
-                  </Typography>
-                  <Typography variant="body2" fontWeight="medium">
-                    {piece.basePricePoints.toFixed(2)} Pts
-                  </Typography>
+                {/* Material Base (DESCRIPTIVO Y VISUAL) */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: 3,
+                    alignItems: "center",
+                    mb: 2,
+                    p: 2.5,
+                    bgcolor: (theme) => (theme.palette.mode === "dark" ? "rgba(255,255,255,0.03)" : "grey.50"),
+                    borderRadius: 3,
+                    border: "1px solid",
+                    borderColor: "divider",
+                    position: "relative",
+                    overflow: "hidden",
+                    "&::before": {
+                      content: '""',
+                      position: "absolute",
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                      width: "4px",
+                      bgcolor: "primary.main",
+                    },
+                  }}
+                >
+                  {/* Imagen del Material */}
+                  <Avatar
+                    src={wizardTempMaterial?.materialImage}
+                    alt={wizardTempMaterial?.materialName}
+                    variant="rounded"
+                    sx={{
+                      width: 90,
+                      height: 90,
+                      border: "2px solid #fff",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                      backgroundColor: "#fff",
+                    }}
+                  />
+
+                  <Box sx={{ flex: 1 }}>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                      <Box>
+                        <Typography
+                          variant="caption"
+                          sx={{ fontWeight: "800", color: "primary.main", textTransform: "uppercase", letterSpacing: 1.5, display: "block", mb: 0.5 }}
+                        >
+                          Material Base (Encimera)
+                        </Typography>
+                        <Typography variant="h6" sx={{ fontSize: "1.1rem", fontWeight: "bold", color: "text.primary", lineHeight: 1.2 }}>
+                          {wizardTempMaterial?.materialName || "Material Seleccionado"}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ textAlign: "right" }}>
+                        <Typography variant="h6" fontWeight="800" color="primary.main">
+                          {piece.basePricePoints.toFixed(2)}
+                          <Typography component="span" variant="caption" sx={{ ml: 0.5, fontWeight: "bold" }}>
+                            Pts
+                          </Typography>
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    <Divider sx={{ my: 1.5, opacity: 0.6 }} />
+
+                    <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap", alignItems: "center" }}>
+                      {/* Medidas con Icono */}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.5,
+                          px: 1.2,
+                          py: 0.4,
+                          bgcolor: "background.paper",
+                          borderRadius: 1.5,
+                          border: "1px solid #e0e0e0",
+                        }}
+                      >
+                        <StraightenIcon sx={{ fontSize: "0.9rem", color: "text.secondary" }} />
+                        <Typography variant="body2" fontWeight="600" sx={{ fontSize: "0.85rem" }}>
+                          {mainPieces[idx]?.measurements.length_mm} x {mainPieces[idx]?.measurements.width_mm} mm
+                        </Typography>
+                      </Box>
+
+                      {/* Atributos como Chips Premium */}
+                      {Object.entries(mainPieces[idx]?.selectedAttributes || {}).map(([key, value]) => (
+                        <Chip
+                          key={key}
+                          label={value}
+                          size="small"
+                          sx={{
+                            borderRadius: 1.5,
+                            bgcolor: "rgba(0,0,0,0.04)",
+                            fontWeight: "500",
+                            fontSize: "0.75rem",
+                            height: 24,
+                            "& .MuiChip-label": { px: 1.5 },
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
                 </Box>
 
                 {piece.addons.length > 0 && <Divider sx={{ my: 1.5 }} />}

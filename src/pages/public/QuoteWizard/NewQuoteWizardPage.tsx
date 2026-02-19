@@ -16,8 +16,15 @@ import {
   CircularProgress,
   Snackbar,
   AlertTitle,
+  IconButton,
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
-import { KeyboardArrowLeft, KeyboardArrowRight, Person } from "@mui/icons-material";
+import { Add, KeyboardArrowLeft, KeyboardArrowRight, Person } from "@mui/icons-material";
 import { QuoteProvider, useQuoteDispatch, useQuoteState } from "@/context/QuoteContext";
 import logo from "@/assets/logos/kuuk-logo.png";
 import { StepConnector } from "@mui/material";
@@ -54,13 +61,17 @@ const WizardContent: React.FC<{ activeStep: number }> = ({ activeStep }) => {
 const WizardStepperContent: React.FC = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [validationError, setValidationError] = useState<string | null>(null);
-  const { wizardTempMaterial, mainPieces } = useQuoteState();
+  const { wizardTempMaterial, mainPieces, selectedShapeId, currentDraftId, calculationResult } = useQuoteState();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [showPriceWarning, setShowPriceWarning] = useState(false);
+
+  // --- ESTADOS PARA REINICIO ---
+  const [openResetDialog, setOpenResetDialog] = useState(false);
+  const [isSavingAndResetting, setIsSavingAndResetting] = useState(false);
 
   // --- HOOKS ---
   const dispatch = useQuoteDispatch(); // <--- Necesitas exponer esto en tu Context
@@ -201,6 +212,34 @@ const WizardStepperContent: React.FC = () => {
 
   const handleReset = () => {
     setActiveStep(0);
+    dispatch({ type: "RESET_WIZARD" });
+    navigate(location.pathname, { replace: true });
+  };
+
+  // --- HANDLER: GUARDAR Y REINICIAR ---
+  const handleSaveAndReset = async () => {
+    setIsSavingAndResetting(true);
+    try {
+      const payload = {
+        configuration: { wizardTempMaterial, mainPieces, selectedShapeId },
+        currentPricePoints: calculationResult?.totalPoints || 0,
+      };
+
+      if (currentDraftId) {
+        await draftsApi.update(currentDraftId, payload);
+      } else {
+        await draftsApi.create(payload);
+      }
+
+      // Reiniciar después de guardar
+      handleReset();
+      setOpenResetDialog(false);
+    } catch (err) {
+      console.error("Save & Reset Error:", err);
+      setLoadError("No se pudo guardar el borrador antes de reiniciar.");
+    } finally {
+      setIsSavingAndResetting(false);
+    }
   };
 
   return (
@@ -271,7 +310,7 @@ const WizardStepperContent: React.FC = () => {
                   cursor: "pointer",
                 }}
               >
-                Configurador de Encimeras
+                Presupuestador de Encimeras
               </Typography>
               <Typography
                 variant="subtitle1"
@@ -284,7 +323,7 @@ const WizardStepperContent: React.FC = () => {
                   cursor: "pointer",
                 }}
               >
-                Configurador
+                Presupuestador
               </Typography>
             </Box>
 
@@ -313,7 +352,25 @@ const WizardStepperContent: React.FC = () => {
             )}
 
             {/* 3. DERECHA: Botón Portal Usuario */}
-            <Box sx={{ flexShrink: 0 }}>
+            <Box sx={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 1 }}>
+              <Tooltip title="Nuevo Presupuesto">
+                <IconButton
+                  color="primary"
+                  onClick={() => setOpenResetDialog(true)}
+                  disabled={mainPieces.length === 0 && !wizardTempMaterial}
+                  sx={{
+                    border: "1px solid",
+                    borderColor: "divider",
+                    bgcolor: "rgba(25, 118, 210, 0.04)",
+                    "&:hover": {
+                      bgcolor: "rgba(25, 118, 210, 0.08)",
+                    },
+                  }}
+                >
+                  <Add />
+                </IconButton>
+              </Tooltip>
+
               <Button
                 variant="outlined"
                 size="small"
@@ -439,6 +496,46 @@ const WizardStepperContent: React.FC = () => {
       <Snackbar open={!!loadError} autoHideDuration={6000} onClose={() => setLoadError(null)}>
         <Alert severity="error">{loadError}</Alert>
       </Snackbar>
+
+      {/* --- 4. MODAL DE CONFIRMACIÓN DE REINICIO --- */}
+      <Dialog open={openResetDialog} onClose={() => !isSavingAndResetting && setOpenResetDialog(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: "bold", display: "flex", alignItems: "center", gap: 1 }}>
+          <Add color="primary" />
+          Nuevo Presupuesto
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>¿Estás seguro de que deseas iniciar un nuevo presupuesto? Se perderán los datos actuales no guardados.</DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1, flexDirection: "column" }}>
+          <Button
+            fullWidth
+            variant="contained"
+            color="primary"
+            onClick={() => {
+              handleReset();
+              setOpenResetDialog(false);
+            }}
+            disabled={isSavingAndResetting}
+            sx={{ py: 1.5 }}
+          >
+            Nuevo (Comenzar de cero)
+          </Button>
+          <Button
+            fullWidth
+            variant="outlined"
+            color="primary"
+            onClick={handleSaveAndReset}
+            disabled={isSavingAndResetting || mainPieces.length === 0}
+            startIcon={isSavingAndResetting ? <CircularProgress size={20} /> : null}
+            sx={{ py: 1.5 }}
+          >
+            {isSavingAndResetting ? "Guardando..." : "Guardar Borrador y Nuevo"}
+          </Button>
+          <Button fullWidth variant="text" color="inherit" onClick={() => setOpenResetDialog(false)} disabled={isSavingAndResetting} sx={{ py: 1 }}>
+            Cancelar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
