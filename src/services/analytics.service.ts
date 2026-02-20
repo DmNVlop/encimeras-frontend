@@ -28,12 +28,18 @@ export interface TrendData {
   points: number;
 }
 
+export interface ShapeData {
+  id: string;
+  label: string;
+  value: number;
+}
+
 export interface AnalyticsSummaryResponse {
   summary: DashboardSummary;
   charts: {
     materials: MaterialData[];
     addons: AddonData[];
-    shapes: any[]; // Reserved for future use
+    shapes: ShapeData[];
   };
   trends: {
     dailyQuotes: TrendData[];

@@ -45,14 +45,18 @@ const StatCard = ({ title, value, subtitle, icon, loading, color, info }: any) =
       sx={{
         height: "100%",
         background: `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.9)} 0%, ${alpha(theme.palette.background.paper, 0.95)} 100%)`,
-        backdropFilter: "blur(10px)",
-        borderRadius: 4,
-        border: `1px solid ${alpha(color || theme.palette.divider, 0.1)}`,
+        backdropFilter: "blur(12px)",
+        borderRadius: 5,
+        border: `1px solid ${alpha(color || theme.palette.divider, 0.12)}`,
         transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
         "&:hover": {
-          transform: "translateY(-6px)",
-          boxShadow: `0 20px 25px -5px ${alpha(color || theme.palette.common.black, 0.15)}, 0 10px 10px -5px ${alpha(color || theme.palette.common.black, 0.04)}`,
-          borderColor: alpha(color || theme.palette.primary.main, 0.3),
+          transform: "translateY(-8px)",
+          boxShadow: `0 24px 48px -12px ${alpha(color || theme.palette.common.black, 0.2)}, 0 12px 24px -12px ${alpha(color || theme.palette.common.black, 0.08)}`,
+          borderColor: alpha(color || theme.palette.primary.main, 0.4),
+          "& .icon-container": {
+            transform: "scale(1.1) rotate(5deg)",
+            boxShadow: `0 12px 20px -5px ${alpha(color || theme.palette.primary.main, 0.35)}`,
+          },
         },
         position: "relative",
         overflow: "hidden",
@@ -61,55 +65,62 @@ const StatCard = ({ title, value, subtitle, icon, loading, color, info }: any) =
       <Box
         sx={{
           position: "absolute",
-          top: -20,
-          right: -20,
-          width: 100,
-          height: 100,
-          background: `radial-gradient(circle, ${alpha(color || theme.palette.primary.main, 0.12)} 0%, transparent 70%)`,
+          top: -30,
+          right: -30,
+          width: 140,
+          height: 140,
+          background: `radial-gradient(circle, ${alpha(color || theme.palette.primary.main, 0.15)} 0%, transparent 75%)`,
           borderRadius: "50%",
+          zIndex: 0,
         }}
       />
-      <CardContent sx={{ p: 3 }}>
+      <CardContent sx={{ p: 3.5, position: "relative", zIndex: 1 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
           <Box sx={{ flexGrow: 1 }}>
-            <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 1 }}>
-              <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 1.2, display: "block", opacity: 0.8 }}>
+            <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 1.5 }}>
+              <Typography
+                variant="overline"
+                color="text.secondary"
+                sx={{ fontWeight: 800, letterSpacing: 1.5, display: "block", opacity: 0.7, textTransform: "uppercase", fontSize: "0.7rem" }}
+              >
                 {title}
               </Typography>
               {info && (
                 <Tooltip title={info} arrow placement="top">
-                  <InfoOutlinedIcon sx={{ fontSize: 14, color: "text.secondary", opacity: 0.5, cursor: "help" }} />
+                  <InfoOutlinedIcon sx={{ fontSize: 16, color: "text.secondary", opacity: 0.4, cursor: "help" }} />
                 </Tooltip>
               )}
             </Stack>
             {loading ? (
-              <Skeleton width="60%" height={48} sx={{ my: 0.5 }} />
+              <Skeleton width="80%" height={56} sx={{ my: 0.5, borderRadius: 2 }} />
             ) : (
-              <Typography variant="h3" sx={{ fontWeight: 900, fontSize: "1.85rem", color: color, letterSpacing: "-0.02em" }}>
+              <Typography variant="h3" sx={{ fontWeight: 900, fontSize: "2.2rem", color: color, letterSpacing: "-0.03em", mb: 0.5 }}>
                 {value}
               </Typography>
             )}
-            {subtitle && (
-              <Typography variant="caption" color="text.secondary" sx={{ display: "flex", alignItems: "center", mt: 1.5, fontWeight: 500 }}>
+            {subtitle && !loading && (
+              <Typography variant="caption" sx={{ display: "flex", alignItems: "center", mt: 1.5, fontWeight: 600, color: "text.secondary", opacity: 0.8 }}>
                 <TrendingUpIcon sx={{ fontSize: 16, mr: 0.5, color: "success.main" }} />
                 {subtitle}
               </Typography>
             )}
           </Box>
           <Box
+            className="icon-container"
             sx={{
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              width: 54,
-              height: 54,
-              borderRadius: 3.5,
-              background: `linear-gradient(135deg, ${alpha(color || theme.palette.primary.main, 0.15)} 0%, ${alpha(color || theme.palette.primary.main, 0.05)} 100%)`,
+              width: 60,
+              height: 60,
+              borderRadius: 4,
+              background: `linear-gradient(135deg, ${alpha(color || theme.palette.primary.main, 0.2)} 0%, ${alpha(color || theme.palette.primary.main, 0.05)} 100%)`,
               color: color || theme.palette.primary.main,
-              boxShadow: `0 8px 16px -4px ${alpha(color || theme.palette.primary.main, 0.1)}`,
+              boxShadow: `0 8px 20px -6px ${alpha(color || theme.palette.primary.main, 0.2)}`,
+              transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
           >
-            {React.cloneElement(icon, { sx: { fontSize: 28 } })}
+            {React.cloneElement(icon, { sx: { fontSize: 32 } })}
           </Box>
         </Stack>
       </CardContent>
@@ -197,13 +208,31 @@ const DashboardPage: React.FC = () => {
       ][index % 6],
     })) || [];
 
+  const shapesData =
+    data?.charts.shapes.map((s, index) => ({
+      id: s.id,
+      value: s.value,
+      label: s.label
+        .split("_")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(" "),
+      color: [
+        theme.palette.primary.light,
+        theme.palette.secondary.light,
+        theme.palette.success.light,
+        theme.palette.warning.light,
+        theme.palette.info.light,
+        theme.palette.error.light,
+      ][index % 6],
+    })) || [];
+
   const addonsData = data?.charts.addons
     ? [...data.charts.addons]
         .sort((a, b) => b.count - a.count)
-        .slice(0, 8)
+        .slice(0, 10)
         .map((a) => ({
           ...a,
-          label: a.label.length > 20 ? a.label.substring(0, 18) + "..." : a.label,
+          label: a.label.length > 25 ? a.label.substring(0, 22) + "..." : a.label,
         }))
     : [];
 
@@ -324,7 +353,7 @@ const DashboardPage: React.FC = () => {
         </Paper>
       </Stack>
 
-      <Grid container spacing={3}>
+      <Grid container spacing={4}>
         {/* Top KPIs Row */}
         <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4 }}>
           <StatCard
@@ -494,72 +523,78 @@ const DashboardPage: React.FC = () => {
           </Paper>
         </Grid>
 
-        {/* Materials Distribution Chart */}
-        <Grid size={{ xs: 12, md: 5 }}>
+        {/* Mid Row: Materials and Shapes Distribution */}
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper
             elevation={0}
             sx={{
               p: 4,
-              borderRadius: 6,
+              borderRadius: 7,
               border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
               height: "100%",
-              boxShadow: "0 15px 35px -10px rgba(0,0,0,0.03)",
+              background: `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.8)} 0%, ${theme.palette.background.paper} 100%)`,
+              boxShadow: "0 20px 40px -15px rgba(0,0,0,0.05)",
+              overflow: "hidden",
+              position: "relative",
             }}
           >
-            <Typography variant="h6" sx={{ mb: 4, fontWeight: 900, fontSize: "1.25rem", letterSpacing: -0.5, display: "flex", alignItems: "center", gap: 1 }}>
+            <Typography variant="h6" sx={{ mb: 4, fontWeight: 900, fontSize: "1.3rem", letterSpacing: -0.5, display: "flex", alignItems: "center", gap: 1 }}>
               Distribución de Materiales
               <Tooltip title="Análisis de los materiales más solicitados. El porcentaje representa la 'cuota de mercado' interna dentro de la fábrica.">
-                <InfoOutlinedIcon sx={{ fontSize: 16, color: "text.secondary", opacity: 0.5, cursor: "help" }} />
+                <InfoOutlinedIcon sx={{ fontSize: 18, color: "text.secondary", opacity: 0.5, cursor: "help" }} />
               </Tooltip>
             </Typography>
-            <Box sx={{ height: 350, display: "flex", justifyContent: "center", position: "relative" }}>
+            <Box sx={{ height: 420, display: "flex", justifyContent: "center", position: "relative" }}>
               {loading ? (
-                <Skeleton variant="circular" height={300} width={300} sx={{ mx: "auto" }} />
+                <Skeleton variant="circular" height={280} width={280} sx={{ mx: "auto" }} />
               ) : materialsData.length > 0 ? (
                 <>
                   <PieChart
                     series={[
                       {
                         data: materialsData,
-                        innerRadius: 90,
-                        outerRadius: 140,
-                        paddingAngle: 3,
-                        cornerRadius: 10,
+                        innerRadius: 85,
+                        outerRadius: 130,
+                        paddingAngle: 4,
+                        cornerRadius: 12,
                         highlightScope: { fade: "global", highlight: "item" },
                         cx: "50%",
+                        cy: "45%",
                       },
                     ]}
-                    height={350}
+                    height={400}
                     slotProps={{
                       legend: {
-                        direction: "vertical",
-                        position: { vertical: "middle", horizontal: "end" },
-                        itemMarkWidth: 12,
-                        itemMarkHeight: 12,
-                        markGap: 8,
+                        direction: "row",
+                        position: { vertical: "bottom", horizontal: "middle" },
+                        itemMarkWidth: 10,
+                        itemMarkHeight: 10,
+                        markGap: 6,
                         itemGap: 15,
-                        labelStyle: { fontSize: 13, fontWeight: 500 },
+                        labelStyle: { fontSize: 11, fontWeight: 600 },
+                        padding: { top: 10 },
                       } as any,
                     }}
                   />
-                  {/* Total indicator in center */}
                   <Box
                     sx={{
                       position: "absolute",
-                      top: "50%",
+                      top: "45%",
                       left: "50%",
                       transform: "translate(-50%, -50%)",
                       textAlign: "center",
                       pointerEvents: "none",
                       display: { xs: "none", sm: "block" },
-                      mr: 8, // Adjust based on legend position
                     }}
                   >
-                    <Typography variant="h4" sx={{ fontWeight: 900, color: theme.palette.text.primary, mb: -0.5 }}>
+                    <Typography variant="h3" sx={{ fontWeight: 950, color: theme.palette.text.primary, mb: -0.5, letterSpacing: -1.5 }}>
                       {summary?.totalQuotes}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>
-                      Proyectos
+                    <Typography
+                      variant="caption"
+                      sx={{ color: "text.secondary", fontWeight: 800, textTransform: "uppercase", letterSpacing: 2, fontSize: "0.7rem", opacity: 0.8 }}
+                    >
+                      PROYECTOS
                     </Typography>
                   </Box>
                 </>
@@ -570,42 +605,114 @@ const DashboardPage: React.FC = () => {
                     justifyContent: "center",
                     alignItems: "center",
                     width: "100%",
-                    bgcolor: alpha(theme.palette.action.disabledBackground, 0.03),
-                    borderRadius: 4,
+                    bgcolor: alpha(theme.palette.action.disabledBackground, 0.02),
+                    borderRadius: 5,
                   }}
                 >
-                  <Typography color="text.secondary">Sin datos de materiales</Typography>
+                  <Typography color="text.secondary" sx={{ fontWeight: 500 }}>
+                    Sin datos de materiales
+                  </Typography>
                 </Box>
               )}
             </Box>
           </Paper>
         </Grid>
 
-        {/* Addons Demand Chart */}
-        <Grid size={{ xs: 12, md: 7 }}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper
             elevation={0}
             sx={{
               p: 4,
-              borderRadius: 6,
+              borderRadius: 7,
               border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
               height: "100%",
-              boxShadow: "0 15px 35px -10px rgba(0,0,0,0.03)",
+              background: `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.8)} 0%, ${theme.palette.background.paper} 100%)`,
+              boxShadow: "0 20px 40px -15px rgba(0,0,0,0.05)",
+              overflow: "hidden",
             }}
           >
-            <Typography variant="h6" sx={{ mb: 4, fontWeight: 900, fontSize: "1.25rem", letterSpacing: -0.5, display: "flex", alignItems: "center", gap: 1 }}>
-              Top Complementos Solicitados
-              <Tooltip title="Muestra los extras (fregaderos, taladros, encastres, etc.) más frecuentes en los presupuestos para identificar tendencias de consumo y equipamiento.">
-                <InfoOutlinedIcon sx={{ fontSize: 16, color: "text.secondary", opacity: 0.5, cursor: "help" }} />
+            <Typography variant="h6" sx={{ mb: 4, fontWeight: 900, fontSize: "1.3rem", letterSpacing: -0.5, display: "flex", alignItems: "center", gap: 1 }}>
+              Geometría de Proyectos
+              <Tooltip title="Distribución de las formas (L, U, Recto) seleccionadas por los clientes. Permite entender la complejidad física de los pedidos habituales.">
+                <InfoOutlinedIcon sx={{ fontSize: 18, color: "text.secondary", opacity: 0.5, cursor: "help" }} />
               </Tooltip>
             </Typography>
-            <Box sx={{ height: 350 }}>
+            <Box sx={{ height: 420, display: "flex", justifyContent: "center", position: "relative" }}>
               {loading ? (
-                <Stack spacing={2.5} sx={{ mt: 2 }}>
+                <Skeleton variant="circular" height={280} width={280} sx={{ mx: "auto" }} />
+              ) : shapesData.length > 0 ? (
+                <PieChart
+                  series={[
+                    {
+                      data: shapesData,
+                      innerRadius: 40,
+                      outerRadius: 130,
+                      paddingAngle: 2,
+                      cornerRadius: 8,
+                      highlightScope: { fade: "global", highlight: "item" },
+                      cx: "50%",
+                      cy: "45%",
+                    },
+                  ]}
+                  height={400}
+                  slotProps={{
+                    legend: {
+                      direction: "row",
+                      position: { vertical: "bottom", horizontal: "middle" },
+                      itemMarkWidth: 10,
+                      itemMarkHeight: 10,
+                      markGap: 6,
+                      itemGap: 15,
+                      labelStyle: { fontSize: 11, fontWeight: 600 },
+                      padding: { top: 10 },
+                    } as any,
+                  }}
+                />
+              ) : (
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    width: "100%",
+                    bgcolor: alpha(theme.palette.action.disabledBackground, 0.02),
+                    borderRadius: 5,
+                  }}
+                >
+                  <Typography color="text.secondary" sx={{ fontWeight: 500 }}>
+                    Sin datos de formas
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          </Paper>
+        </Grid>
+
+        {/* Bottom Row: Addons Demand Chart */}
+        <Grid size={{ xs: 12 }}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 5,
+              borderRadius: 7,
+              border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+              background: `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 0.8)} 0%, ${theme.palette.background.paper} 100%)`,
+              boxShadow: "0 25px 50px -20px rgba(0,0,0,0.06)",
+            }}
+          >
+            <Typography variant="h6" sx={{ mb: 5, fontWeight: 950, fontSize: "1.5rem", letterSpacing: -0.8, display: "flex", alignItems: "center", gap: 1.5 }}>
+              Ranking de Mecanizados y Accesorios
+              <Tooltip title="Muestra los extras (fregaderos, taladros, encastres, etc.) más frecuentes para identificar tendencias en el equipamiento de cocinas.">
+                <InfoOutlinedIcon sx={{ fontSize: 20, color: "text.secondary", opacity: 0.5, cursor: "help" }} />
+              </Tooltip>
+            </Typography>
+            <Box sx={{ height: 450 }}>
+              {loading ? (
+                <Stack spacing={3} sx={{ mt: 2 }}>
                   {[1, 2, 3, 4, 5, 6].map((i) => (
-                    <Box key={i} sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-                      <Skeleton variant="text" width={140} height={24} />
-                      <Skeleton variant="rectangular" width={`${Math.max(30, 100 - i * 12)}%`} height={28} sx={{ borderRadius: 1.5 }} />
+                    <Box key={i} sx={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <Skeleton variant="text" width={180} height={32} sx={{ borderRadius: 1 }} />
+                      <Skeleton variant="rectangular" width={`${Math.max(40, 100 - i * 10)}%`} height={36} sx={{ borderRadius: 2 }} />
                     </Box>
                   ))}
                 </Stack>
@@ -622,33 +729,54 @@ const DashboardPage: React.FC = () => {
                     {
                       dataKey: "count",
                       label: "Frecuencia de Uso",
-                      color: theme.palette.info.main,
-                      valueFormatter: (v: number | null) => `${v ?? 0} veces`,
+                      color: theme.palette.primary.main,
+                      valueFormatter: (v: number | null) => `${v ?? 0} unidades`,
                     },
                   ]}
                   layout="horizontal"
-                  height={350}
-                  margin={{ left: 150, right: 40, top: 10, bottom: 40 }}
-                  borderRadius={8}
+                  height={450}
+                  margin={{ left: 200, right: 60, top: 40, bottom: 50 }}
+                  borderRadius={10}
+                  slotProps={{
+                    legend: {
+                      direction: "horizontal",
+                      position: { vertical: "top", horizontal: "middle" },
+                      padding: 0,
+                    } as any,
+                  }}
                   sx={{
                     "& .MuiChartsAxis-left .MuiChartsAxis-tickLabel": {
-                      fontSize: 12,
-                      fontWeight: 500,
+                      fontSize: 13,
+                      fontWeight: 700,
+                      fill: theme.palette.text.secondary,
+                    },
+                    "& .MuiBarElement-root": {
+                      fill: `url(#barGradient)`,
                     },
                   }}
-                />
+                >
+                  <defs>
+                    <linearGradient id="barGradient" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor={theme.palette.primary.main} />
+                      <stop offset="100%" stopColor={theme.palette.primary.light} />
+                    </linearGradient>
+                  </defs>
+                </BarChart>
               ) : (
                 <Box
                   sx={{
                     display: "flex",
                     justifyContent: "center",
                     alignItems: "center",
-                    height: "100%",
-                    bgcolor: alpha(theme.palette.action.disabledBackground, 0.03),
-                    borderRadius: 4,
+                    height: 300,
+                    bgcolor: alpha(theme.palette.action.disabledBackground, 0.02),
+                    borderRadius: 5,
+                    border: `2px dashed ${theme.palette.divider}`,
                   }}
                 >
-                  <Typography color="text.secondary">Sin datos de complementos</Typography>
+                  <Typography color="text.secondary" sx={{ fontWeight: 500 }}>
+                    No se encontraron registros de mecanizados
+                  </Typography>
                 </Box>
               )}
             </Box>
