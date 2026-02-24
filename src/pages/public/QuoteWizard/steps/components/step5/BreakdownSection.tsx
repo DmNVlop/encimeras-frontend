@@ -51,7 +51,11 @@ export const BreakdownSection: React.FC<BreakdownSectionProps> = ({ calculationR
 
         <AppliedDiscounts appliedRules={calculationResult.appliedRules || []} />
 
-        <FinalTotals totalPoints={calculationResult.totalPoints} originalTotal={calculationResult.originalTotal} />
+        <FinalTotals
+          totalPoints={calculationResult.totalPoints}
+          totalDiscount={calculationResult.totalDiscount}
+          finalTotalPoints={calculationResult.finalTotalPoints}
+        />
       </Box>
     </Box>
   );

@@ -155,7 +155,7 @@ export const WizardStep5_Summary: React.FC = () => {
       const currentPayload = {
         name: currentDraftName,
         configuration: { wizardTempMaterial, mainPieces, selectedShapeId },
-        currentPricePoints: calculationResult?.totalPoints || 0,
+        currentPricePoints: calculationResult?.finalTotalPoints || calculationResult?.totalPoints || 0,
       };
 
       if (activeDraftId) {
@@ -202,7 +202,7 @@ export const WizardStep5_Summary: React.FC = () => {
         mainPieces: mainPieces,
         selectedShapeId: selectedShapeId,
       },
-      currentPricePoints: calculationResult?.totalPoints || 0,
+      currentPricePoints: calculationResult?.finalTotalPoints || calculationResult?.totalPoints || 0,
     };
 
     try {

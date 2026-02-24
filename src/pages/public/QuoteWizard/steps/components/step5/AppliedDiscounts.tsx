@@ -2,8 +2,10 @@ import React from "react";
 import { Paper, Typography, Box, Stack, alpha, useTheme } from "@mui/material";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 
+import type { AppliedRule } from "@/interfases/price.interfase";
+
 interface AppliedDiscountsProps {
-  appliedRules: any[];
+  appliedRules: AppliedRule[];
 }
 
 export const AppliedDiscounts: React.FC<AppliedDiscountsProps> = ({ appliedRules }) => {
