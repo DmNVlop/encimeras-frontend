@@ -128,16 +128,26 @@ export default function DraftCard({ draft, onDelete }: DraftCardProps) {
           </IconButton>
         </Box>
 
-        <Typography variant="h6" fontWeight="bold" color="primary.main" gutterBottom>
-          {materialCategory}
-          {/* Using category as title like "Apartamento Playa" is mocked in design, 
-              but we use what we have. If user wants custom names, we need a name field. 
-              For now, defaulting to Material Name or Category */}
+        <Typography
+          variant="h5"
+          fontWeight="800"
+          color="primary.main"
+          sx={{
+            mb: 0.5,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            lineHeight: 1.2,
+          }}
+        >
+          {draft.name || materialCategory}
         </Typography>
 
-        {/* <Typography variant="body2" color="text.secondary" gutterBottom>
-          {materialName}
-        </Typography> */}
+        {draft.name && (
+          <Typography variant="body2" color="text.secondary" fontWeight="500" sx={{ mb: 1 }}>
+            {materialCategory}
+          </Typography>
+        )}
 
         {/* Selected Attributes & Piece Count */}
         <Box mt={2} mb={2} sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>

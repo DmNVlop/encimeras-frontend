@@ -265,6 +265,7 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
 
         // Restauramos identidad y alertas
         currentDraftId: action.payload._id,
+        currentDraftName: action.payload.name || "",
         isDraftRecalculated: action.payload.recalculated || false, // Flag que viene del backend
         calculationResult: { totalPoints: action.payload.currentPricePoints }, // Hidratamos el precio
       };
@@ -277,6 +278,12 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
         currentDraftId: action.payload,
       };
 
+    case "SET_DRAFT_NAME":
+      return {
+        ...state,
+        currentDraftName: action.payload,
+      };
+
     case "RESET_WIZARD":
       return {
         mainPieces: [],
@@ -287,6 +294,7 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
         calculationResult: null,
         error: null,
         currentDraftId: null,
+        currentDraftName: "",
         isDraftRecalculated: false,
       };
 

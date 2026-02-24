@@ -31,6 +31,7 @@ const menuConfig: NavItem[] = [
     children: [
       { text: "Usuarios", path: "/admin/users" },
       { text: "Clientes", path: "/admin/customers" },
+      { text: "Descuentos", path: "/admin/discount-rules" },
       // { text: "Identidad", path: "/admin/identity" },
     ],
   },

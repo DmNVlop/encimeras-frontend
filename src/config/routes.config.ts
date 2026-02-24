@@ -16,6 +16,8 @@ const PriceConfigsPage = lazy(() => import("@/pages/admin/PriceConfigsPage"));
 const AttributesPage = lazy(() => import("@/pages/admin/AttributesPage"));
 const OrdersPage = lazy(() => import("@/pages/admin/OrdersTable"));
 const UsersPage = lazy(() => import("@/pages/admin/UsersPage"));
+const CustomersPage = lazy(() => import("@/pages/admin/CustomersPage"));
+const DiscountRulesPage = lazy(() => import("@/pages/admin/DiscountRulesPage"));
 
 // USER PORTAL
 const UserPortalLayout = lazy(() => import("@/pages/public/UserPortal/layout/UserPortalLayout"));
@@ -76,6 +78,8 @@ export const appRoutes: AppRouteConfig[] = [
       { path: "attributes", component: AttributesPage, allowedRoles: [UserRole.ADMIN] },
       { path: "orders", component: OrdersPage, allowedRoles: [UserRole.ADMIN] },
       { path: "users", component: UsersPage, allowedRoles: [UserRole.ADMIN] },
+      { path: "customers", component: CustomersPage, allowedRoles: [UserRole.ADMIN, UserRole.SALES] },
+      { path: "discount-rules", component: DiscountRulesPage, allowedRoles: [UserRole.ADMIN] },
     ],
   },
 ];
