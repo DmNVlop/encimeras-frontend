@@ -215,6 +215,7 @@ const WizardStepperContent: React.FC = () => {
     setActiveStep(0);
     dispatch({ type: "RESET_WIZARD" });
     navigate(location.pathname, { replace: true });
+    setOpenResetDialog(false); // Asegurar que se cierra el modal
   };
 
   // --- HANDLER: GUARDAR COMO NUEVO Y REINICIAR ---
