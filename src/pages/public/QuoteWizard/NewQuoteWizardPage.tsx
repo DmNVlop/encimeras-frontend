@@ -409,6 +409,8 @@ const WizardStepperContent: React.FC = () => {
           try {
             await addItemsFromGroup(pendingGroupId, clearFirst);
             setGroupLoadSuccess(true);
+            // Resetear el presupuestador y limpiar la URL al cargar un grupo
+            handleReset();
           } catch (error) {
             console.error("Group Load Error:", error);
             setGroupLoadError("No se pudieron cargar todos los elementos del grupo.");
