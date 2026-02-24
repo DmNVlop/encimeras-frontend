@@ -3,12 +3,15 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 
 import { SocketProvider } from "./context/SocketContext.tsx";
+import { CartProvider } from "./context/CartContext.tsx";
 import App from "./App.tsx";
 
 createRoot(document.getElementById("root")!).render(
   // <StrictMode>
   <SocketProvider>
-    <App />,
+    <CartProvider>
+      <App />
+    </CartProvider>
   </SocketProvider>,
   // </StrictMode>,
 );

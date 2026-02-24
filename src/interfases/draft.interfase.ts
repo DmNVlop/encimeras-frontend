@@ -12,6 +12,7 @@ export interface IDraft {
   currentPricePoints: number;
   expirationDate: string; // ISO Date string
   isConverted: boolean;
+  cartGroupId?: string; // Nuevo: ID para agrupar borradores
   createdAt?: string;
   updatedAt?: string;
 }

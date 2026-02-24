@@ -18,6 +18,7 @@ export interface OrderHeader {
 }
 
 export interface OrderLineItem {
+  cartItemName: string; // Nuevo: Trazabilidad técnica (ej: "Cocina de Juana")
   type: string;
   technicalSnapshot: {
     materials: any[];
