@@ -43,6 +43,7 @@ import type { CalculationResponse } from "@/interfases/price.interfase";
 import type { ICustomer } from "@/interfases/customer.interfase";
 import { ApiErrorFeedback } from "@/pages/public/common/ApiErrorFeedback";
 import { draftsApi } from "@/services/drafts.service";
+import { DraftNamingDialog } from "../components/DraftNamingDialog";
 // import { Countertop3DViewer } from "../../common/Countertop3DViewer";
 
 // =============================================================================
@@ -67,9 +68,12 @@ export const WizardStep5_Summary: React.FC = () => {
   // ESTADO PARA EL MODAL 3D
   const [open3D, setOpen3D] = useState(false);
 
-  // --- BUSCADOR DE CLIENTES ---
   const [customers, setCustomers] = useState<ICustomer[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<ICustomer | null>(null);
+
+  // --- MODAL GUARDAR BORRADOR ---
+  const [openSaveModal, setOpenSaveModal] = useState(false);
+  const [tempDraftName, setTempDraftName] = useState("");
 
   React.useEffect(() => {
     const fetchCustomers = async () => {
@@ -216,12 +220,12 @@ export const WizardStep5_Summary: React.FC = () => {
   // ---------------------------------------------------------------------------
   // HANDLER: GUARDAR/ACTUALIZAR BORRADOR
   // ---------------------------------------------------------------------------
-  const handleSaveDraft = async () => {
+  const handleSaveDraft = async (nameToSave: string) => {
     setIsSavingDraft(true);
     setSaveMessage(null);
 
     const payload = {
-      name: currentDraftName,
+      name: nameToSave,
       configuration: {
         wizardTempMaterial: wizardTempMaterial,
         mainPieces: mainPieces,
@@ -241,6 +245,7 @@ export const WizardStep5_Summary: React.FC = () => {
         const newId = response.data.id;
 
         dispatch({ type: "SET_DRAFT_ID", payload: newId });
+        dispatch({ type: "SET_DRAFT_NAME", payload: nameToSave });
 
         // Actualizamos URL para permitir F5
         const newUrl = `${window.location.pathname}?draftId=${newId}`;
@@ -690,56 +695,11 @@ export const WizardStep5_Summary: React.FC = () => {
         </Box>
       </Box>
 
-      {/* SELECCIÓN DE CLIENTE (ADMIN) */}
-      <Paper elevation={0} sx={{ p: 3, mb: 3, borderRadius: 3, border: "1px solid", borderColor: "divider", bgcolor: alpha(theme.palette.primary.main, 0.02) }}>
-        <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
-          <Person color="primary" sx={{ fontSize: 20 }} /> Asignar Cliente (Opcional - Aplica descuentos automáticos)
-        </Typography>
-        <Grid container spacing={2} alignItems="center">
-          <Grid size={{ xs: 12, sm: 8 }}>
-            <Autocomplete
-              options={customers}
-              getOptionLabel={(option) => `${option.officialName} (${option.nif || "Sin NIF"})`}
-              value={selectedCustomer}
-              onChange={(_, newValue) => {
-                setSelectedCustomer(newValue);
-              }}
-              renderInput={(params) => <TextField {...params} label="Buscar Cliente" placeholder="Nombre o NIF..." size="small" />}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 4 }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, color: "text.secondary" }}>
-              <InfoOutlinedIcon fontSize="small" />
-              <Typography variant="caption">Al cambiar el cliente, pulsa "Calcular" para actualizar descuentos.</Typography>
-            </Box>
-          </Grid>
-        </Grid>
-      </Paper>
-
       {/* BOTÓN DE CALCULAR */}
       <Paper elevation={1} sx={{ p: 3, textAlign: "center", mb: 4, backgroundColor: "#fff" }}>
         <Typography variant="body1" paragraph>
           Pulsa el botón para procesar tu configuración y obtener el valor en Puntos.
         </Typography>
-
-        {/* CAMPO NOMBRE DEL BORRADOR */}
-        <Box sx={{ maxWidth: 400, mx: "auto", mb: 4 }}>
-          <TextField
-            fullWidth
-            label="Nombre del presupuesto (Borrador)"
-            placeholder="Ej: Cocina de Verano, Apartamento Cala..."
-            variant="outlined"
-            size="medium"
-            value={currentDraftName || ""}
-            onChange={(e) => dispatch({ type: "SET_DRAFT_NAME", payload: e.target.value })}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 2,
-                bgcolor: alpha(theme.palette.primary.main, 0.02),
-              },
-            }}
-          />
-        </Box>
 
         {/* GRUPO DE BOTONES DE ACCIÓN */}
         <Box sx={{ display: "flex", justifyContent: "center", gap: 2, flexWrap: "wrap" }}>
@@ -762,11 +722,14 @@ export const WizardStep5_Summary: React.FC = () => {
             color="primary"
             size="large"
             startIcon={isSavingDraft ? <CircularProgress size={20} /> : <SaveIcon />}
-            onClick={handleSaveDraft}
+            onClick={() => {
+              setTempDraftName(currentDraftName || "");
+              setOpenSaveModal(true);
+            }}
             disabled={isSavingDraft || mainPieces.length === 0}
             sx={{ py: 1.5, minWidth: 200 }}
           >
-            {isSavingDraft ? "Guardando..." : currentDraftId ? "Actualizar Borrador" : "Guardar Borrador"}
+            {isSavingDraft ? "Guardando..." : "Guardar Borrador"}
           </Button>
 
           {/* BOTÓN CALCULAR (EXISTENTE) */}
@@ -799,6 +762,35 @@ export const WizardStep5_Summary: React.FC = () => {
       {calculationResult && (
         <>
           {renderBreakdown()}
+
+          {/* SELECCIÓN DE CLIENTE (MOVIDO AQUÍ) */}
+          <Paper
+            elevation={0}
+            sx={{ p: 3, my: 4, borderRadius: 3, border: "1px solid", borderColor: "divider", bgcolor: alpha(theme.palette.primary.main, 0.02) }}
+          >
+            <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
+              <Person color="primary" sx={{ fontSize: 20 }} /> Asignar Cliente (Opcional - Aplica descuentos automáticos)
+            </Typography>
+            <Grid container spacing={2} alignItems="center">
+              <Grid size={{ xs: 12, sm: 8 }}>
+                <Autocomplete
+                  options={customers}
+                  getOptionLabel={(option) => `${option.officialName} (${option.nif || "Sin NIF"})`}
+                  value={selectedCustomer}
+                  onChange={(_, newValue) => {
+                    setSelectedCustomer(newValue);
+                  }}
+                  renderInput={(params) => <TextField {...params} label="Buscar Cliente" placeholder="Nombre o NIF..." size="small" />}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, color: "text.secondary" }}>
+                  <InfoOutlinedIcon fontSize="small" />
+                  <Typography variant="caption">Al cambiar el cliente, pulsa "Calcular" para actualizar descuentos.</Typography>
+                </Box>
+              </Grid>
+            </Grid>
+          </Paper>
 
           <Box sx={{ mt: 5 }}>
             <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
@@ -874,6 +866,18 @@ export const WizardStep5_Summary: React.FC = () => {
           */}
         </DialogContent>
       </Dialog>
+
+      {/* --- MODAL PARA GUARDAR BORRADOR CON NOMBRE --- */}
+      <DraftNamingDialog
+        open={openSaveModal}
+        onClose={() => setOpenSaveModal(false)}
+        onConfirm={(name) => {
+          handleSaveDraft(name);
+          setOpenSaveModal(false);
+        }}
+        isSaving={isSavingDraft}
+        initialName={tempDraftName}
+      />
     </Box>
   );
 };
