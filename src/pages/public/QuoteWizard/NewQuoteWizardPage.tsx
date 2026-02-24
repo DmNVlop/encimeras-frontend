@@ -7,6 +7,7 @@ import { WizardHeader } from "./components/WizardHeader";
 import { WizardFooter } from "./components/WizardFooter";
 import { ResetQuoteDialog } from "./components/ResetQuoteDialog";
 import { DraftNamingDialog } from "./components/DraftNamingDialog";
+import { GroupLoaderDialog } from "./components/GroupLoaderDialog"; // Nuevo
 
 // Importar los pasos
 import { WizardStep1_Materials } from "./steps/WizardStep1_Materials";
@@ -58,6 +59,8 @@ const WizardStepperContent: React.FC = () => {
   const [openNamingModal, setOpenNamingModal] = useState(false);
   const [tempDraftName, setTempDraftName] = useState("");
   const [pendingResetAction, setPendingResetAction] = useState<"SAVE_AS_COPY" | "UPDATE" | null>(null);
+  const [showGroupLoader, setShowGroupLoader] = useState(false); // Nuevo
+  const [pendingGroupId, setPendingGroupId] = useState<string | null>(null); // Nuevo
 
   // --- HOOKS ---
   const dispatch = useQuoteDispatch(); // <--- Necesitas exponer esto en tu Context
@@ -94,6 +97,12 @@ const WizardStepperContent: React.FC = () => {
       // Si fue recalculado, mostramos aviso
       if (data.status === "EXPIRED_RECALCULATED") {
         setShowPriceWarning(true);
+      }
+
+      // NUEVO: Verificar si es parte de un grupo
+      if ((data.data as any).cartGroupId) {
+        setPendingGroupId((data.data as any).cartGroupId);
+        setShowGroupLoader(true);
       }
 
       // Opcional: Saltar directo al resumen o al paso 2
@@ -381,6 +390,17 @@ const WizardStepperContent: React.FC = () => {
         isSaving={isSavingAndResetting}
         initialName={tempDraftName}
         title={pendingResetAction === "SAVE_AS_COPY" ? "Guardar Copia" : "Guardar Presupuesto"}
+      />
+
+      {/* --- 6. DIÁLOGO DE CARGA GRUPAL --- */}
+      <GroupLoaderDialog
+        open={showGroupLoader}
+        onClose={() => setShowGroupLoader(false)}
+        onConfirm={() => {
+          console.log("Cargar grupo:", pendingGroupId);
+          // TODO: Implementar llamada a API para cargar grupo completo al carrito
+          navigate("/cart");
+        }}
       />
     </Container>
   );

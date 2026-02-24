@@ -4,15 +4,27 @@ import SummarizeIcon from "@mui/icons-material/Summarize";
 import SaveIcon from "@mui/icons-material/Save";
 import CalculateIcon from "@mui/icons-material/Calculate";
 
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+
 interface SummaryHeaderProps {
   isSavingDraft: boolean;
   isCalculating: boolean;
+  isAddingToCart: boolean; // Nuevo
   canAction: boolean;
   onSaveDraft: () => void;
   onCalculate: () => void;
+  onAddToCart: () => void; // Nuevo
 }
 
-export const SummaryHeader: React.FC<SummaryHeaderProps> = ({ isSavingDraft, isCalculating, canAction, onSaveDraft, onCalculate }) => {
+export const SummaryHeader: React.FC<SummaryHeaderProps> = ({
+  isSavingDraft,
+  isCalculating,
+  isAddingToCart, // Nuevo
+  canAction,
+  onSaveDraft,
+  onCalculate,
+  onAddToCart, // Nuevo
+}) => {
   const theme = useTheme();
 
   return (
@@ -64,6 +76,25 @@ export const SummaryHeader: React.FC<SummaryHeaderProps> = ({ isSavingDraft, isC
           }}
         >
           {isSavingDraft ? "Guardando..." : "Guardar Borrador"}
+        </Button>
+
+        <Button
+          variant="outlined"
+          color="secondary"
+          size="large"
+          startIcon={isAddingToCart ? <CircularProgress size={20} /> : <ShoppingCartIcon />}
+          onClick={onAddToCart}
+          disabled={isAddingToCart || !canAction}
+          sx={{
+            py: 1.2,
+            px: 3,
+            borderRadius: 2,
+            fontWeight: "bold",
+            transition: "all 0.2s",
+            "&:hover": { bgcolor: alpha(theme.palette.secondary.main, 0.05) },
+          }}
+        >
+          {isAddingToCart ? "Añadiendo..." : "Añadir al Carrito"}
         </Button>
 
         <Box sx={{ position: "relative" }}>

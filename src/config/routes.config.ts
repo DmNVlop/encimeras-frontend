@@ -25,6 +25,7 @@ const UserDashboard = lazy(() => import("@/pages/public/UserPortal/views/Dashboa
 const UserQuotes = lazy(() => import("@/pages/public/UserPortal/views/MyQuotes"));
 const UserDrafts = lazy(() => import("@/pages/public/UserPortal/views/Drafts"));
 const UserProfile = lazy(() => import("@/pages/public/UserPortal/views/UserProfile"));
+const CartView = lazy(() => import("@/pages/public/UserPortal/views/Cart"));
 
 // ADMIN: "ADMIN",
 // SALES_FACTORY: "SALES_FACTORY",
@@ -56,6 +57,7 @@ export const appRoutes: AppRouteConfig[] = [
     children: [
       { path: "dashboard", component: UserDashboard, allowedRoles: [UserRole.USER, UserRole.ADMIN] },
       { path: "my-quotes", component: UserQuotes, allowedRoles: [UserRole.USER, UserRole.ADMIN] },
+      { path: "cart", component: CartView, allowedRoles: [UserRole.USER, UserRole.ADMIN] },
       { path: "drafts", component: UserDrafts, allowedRoles: [UserRole.USER, UserRole.ADMIN] },
       { path: "user-profile", component: UserProfile, allowedRoles: [UserRole.USER, UserRole.ADMIN] },
     ],

@@ -23,6 +23,7 @@ import { validateAssemblies } from "@/utils/quoteValidation";
 // --- CONTEXTO Y SERVICIOS ---
 import { useQuoteState, useQuoteDispatch } from "@/context/QuoteContext";
 import { useAuth } from "@/context/AuthProvider";
+import { useCart } from "@/context/CartContext"; // Nuevo
 import { post, get } from "@/services/api.service";
 import { draftsApi } from "@/services/drafts.service";
 
@@ -40,6 +41,7 @@ export const WizardStep5_Summary: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const { addToCart } = useCart(); // Nuevo
 
   // --- ESTADOS PARA BORRADORES ---
   const [isSavingDraft, setIsSavingDraft] = useState(false);
@@ -53,6 +55,8 @@ export const WizardStep5_Summary: React.FC = () => {
 
   // --- MODAL GUARDAR BORRADOR ---
   const [openSaveModal, setOpenSaveModal] = useState(false);
+  const [openCartModal, setOpenCartModal] = useState(false); // Nuevo
+  const [isAddingToCart, setIsAddingToCart] = useState(false); // Nuevo
   const [tempDraftName, setTempDraftName] = useState("");
   const [loadingCustomers, setLoadingCustomers] = useState(false);
 
@@ -233,6 +237,33 @@ export const WizardStep5_Summary: React.FC = () => {
   };
 
   // ---------------------------------------------------------------------------
+  // HANDLER: AÑADIR AL CARRITO
+  // ---------------------------------------------------------------------------
+  const handleAddToCart = async (alias: string) => {
+    setIsAddingToCart(true);
+    try {
+      const payload = {
+        customName: alias,
+        configuration: {
+          wizardTempMaterial,
+          mainPieces,
+          selectedShapeId,
+        },
+        subtotalPoints: calculationResult?.finalTotalPoints || calculationResult?.totalPoints || 0,
+        draftId: currentDraftId || undefined,
+      };
+
+      await addToCart(payload);
+      setSaveMessage({ type: "success", text: "Añadido al carrito correctamente." });
+    } catch (err: any) {
+      console.error("Add to Cart Error:", err);
+      setSaveMessage({ type: "error", text: "No se pudo añadir al carrito." });
+    } finally {
+      setIsAddingToCart(false);
+    }
+  };
+
+  // ---------------------------------------------------------------------------
   // HANDLER: REINICIAMOS EL PRESUPUESTADOR
   // ---------------------------------------------------------------------------
   const handleStartNew = () => {
@@ -260,12 +291,17 @@ export const WizardStep5_Summary: React.FC = () => {
       <SummaryHeader
         isSavingDraft={isSavingDraft}
         isCalculating={isCalculating}
+        isAddingToCart={isAddingToCart}
         canAction={mainPieces.length > 0}
         onSaveDraft={() => {
           setTempDraftName(currentDraftName || "");
           setOpenSaveModal(true);
         }}
         onCalculate={handleCalculate}
+        onAddToCart={() => {
+          setTempDraftName(currentDraftName || "");
+          setOpenCartModal(true);
+        }}
       />
 
       {/* Snackbar para el feedback de guardado */}
@@ -335,6 +371,20 @@ export const WizardStep5_Summary: React.FC = () => {
         }}
         isSaving={isSavingDraft}
         initialName={tempDraftName}
+      />
+
+      {/* --- MODAL PARA AÑADIR AL CARRITO CON ALIAS --- */}
+      <DraftNamingDialog
+        open={openCartModal}
+        onClose={() => setOpenCartModal(false)}
+        onConfirm={(name) => {
+          handleAddToCart(name);
+          setOpenCartModal(false);
+        }}
+        isSaving={isAddingToCart}
+        initialName={tempDraftName}
+        title="Añadir al Carrito"
+        subtitle="Asigna un nombre a esta configuración (ej: Isla, Cocina Principal) para identificarla en tu carrito."
       />
     </Box>
   );

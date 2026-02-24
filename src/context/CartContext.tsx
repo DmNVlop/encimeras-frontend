@@ -8,11 +8,13 @@ interface CartContextType {
   cart: Cart | null;
   loading: boolean;
   isProcessingCheckout: boolean;
+  lastCreatedOrder: OrderHeader | null; // Nuevo
   addToCart: (payload: AddToCartPayload) => Promise<void>;
   removeFromCart: (cartItemId: string) => Promise<void>;
   refreshCart: () => Promise<void>;
   checkout: () => Promise<CheckoutResponse>;
   saveAsDrafts: () => Promise<void>;
+  clearLastOrder: () => void; // Nuevo
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -21,6 +23,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(false);
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
+  const [lastCreatedOrder, setLastCreatedOrder] = useState<OrderHeader | null>(null); // Nuevo
   const { socket } = useSocket();
 
   const refreshCart = useCallback(async () => {
@@ -45,6 +48,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const handleOrderSuccess = (order: OrderHeader) => {
       console.log("Order created successfully:", order);
+      setLastCreatedOrder(order); // Nuevo
       setIsProcessingCheckout(false);
       setCart(null); // Clear cart on success
       // Note: Navigation should be handled by the component or a global emitter
@@ -109,12 +113,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const clearLastOrder = () => setLastCreatedOrder(null);
+
   return (
     <CartContext.Provider
       value={{
         cart,
         loading,
         isProcessingCheckout,
+        lastCreatedOrder,
+        clearLastOrder,
         addToCart,
         removeFromCart,
         refreshCart,

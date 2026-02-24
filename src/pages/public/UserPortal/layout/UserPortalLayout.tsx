@@ -29,8 +29,11 @@ import {
   Logout as LogoutIcon,
   ChevronLeft as ChevronLeftIcon,
   AdminPanelSettings as AdminPanelSettingsIcon,
+  ShoppingCart as ShoppingCartIcon,
 } from "@mui/icons-material";
+import { Badge } from "@mui/material";
 import { useAuth } from "@/context/AuthProvider";
+import { useCart } from "@/context/CartContext";
 import { Role } from "@/interfases/user.interfase";
 
 const drawerWidth = 240;
@@ -38,6 +41,7 @@ const logo = "/logos/kuuk-logo.png";
 
 const menuItems = [
   { text: "Resumen", icon: <DashboardIcon />, path: "/dashboard" },
+  { text: "Carrito", icon: <ShoppingCartIcon />, path: "/cart" },
   { text: "Mis Pedidos", icon: <DescriptionIcon />, path: "/my-quotes" },
   { text: "Borradores", icon: <DraftsIcon />, path: "/drafts" },
   { text: "Mi Perfil", icon: <PersonIcon />, path: "/user-profile" },
@@ -50,7 +54,9 @@ export default function UserPortalLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, user } = useAuth();
+  const { cart } = useCart();
   const isAdmin = user?.roles?.includes(Role.ADMIN);
+  const cartItemsCount = cart?.items?.length || 0;
 
   const sidebarItems = [
     ...(isAdmin ? [{ text: "Panel Admin", icon: <AdminPanelSettingsIcon sx={{ color: theme.palette.primary.main }} />, path: "/admin/orders" }] : []),
@@ -125,8 +131,14 @@ export default function UserPortalLayout() {
             </Typography>
           </Box>
 
-          {/* User Menu */}
+          {/* Cart and User Menu */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <IconButton color="inherit" onClick={() => navigate("/cart")} sx={{ mr: 1 }}>
+              <Badge badgeContent={cartItemsCount} color="error">
+                <ShoppingCartIcon />
+              </Badge>
+            </IconButton>
+
             <Typography variant="body2" sx={{ display: { xs: "none", sm: "block" }, textAlign: "right" }}>
               <Box component="span" sx={{ display: "block", fontWeight: "bold" }}>
                 {user?.name || "Usuario"}
