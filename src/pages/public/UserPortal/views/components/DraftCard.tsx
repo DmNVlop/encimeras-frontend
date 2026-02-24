@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Box, Card, CardContent, Typography, Button, LinearProgress, IconButton } from "@mui/material";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Tooltip } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import type { IDraft } from "@/interfases/draft.interfase";
 
@@ -117,10 +118,31 @@ export default function DraftCard({ draft, onDelete }: DraftCardProps) {
                 fontSize: "0.75rem",
                 fontWeight: "bold",
                 display: "inline-block",
+                mr: 1,
               }}
             >
               {draft.configuration.mainPieces.length} Piezas
             </Box>
+          )}
+
+          {draft.cartGroupId && (
+            <Tooltip title={`En carrito: ${draft.cartGroupId.slice(-6)}`}>
+              <Box
+                sx={{
+                  bgcolor: "success.light",
+                  color: "success.main",
+                  width: 28,
+                  height: 28,
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  mr: 1,
+                }}
+              >
+                <ShoppingCartIcon sx={{ fontSize: 16 }} />
+              </Box>
+            </Tooltip>
           )}
 
           <IconButton size="small" sx={{ color: "error.main" }} onClick={handleDeleteClick}>

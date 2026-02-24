@@ -35,7 +35,7 @@ import { Badge } from "@mui/material";
 import { useAuth } from "@/context/AuthProvider";
 import { useCart } from "@/context/CartContext";
 import { Role } from "@/interfases/user.interfase";
-import { MiniCartMenu } from "./MiniCartMenu";
+import { MiniCartMenu } from "@/pages/public/common/MiniCartMenu";
 
 const drawerWidth = 240;
 const logo = "/logos/kuuk-logo.png";
