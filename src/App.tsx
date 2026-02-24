@@ -5,6 +5,7 @@ import { Box, CircularProgress } from "@mui/material";
 
 import type { AppRouteConfig } from "./types/auth.types";
 import { AuthProvider } from "./context/AuthProvider";
+import { CartProvider } from "./context/CartContext";
 import { RoleGuard } from "./components/guards/RoleGuard";
 import { appRoutes } from "./config/routes.config";
 
@@ -78,7 +79,9 @@ const AppRouter = () => {
 function App() {
   return (
     <AuthProvider>
-      <AppRouter />
+      <CartProvider>
+        <AppRouter />
+      </CartProvider>
     </AuthProvider>
   );
 }

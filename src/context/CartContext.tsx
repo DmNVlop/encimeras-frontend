@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import type { Cart, AddToCartPayload, CheckoutResponse, CheckoutErrorPayload } from "@/interfases/cart.interfase";
 import { cartApi } from "@/services/cart.service";
 import { useSocket } from "./SocketContext";
+import { useAuth } from "./AuthProvider";
 import type { OrderHeader } from "@/interfases/orders.interfase";
 
 interface CartContextType {
@@ -25,6 +26,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
   const [lastCreatedOrder, setLastCreatedOrder] = useState<OrderHeader | null>(null); // Nuevo
   const { socket } = useSocket();
+  const { isAuthenticated } = useAuth();
 
   const refreshCart = useCallback(async () => {
     try {
@@ -39,8 +41,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   useEffect(() => {
-    refreshCart();
-  }, [refreshCart]);
+    if (isAuthenticated) {
+      refreshCart();
+    } else {
+      setCart(null);
+    }
+  }, [isAuthenticated, refreshCart]);
 
   // Listen for WebSocket events for async checkout
   useEffect(() => {
