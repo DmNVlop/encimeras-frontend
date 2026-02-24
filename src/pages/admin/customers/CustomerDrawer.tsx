@@ -102,6 +102,9 @@ const CustomerDrawer: React.FC<CustomerDrawerProps> = ({ customer, open, onClose
       anchor="right"
       open={open}
       onClose={onClose}
+      sx={{
+        zIndex: (theme) => theme.zIndex.modal,
+      }}
       PaperProps={{
         sx: {
           width: { xs: "100%", sm: 550, md: 700 },

@@ -146,6 +146,9 @@ const DiscountRuleDrawer: React.FC<DiscountRuleDrawerProps> = ({ rule, open, onC
       anchor="right"
       open={open}
       onClose={onClose}
+      sx={{
+        zIndex: (theme) => theme.zIndex.modal,
+      }}
       PaperProps={{
         sx: {
           width: { xs: "100%", sm: 550, md: 700 },
