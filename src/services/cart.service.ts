@@ -24,6 +24,13 @@ export const cartApi = {
   },
 
   /**
+   * Vacía el carrito eliminando todos los ítems
+   */
+  clearCart: async (cartItemIds: string[]) => {
+    return remove("/cart/items", cartItemIds);
+  },
+
+  /**
    * Convierte el contenido del carrito en borradores agrupados
    */
   saveAsDrafts: async () => {

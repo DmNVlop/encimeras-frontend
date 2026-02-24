@@ -29,7 +29,7 @@ import { useCart } from "@/context/CartContext";
 export default function Cart() {
   const theme = useTheme();
   const navigate = useNavigate();
-  const { cart, loading, isProcessingCheckout, lastCreatedOrder, removeFromCart, checkout, saveAsDrafts, clearLastOrder } = useCart();
+  const { cart, loading, isProcessingCheckout, lastCreatedOrder, removeFromCart, checkout, saveAsDrafts, clearCart, clearLastOrder } = useCart();
   const [showRescuePolling, setShowRescuePolling] = useState(false);
 
   // Redirigir al éxito cuando el pedido se complete
@@ -101,19 +101,44 @@ export default function Cart() {
 
   return (
     <Box sx={{ maxWidth: 1000, mx: "auto", py: 4 }}>
-      <Typography variant="h4" fontWeight="bold" gutterBottom>
-        Mi Carrito
-      </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-        Gestiona tus presupuestos agrupados antes de confirmar el pedido final.
-      </Typography>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 4 }}>
+        <Box>
+          <Typography variant="h4" fontWeight="bold" gutterBottom>
+            Mi Carrito
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Gestiona tus presupuestos agrupados antes de confirmar el pedido final.
+          </Typography>
+        </Box>
+        <Button
+          variant="text"
+          color="error"
+          startIcon={<DeleteIcon />}
+          onClick={() => {
+            if (window.confirm("¿Estás seguro de que quieres vaciar todo el carrito?")) {
+              clearCart();
+            }
+          }}
+          sx={{
+            fontWeight: "bold",
+            borderRadius: 2,
+            "&:hover": { bgcolor: alpha(theme.palette.error.main, 0.05) },
+          }}
+        >
+          Vaciar Carrito
+        </Button>
+      </Box>
 
       <Box sx={{ display: "flex", gap: 4, flexDirection: { xs: "column", md: "row" } }}>
         {/* Listado de Items */}
         <Box sx={{ flexGrow: 1 }}>
           <List sx={{ p: 0, display: "flex", flexDirection: "column", gap: 2 }}>
-            {cart.items.map((item) => (
-              <Card key={item._id} elevation={0} sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
+            {cart.items.map((item, index) => (
+              <Card
+                key={item.cartItemId || item._id || item.id || `cart-item-${index}`}
+                elevation={0}
+                sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}
+              >
                 <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
                   <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <Box sx={{ display: "flex", gap: 2 }}>
@@ -125,14 +150,16 @@ export default function Cart() {
                           {item.customName}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          {item.configuration?.wizardTempMaterial?.name || "Configuración Personalizada"}
+                          {item.technicalSnapshot?.wizardTempMaterial?.materialName ||
+                            item.configuration?.wizardTempMaterial?.name ||
+                            "Configuración Personalizada"}
                         </Typography>
                         <Typography variant="h6" color="primary.main" fontWeight="bold" sx={{ mt: 1 }}>
                           {item.subtotalPoints.toLocaleString()} pts
                         </Typography>
                       </Box>
                     </Box>
-                    <IconButton color="error" onClick={() => removeFromCart(item._id)} size="small">
+                    <IconButton color="error" onClick={() => removeFromCart(item.cartItemId || item._id || item.id || "")} size="small">
                       <DeleteIcon />
                     </IconButton>
                   </Box>

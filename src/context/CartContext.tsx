@@ -15,6 +15,7 @@ interface CartContextType {
   refreshCart: () => Promise<void>;
   checkout: () => Promise<CheckoutResponse>;
   saveAsDrafts: () => Promise<void>;
+  clearCart: () => Promise<void>;
   clearLastOrder: () => void; // Nuevo
 }
 
@@ -86,6 +87,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const removeFromCart = async (cartItemId: string) => {
     try {
+      if (!cartItemId) {
+        console.warn("Attempted to remove item with null ID");
+        return;
+      }
       await cartApi.removeItem(cartItemId);
       await refreshCart();
     } catch (error) {
@@ -119,6 +124,27 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const clearCart = async () => {
+    if (!cart || cart.items.length === 0) return;
+    try {
+      setLoading(true);
+      const ids = cart.items.map((item) => item.cartItemId || item._id || item.id).filter(Boolean) as string[];
+
+      if (ids.length === 0) {
+        setLoading(false);
+        return;
+      }
+
+      await cartApi.clearCart(ids);
+      await refreshCart();
+    } catch (error) {
+      console.error("Error clearing cart:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const clearLastOrder = () => setLastCreatedOrder(null);
 
   return (
@@ -134,6 +160,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         refreshCart,
         checkout,
         saveAsDrafts,
+        clearCart,
       }}
     >
       {children}

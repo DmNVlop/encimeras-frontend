@@ -1,9 +1,12 @@
 // d:\Proyectos\DEV\presupuesto-encimeras\frontend\src\interfases\cart.interfase.ts
 
 export interface CartItem {
-  _id: string;
+  _id?: string;
+  id?: string;
+  cartItemId: string; // ID real devuelto por la API de carrito
   customName: string;
-  configuration: any; // technicalSnapshot/QuoteConfig
+  technicalSnapshot: any; // Mapeado desde el backend
+  configuration?: any; // Mantener por compatibilidad si se usa en otros sitios
   subtotalPoints: number;
   draftId?: string;
   createdAt?: string;
