@@ -1,32 +1,12 @@
 import React, { useState } from "react";
-import {
-  Container,
-  Box,
-  Paper,
-  Stepper,
-  Step,
-  Button,
-  Typography,
-  useTheme,
-  useMediaQuery,
-  MobileStepper,
-  Alert,
-  StepButton,
-  Backdrop,
-  CircularProgress,
-  Snackbar,
-  AlertTitle,
-  IconButton,
-  Tooltip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-} from "@mui/material";
-import { Add, KeyboardArrowLeft, KeyboardArrowRight, Person } from "@mui/icons-material";
+import { Container, Box, Paper, Button, Typography, useTheme, useMediaQuery, Alert, Backdrop, CircularProgress, Snackbar, AlertTitle } from "@mui/material";
 import { QuoteProvider, useQuoteDispatch, useQuoteState } from "@/context/QuoteContext";
-import { StepConnector } from "@mui/material";
+
+// Importar los componentes visuales extraidos
+import { WizardHeader } from "./components/WizardHeader";
+import { WizardFooter } from "./components/WizardFooter";
+import { ResetQuoteDialog } from "./components/ResetQuoteDialog";
+import { DraftNamingDialog } from "./components/DraftNamingDialog";
 
 // Importar los pasos
 import { WizardStep1_Materials } from "./steps/WizardStep1_Materials";
@@ -73,6 +53,11 @@ const WizardStepperContent: React.FC = () => {
   // --- ESTADOS PARA REINICIO ---
   const [openResetDialog, setOpenResetDialog] = useState(false);
   const [isSavingAndResetting, setIsSavingAndResetting] = useState(false);
+
+  // --- ESTADOS PARA MODAL DE NOMBRE (REINICIO) ---
+  const [openNamingModal, setOpenNamingModal] = useState(false);
+  const [tempDraftName, setTempDraftName] = useState("");
+  const [pendingResetAction, setPendingResetAction] = useState<"SAVE_AS_COPY" | "UPDATE" | null>(null);
 
   // --- HOOKS ---
   const dispatch = useQuoteDispatch(); // <--- Necesitas exponer esto en tu Context
@@ -218,11 +203,11 @@ const WizardStepperContent: React.FC = () => {
   };
 
   // --- HANDLER: GUARDAR COMO NUEVO Y REINICIAR ---
-  const handleSaveAsNewAndReset = async () => {
+  const handleSaveAsNewAndReset = async (nameToSave: string) => {
     setIsSavingAndResetting(true);
     try {
       const payload = {
-        name: currentDraftName,
+        name: nameToSave || currentDraftName,
         configuration: { wizardTempMaterial, mainPieces, selectedShapeId },
         currentPricePoints: calculationResult?.totalPoints || 0,
       };
@@ -241,12 +226,12 @@ const WizardStepperContent: React.FC = () => {
   };
 
   // --- HANDLER: ACTUALIZAR Y REINICIAR ---
-  const handleUpdateAndReset = async () => {
+  const handleUpdateAndReset = async (nameToSave?: string) => {
     if (!currentDraftId) return;
     setIsSavingAndResetting(true);
     try {
       const payload = {
-        name: currentDraftName,
+        name: nameToSave || currentDraftName,
         configuration: { wizardTempMaterial, mainPieces, selectedShapeId },
         currentPricePoints: calculationResult?.totalPoints || 0,
       };
@@ -287,136 +272,16 @@ const WizardStepperContent: React.FC = () => {
         }}
       >
         {/* --- A. CABECERA FIJA --- */}
-        {/* --- A. CABECERA FIJA --- */}
-        <Box
-          sx={{
-            flexShrink: 0,
-            backgroundColor: "#fff",
-            borderBottom: "1px solid",
-            borderColor: "divider",
-          }}
-        >
-          {/* Main Header Row */}
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              p: { xs: 1, sm: 2 },
-              gap: 2,
-            }}
-          >
-            {/* 1. IZQUIERDA: Logo + Título */}
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
-              <Box
-                component="img"
-                src={logo}
-                alt="Kuuk Logo"
-                onClick={() => navigate("/dashboard")}
-                sx={{
-                  maxHeight: { xs: 32, sm: 40 },
-                  width: "auto",
-                  objectFit: "contain",
-                  display: "block",
-                  cursor: "pointer",
-                }}
-              />
-              <Typography
-                variant={isMobile ? "subtitle1" : "h6"}
-                component="h1"
-                onClick={() => navigate("/dashboard")}
-                sx={{
-                  fontWeight: "bold",
-                  lineHeight: 1.2,
-                  display: { xs: "none", md: "block" },
-                  cursor: "pointer",
-                }}
-              >
-                Presupuestador de Encimeras
-              </Typography>
-              <Typography
-                variant="subtitle1"
-                component="h1"
-                onClick={() => navigate("/dashboard")}
-                sx={{
-                  fontWeight: "bold",
-                  lineHeight: 1.2,
-                  display: { xs: "block", md: "none" },
-                  cursor: "pointer",
-                }}
-              >
-                Presupuestador
-              </Typography>
-            </Box>
-
-            {/* 2. CENTRO: Stepper (Solo Desktop) */}
-            {!isMobile && (
-              <Box sx={{ flexGrow: 1, maxWidth: "800px", mx: 2 }}>
-                <Stepper
-                  activeStep={activeStep}
-                  alternativeLabel
-                  nonLinear
-                  connector={<StepConnector />}
-                  sx={{
-                    "& .MuiStepLabel-label": { mt: 0.5, fontSize: "0.75rem" },
-                    p: 0,
-                  }}
-                >
-                  {steps.map((label, index) => (
-                    <Step key={label} completed={activeStep > index}>
-                      <StepButton color="inherit" onClick={() => handleStepClick(index)}>
-                        {label}
-                      </StepButton>
-                    </Step>
-                  ))}
-                </Stepper>
-              </Box>
-            )}
-
-            {/* 3. DERECHA: Botón Portal Usuario */}
-            <Box sx={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 1 }}>
-              <Tooltip title="Nuevo Presupuesto">
-                <IconButton
-                  color="primary"
-                  onClick={() => setOpenResetDialog(true)}
-                  disabled={mainPieces.length === 0 && !wizardTempMaterial}
-                  sx={{
-                    border: "1px solid",
-                    borderColor: "divider",
-                    bgcolor: "rgba(25, 118, 210, 0.04)",
-                    "&:hover": {
-                      bgcolor: "rgba(25, 118, 210, 0.08)",
-                    },
-                  }}
-                >
-                  <Add />
-                </IconButton>
-              </Tooltip>
-
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<Person />}
-                onClick={() => navigate("/my-quotes")}
-                sx={{
-                  borderRadius: 50,
-                  textTransform: "none",
-                  whiteSpace: "nowrap",
-                  minWidth: "auto",
-                }}
-              >
-                {isMobile ? "Portal" : "Portal del Usuario"}
-              </Button>
-            </Box>
-          </Box>
-
-          {/* Error Alert */}
-          {validationError && (
-            <Alert severity="error" sx={{ m: 0, borderRadius: 0 }}>
-              {validationError}
-            </Alert>
-          )}
-        </Box>
+        <WizardHeader
+          activeStep={activeStep}
+          steps={steps}
+          isMobile={isMobile}
+          onStepClick={handleStepClick}
+          onResetClick={() => setOpenResetDialog(true)}
+          canReset={mainPieces.length > 0 || !!wizardTempMaterial}
+          validationError={validationError}
+          logo={logo}
+        />
 
         {/* --- B. CONTENIDO --- */}
         <Box
@@ -443,54 +308,14 @@ const WizardStepperContent: React.FC = () => {
 
         {/* --- C. PIE FIJO --- */}
         {activeStep < steps.length && (
-          <Box
-            sx={{
-              p: 2,
-              flexShrink: 0,
-              borderTop: "1px solid",
-              borderColor: "divider",
-              backgroundColor: "#fff",
-              zIndex: 1,
-            }}
-          >
-            {activeStep !== 4 ? (
-              // NAVEGACIÓN ESTÁNDAR
-              isMobile ? (
-                <MobileStepper
-                  variant="progress"
-                  steps={steps.length}
-                  position="static"
-                  activeStep={activeStep}
-                  nextButton={
-                    <Button size="small" onClick={handleNext} variant="contained">
-                      Siguiente <KeyboardArrowRight />
-                    </Button>
-                  }
-                  backButton={
-                    <Button size="small" onClick={handleBack} disabled={activeStep === 0}>
-                      <KeyboardArrowLeft /> Atrás
-                    </Button>
-                  }
-                />
-              ) : (
-                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                  <Button onClick={handleBack} disabled={activeStep === 0} variant="outlined" color="inherit">
-                    Atrás
-                  </Button>
-                  <Button onClick={handleNext} variant="contained" size="large">
-                    {activeStep === steps.length - 1 ? "Finalizar" : "Siguiente Paso"}
-                  </Button>
-                </Box>
-              )
-            ) : (
-              // PASO 5: RESUMEN
-              <Box sx={{ display: "flex", justifyContent: "flex-start" }}>
-                <Button onClick={handleBack} color="inherit">
-                  <KeyboardArrowLeft /> Volver a editar
-                </Button>
-              </Box>
-            )}
-          </Box>
+          <WizardFooter
+            activeStep={activeStep}
+            stepsCount={steps.length}
+            isMobile={isMobile}
+            onNext={handleNext}
+            onBack={handleBack}
+            showStandardNav={activeStep !== 4}
+          />
         )}
       </Paper>
 
@@ -520,61 +345,43 @@ const WizardStepperContent: React.FC = () => {
       </Snackbar>
 
       {/* --- 4. MODAL DE CONFIRMACIÓN DE REINICIO --- */}
-      <Dialog open={openResetDialog} onClose={() => !isSavingAndResetting && setOpenResetDialog(false)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontWeight: "bold", display: "flex", alignItems: "center", gap: 1 }}>
-          <Add color="primary" />
-          Nuevo Presupuesto
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText>¿Estás seguro de que deseas iniciar un nuevo presupuesto? Se perderán los datos actuales no guardados.</DialogContentText>
-        </DialogContent>
-        <DialogActions sx={{ p: 2, gap: 1, flexDirection: "column" }}>
-          <Button
-            fullWidth
-            variant="contained"
-            color="primary"
-            onClick={() => {
-              handleReset();
-              setOpenResetDialog(false);
-            }}
-            disabled={isSavingAndResetting}
-            sx={{ py: 1.5 }}
-          >
-            Nuevo (Comenzar de cero)
-          </Button>
+      <ResetQuoteDialog
+        open={openResetDialog}
+        onClose={() => setOpenResetDialog(false)}
+        onReset={handleReset}
+        onUpdate={() => {
+          setPendingResetAction("UPDATE");
+          setTempDraftName(currentDraftName || "");
+          setOpenResetDialog(false);
+          setOpenNamingModal(true);
+        }}
+        onSaveAsCopy={() => {
+          setPendingResetAction("SAVE_AS_COPY");
+          setTempDraftName(currentDraftName ? `${currentDraftName} (Copia)` : "");
+          setOpenResetDialog(false);
+          setOpenNamingModal(true);
+        }}
+        isSaving={isSavingAndResetting}
+        currentDraftId={currentDraftId}
+        hasContent={mainPieces.length > 0}
+      />
 
-          {/* Botón Actualizar (Solo si ya existe un presupuesto guardado) */}
-          {currentDraftId && (
-            <Button
-              fullWidth
-              variant="outlined"
-              color="success"
-              onClick={handleUpdateAndReset}
-              disabled={isSavingAndResetting || mainPieces.length === 0}
-              startIcon={isSavingAndResetting ? <CircularProgress size={20} /> : null}
-              sx={{ py: 1.5 }}
-            >
-              {isSavingAndResetting ? "Actualizando..." : "Actualizar Borrador y Nuevo"}
-            </Button>
-          )}
-
-          <Button
-            fullWidth
-            variant="outlined"
-            color="primary"
-            onClick={handleSaveAsNewAndReset}
-            disabled={isSavingAndResetting || mainPieces.length === 0}
-            startIcon={isSavingAndResetting ? <CircularProgress size={20} /> : null}
-            sx={{ py: 1.5 }}
-          >
-            {isSavingAndResetting ? "Guardando..." : currentDraftId ? "Guardar como copia y Nuevo" : "Guardar Borrador y Nuevo"}
-          </Button>
-
-          <Button fullWidth variant="text" color="inherit" onClick={() => setOpenResetDialog(false)} disabled={isSavingAndResetting} sx={{ py: 1 }}>
-            Cancelar
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* --- 5. MODAL PARA PEDIR NOMBRE ANTES DE REINICIAR --- */}
+      <DraftNamingDialog
+        open={openNamingModal}
+        onClose={() => setOpenNamingModal(false)}
+        onConfirm={async (name) => {
+          if (pendingResetAction === "SAVE_AS_COPY") {
+            await handleSaveAsNewAndReset(name);
+          } else {
+            await handleUpdateAndReset(name);
+          }
+          setOpenNamingModal(false);
+        }}
+        isSaving={isSavingAndResetting}
+        initialName={tempDraftName}
+        title={pendingResetAction === "SAVE_AS_COPY" ? "Guardar Copia" : "Guardar Presupuesto"}
+      />
     </Container>
   );
 };

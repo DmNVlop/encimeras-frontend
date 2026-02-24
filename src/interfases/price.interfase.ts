@@ -20,12 +20,13 @@ export interface BreakdownAddon {
 }
 
 export interface BreakdownPiece {
+  id: string;
   pieceName: string;
+  materialName: string;
   basePricePoints: number;
   subtotalPoints: number;
-  originalPrice?: number;
-  finalPrice?: number;
-  discountAmount?: number;
+  discountAmount: number;
+  finalPricePoints: number;
   addons: BreakdownAddon[];
 }
 
@@ -37,9 +38,8 @@ export interface AppliedRule {
 
 export interface CalculationResponse {
   totalPoints: number;
-  originalTotal?: number;
-  finalTotal?: number;
-  totalDiscount?: number;
-  appliedRules?: AppliedRule[];
+  finalTotalPoints: number;
+  totalDiscount: number;
+  appliedRules: AppliedRule[];
   pieces: BreakdownPiece[];
 }

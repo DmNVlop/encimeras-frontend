@@ -16,6 +16,7 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
       const newState = {
         ...state,
         wizardTempMaterial: newMaterialPayload,
+        calculationResult: null,
       };
 
       // 2. ¡LA CLAVE! Si ya existen piezas (mainPieces), debemos propagar el cambio.
@@ -53,6 +54,7 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
         ...state,
         mainPieces: newPieces,
         activePieceIndex: 0, // Activamos la primera pieza
+        calculationResult: null,
       };
     }
 
@@ -94,6 +96,7 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
         mainPieces: newPieces,
         activePieceIndex: 0, // Activate the first piece
         selectedShapeId: variationCode,
+        calculationResult: null,
       };
     }
 
@@ -102,6 +105,7 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
         ...state,
         mainPieces: [], // Vacía el array de piezas
         activePieceIndex: null, // Resetea el índice activo
+        calculationResult: null,
         // Mantenemos wizardTempMaterial por si el usuario
         // solo quiere cambiar la forma pero no el material base.
       };
@@ -110,6 +114,7 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
       const { pieceIndex, measurements } = action.payload;
       return {
         ...state,
+        calculationResult: null,
         mainPieces: state.mainPieces.map((piece, index) => {
           if (index === pieceIndex) {
             return { ...piece, measurements };
@@ -124,6 +129,7 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
       const { pieceIndex, data } = action.payload;
       return {
         ...state,
+        calculationResult: null,
         mainPieces: state.mainPieces.map((piece, index) => {
           if (index === pieceIndex) {
             // Creamos una copia base
@@ -149,6 +155,7 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
       const { pieceIndex, addon } = action.payload;
       return {
         ...state,
+        calculationResult: null,
         mainPieces: state.mainPieces.map((piece, index) => {
           if (index === pieceIndex) {
             return { ...piece, appliedAddons: [...piece.appliedAddons, addon] };
@@ -162,6 +169,7 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
       const { pieceIndex, addonIndex } = action.payload;
       return {
         ...state,
+        calculationResult: null,
         mainPieces: state.mainPieces.map((piece, index) => {
           // 1. Encontrar la pieza correcta
           if (index === pieceIndex) {
@@ -181,6 +189,7 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
       const { pieceIndex, addonIndex, data } = action.payload;
       return {
         ...state,
+        calculationResult: null,
         mainPieces: state.mainPieces.map((piece, index) => {
           if (index === pieceIndex) {
             const newAddons = piece.appliedAddons.map((addon, i) => {
@@ -282,6 +291,11 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
       return {
         ...state,
         currentDraftName: action.payload,
+      };
+    case "CLEAR_CALCULATION":
+      return {
+        ...state,
+        calculationResult: null,
       };
 
     case "RESET_WIZARD":
