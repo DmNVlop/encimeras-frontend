@@ -47,7 +47,7 @@ export const cartApi = {
   /**
    * Importa todos los elementos de un grupo de borradores al carrito
    */
-  importByGroup: async (groupId: string) => {
-    return post<Cart>(`/cart/items/group/${groupId}`, {});
+  importByGroup: async (groupId: string, clearFirst: boolean = false) => {
+    return post<Cart>(`/cart/items/group/${groupId}`, { clearFirst });
   },
 };

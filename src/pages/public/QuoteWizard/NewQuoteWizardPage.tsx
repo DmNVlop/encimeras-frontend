@@ -67,7 +67,7 @@ const WizardStepperContent: React.FC = () => {
   const dispatch = useQuoteDispatch(); // <--- Necesitas exponer esto en tu Context
   const location = useLocation(); // Para leer ?draftId=...
   const navigate = useNavigate();
-  const { addItemsFromGroup } = useCart(); // Nuevo
+  const { cart, addItemsFromGroup } = useCart(); // Nuevo
 
   // Feedback para carga grupal
   const [groupLoadSuccess, setGroupLoadSuccess] = useState(false);
@@ -403,10 +403,11 @@ const WizardStepperContent: React.FC = () => {
       <GroupLoaderDialog
         open={showGroupLoader}
         onClose={() => setShowGroupLoader(false)}
-        onConfirm={async () => {
+        hasItemsInCart={(cart?.items.length || 0) > 0}
+        onConfirm={async (clearFirst) => {
           if (!pendingGroupId) return;
           try {
-            await addItemsFromGroup(pendingGroupId);
+            await addItemsFromGroup(pendingGroupId, clearFirst);
             setGroupLoadSuccess(true);
           } catch (error) {
             console.error("Group Load Error:", error);

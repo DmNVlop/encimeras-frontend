@@ -17,7 +17,7 @@ interface CartContextType {
   saveAsDrafts: () => Promise<void>;
   clearCart: () => Promise<void>;
   clearLastOrder: () => void; // Nuevo
-  addItemsFromGroup: (groupId: string) => Promise<void>; // Nuevo
+  addItemsFromGroup: (groupId: string, clearFirst?: boolean) => Promise<void>; // Nuevo
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -148,10 +148,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const clearLastOrder = () => setLastCreatedOrder(null);
 
-  const addItemsFromGroup = async (groupId: string) => {
+  const addItemsFromGroup = async (groupId: string, clearFirst: boolean = false) => {
     try {
       setLoading(true);
-      const updatedCart = await cartApi.importByGroup(groupId);
+      const updatedCart = await cartApi.importByGroup(groupId, clearFirst);
       setCart(updatedCart);
     } catch (error) {
       console.error("Error importing group items:", error);
