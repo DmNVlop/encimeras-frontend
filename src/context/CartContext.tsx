@@ -17,6 +17,7 @@ interface CartContextType {
   saveAsDrafts: () => Promise<void>;
   clearCart: () => Promise<void>;
   clearLastOrder: () => void; // Nuevo
+  addItemsFromGroup: (groupId: string) => Promise<void>; // Nuevo
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -147,6 +148,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const clearLastOrder = () => setLastCreatedOrder(null);
 
+  const addItemsFromGroup = async (groupId: string) => {
+    try {
+      setLoading(true);
+      const updatedCart = await cartApi.importByGroup(groupId);
+      setCart(updatedCart);
+    } catch (error) {
+      console.error("Error importing group items:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <CartContext.Provider
       value={{
@@ -161,6 +175,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         checkout,
         saveAsDrafts,
         clearCart,
+        addItemsFromGroup,
       }}
     >
       {children}

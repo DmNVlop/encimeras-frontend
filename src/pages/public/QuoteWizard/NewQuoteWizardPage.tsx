@@ -18,6 +18,7 @@ import { WizardStep5_Summary } from "./steps/WizardStep5_Summary";
 import { useLocation, useNavigate } from "react-router-dom";
 import { draftsApi } from "@/services/drafts.service";
 import { validateAssemblies } from "@/utils/quoteValidation";
+import { useCart } from "@/context/CartContext"; // Nuevo
 
 const steps = ["Material", "Forma y Medidas", "Trabajos y Ensamblaje", "Complementos", "Resumen"];
 
@@ -66,6 +67,11 @@ const WizardStepperContent: React.FC = () => {
   const dispatch = useQuoteDispatch(); // <--- Necesitas exponer esto en tu Context
   const location = useLocation(); // Para leer ?draftId=...
   const navigate = useNavigate();
+  const { addItemsFromGroup } = useCart(); // Nuevo
+
+  // Feedback para carga grupal
+  const [groupLoadSuccess, setGroupLoadSuccess] = useState(false);
+  const [groupLoadError, setGroupLoadError] = useState<string | null>(null);
 
   // --- EFECTO DE CARGA PARA LEER RUTA ---
   React.useEffect(() => {
@@ -396,12 +402,33 @@ const WizardStepperContent: React.FC = () => {
       <GroupLoaderDialog
         open={showGroupLoader}
         onClose={() => setShowGroupLoader(false)}
-        onConfirm={() => {
-          console.log("Cargar grupo:", pendingGroupId);
-          // TODO: Implementar llamada a API para cargar grupo completo al carrito
-          navigate("/cart");
+        onConfirm={async () => {
+          if (!pendingGroupId) return;
+          try {
+            await addItemsFromGroup(pendingGroupId);
+            setGroupLoadSuccess(true);
+          } catch (error) {
+            console.error("Group Load Error:", error);
+            setGroupLoadError("No se pudieron cargar todos los elementos del grupo.");
+          } finally {
+            setShowGroupLoader(false);
+          }
         }}
       />
+
+      {/* 7. Snackbar de éxito de carga grupal */}
+      <Snackbar open={groupLoadSuccess} autoHideDuration={6000} onClose={() => setGroupLoadSuccess(false)}>
+        <Alert severity="success" variant="filled">
+          Grupo de presupuestos añadido correctamente al carrito.
+        </Alert>
+      </Snackbar>
+
+      {/* 8. Snackbar de error de carga grupal */}
+      <Snackbar open={!!groupLoadError} autoHideDuration={6000} onClose={() => setGroupLoadError(null)}>
+        <Alert severity="error" variant="filled">
+          {groupLoadError}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
