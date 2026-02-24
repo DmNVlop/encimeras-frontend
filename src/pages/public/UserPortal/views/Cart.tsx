@@ -125,7 +125,7 @@ export default function Cart() {
                           {item.customName}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          {item.configuration.wizardTempMaterial?.name || "Configuración Personalizada"}
+                          {item.configuration?.wizardTempMaterial?.name || "Configuración Personalizada"}
                         </Typography>
                         <Typography variant="h6" color="primary.main" fontWeight="bold" sx={{ mt: 1 }}>
                           {item.subtotalPoints.toLocaleString()} pts
