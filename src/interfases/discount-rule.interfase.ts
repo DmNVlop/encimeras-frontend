@@ -30,6 +30,8 @@ export interface IDiscountRuleConditions {
   endDate?: Date | string;
   customerStrategy: CustomerStrategy;
   targetCustomers: string[]; // ObjectIds
+  targetMaterials?: string[]; // IDs
+  targetCategories?: string[]; // Strings
   minOrderValue?: number;
 }
 

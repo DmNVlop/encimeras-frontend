@@ -28,6 +28,10 @@ import GavelIcon from "@mui/icons-material/Gavel";
 import type { IDiscountRule } from "@/interfases/discount-rule.interfase";
 import { DiscountType, DiscountScope, CollisionStrategy, CustomerStrategy } from "@/interfases/discount-rule.interfase";
 import { updateDiscountRule, deleteDiscountRule, createDiscountRule } from "@/services/discount-rule.service";
+import { get } from "@/services/api.service";
+import type { Material } from "@/interfases/materials.interfase";
+import type { ICustomer } from "@/interfases/customer.interfase";
+import Autocomplete from "@mui/material/Autocomplete";
 
 interface DiscountRuleDrawerProps {
   rule: IDiscountRule | null;
@@ -42,6 +46,31 @@ const DiscountRuleDrawer: React.FC<DiscountRuleDrawerProps> = ({ rule, open, onC
   const [editing, setEditing] = useState(isNew);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<Partial<IDiscountRule>>({});
+
+  // Data for selectors
+  const [allMaterials, setAllMaterials] = useState<Material[]>([]);
+  const [allCustomers, setAllCustomers] = useState<ICustomer[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (open) {
+      fetchSelectorData();
+    }
+  }, [open]);
+
+  const fetchSelectorData = async () => {
+    try {
+      const [mats, custs] = await Promise.all([get<Material[]>("/materials"), get<ICustomer[]>("/customers")]);
+      setAllMaterials(mats);
+      setAllCustomers(custs);
+
+      // Extract unique categories
+      const uniqueCats = Array.from(new Set(mats.map((m) => m.category).filter(Boolean)));
+      setCategories(uniqueCats);
+    } catch (error) {
+      console.error("Error fetching selector data:", error);
+    }
+  };
 
   useEffect(() => {
     if (rule) {
@@ -60,6 +89,8 @@ const DiscountRuleDrawer: React.FC<DiscountRuleDrawerProps> = ({ rule, open, onC
         conditions: {
           customerStrategy: CustomerStrategy.ALL,
           targetCustomers: [],
+          targetMaterials: [],
+          targetCategories: [],
         },
       });
       setEditing(true);
@@ -255,6 +286,43 @@ const DiscountRuleDrawer: React.FC<DiscountRuleDrawerProps> = ({ rule, open, onC
                   sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
                 />
               </Grid>
+
+              {/* Dynamic Selectors for scope */}
+              {formData.scope === DiscountScope.SPECIFIC_MATERIALS && (
+                <Grid size={{ xs: 12 }}>
+                  <Autocomplete
+                    multiple
+                    options={allMaterials}
+                    getOptionLabel={(option) => option.name}
+                    value={allMaterials.filter((m) => formData.conditions?.targetMaterials?.includes(m._id))}
+                    onChange={(_, newValue) =>
+                      handleConditionChange(
+                        "targetMaterials",
+                        newValue.map((m) => m._id),
+                      )
+                    }
+                    disabled={!editing || loading}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Materiales Seleccionados" size="small" required sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }} />
+                    )}
+                  />
+                </Grid>
+              )}
+
+              {formData.scope === DiscountScope.MATERIAL_CATEGORIES && (
+                <Grid size={{ xs: 12 }}>
+                  <Autocomplete
+                    multiple
+                    options={categories}
+                    value={formData.conditions?.targetCategories || []}
+                    onChange={(_, newValue) => handleConditionChange("targetCategories", newValue)}
+                    disabled={!editing || loading}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Categorías Seleccionadas" size="small" required sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }} />
+                    )}
+                  />
+                </Grid>
+              )}
             </Grid>
           </Box>
 
@@ -311,6 +379,27 @@ const DiscountRuleDrawer: React.FC<DiscountRuleDrawerProps> = ({ rule, open, onC
                   <MenuItem value={CustomerStrategy.SPECIFIC_CUSTOMERS}>Clientes Específicos</MenuItem>
                 </TextField>
               </Grid>
+
+              {formData.conditions?.customerStrategy === CustomerStrategy.SPECIFIC_CUSTOMERS && (
+                <Grid size={{ xs: 12 }}>
+                  <Autocomplete
+                    multiple
+                    options={allCustomers}
+                    getOptionLabel={(option) => `${option.officialName} (${option.nif || "No NIF"})`}
+                    value={allCustomers.filter((c) => formData.conditions?.targetCustomers?.includes(c._id!))}
+                    onChange={(_, newValue) =>
+                      handleConditionChange(
+                        "targetCustomers",
+                        newValue.map((c) => c._id!),
+                      )
+                    }
+                    disabled={!editing || loading}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Clientes Seleccionados" size="small" required sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }} />
+                    )}
+                  />
+                </Grid>
+              )}
               <Grid size={{ xs: 12 }}>
                 <TextField
                   fullWidth

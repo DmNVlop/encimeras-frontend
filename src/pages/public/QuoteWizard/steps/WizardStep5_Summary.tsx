@@ -16,6 +16,10 @@ import {
   Snackbar,
   Alert,
   Chip,
+  Autocomplete,
+  Tooltip as MuiTooltip,
+  Stack,
+  alpha,
 } from "@mui/material";
 import { validateAssemblies } from "@/utils/quoteValidation";
 import Grid from "@mui/material/Grid";
@@ -26,13 +30,17 @@ import SaveIcon from "@mui/icons-material/Save";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import SummarizeIcon from "@mui/icons-material/Summarize";
 import StraightenIcon from "@mui/icons-material/Straighten";
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import Person from "@mui/icons-material/Person";
 import { shapeVariations } from "@/pages/public/common/shapes-step2";
 import EncimeraPreview from "@/pages/public/common/EncimeraPreview/encimera-preview";
 
 // 1. Importar Contexto
 import { useQuoteState, useQuoteDispatch } from "@/context/QuoteContext";
-import { post } from "@/services/api.service"; // Asumimos que tienes un método 'post' genérico
+import { post, get } from "@/services/api.service";
 import type { CalculationResponse } from "@/interfases/price.interfase";
+import type { ICustomer } from "@/interfases/customer.interfase";
 import { ApiErrorFeedback } from "@/pages/public/common/ApiErrorFeedback";
 import { draftsApi } from "@/services/drafts.service";
 // import { Countertop3DViewer } from "../../common/Countertop3DViewer";
@@ -44,7 +52,7 @@ import { draftsApi } from "@/services/drafts.service";
 export const WizardStep5_Summary: React.FC = () => {
   const theme = useTheme();
 
-  const { mainPieces, selectedShapeId, isCalculating, calculationResult, error, currentDraftId, wizardTempMaterial } = useQuoteState();
+  const { mainPieces, selectedShapeId, isCalculating, calculationResult, error, currentDraftId, currentDraftName, wizardTempMaterial } = useQuoteState();
   const dispatch = useQuoteDispatch();
 
   // Estado local para el envío final
@@ -58,6 +66,29 @@ export const WizardStep5_Summary: React.FC = () => {
 
   // ESTADO PARA EL MODAL 3D
   const [open3D, setOpen3D] = useState(false);
+
+  // --- BUSCADOR DE CLIENTES ---
+  const [customers, setCustomers] = useState<ICustomer[]>([]);
+  const [selectedCustomer, setSelectedCustomer] = useState<ICustomer | null>(null);
+
+  React.useEffect(() => {
+    const fetchCustomers = async () => {
+      try {
+        const data = await get<ICustomer[]>("/customers");
+        setCustomers(data);
+      } catch (err) {
+        console.error("Error fetching customers for wizard:", err);
+      }
+    };
+    fetchCustomers();
+  }, []);
+
+  // AUTO-RECALCULATE when customer changes
+  React.useEffect(() => {
+    if (mainPieces.length > 0) {
+      handleCalculate();
+    }
+  }, [selectedCustomer]);
 
   // ===========================================================================
   // 🛠️ HELPER: Transformar datos del Contexto (Anidados) a API (Planos)
@@ -81,6 +112,7 @@ export const WizardStep5_Summary: React.FC = () => {
           quantity: addon.measurements.quantity || 1,
         })),
       })),
+      customerId: selectedCustomer?._id || null,
     };
   };
 
@@ -110,7 +142,7 @@ export const WizardStep5_Summary: React.FC = () => {
       const payload = mapStateToApiPayload(mainPieces);
 
       // Usamos 'post' en lugar de 'create' para ser semánticamente correctos
-      const response = await post<CalculationResponse>("/quotes/calculate", payload);
+      const response = await post<CalculationResponse>("/budget/calculate", payload);
 
       dispatch({
         type: "CALCULATION_SUCCESS",
@@ -142,6 +174,7 @@ export const WizardStep5_Summary: React.FC = () => {
 
       // Payload actual del contexto
       const currentPayload = {
+        name: currentDraftName,
         configuration: { wizardTempMaterial, mainPieces, selectedShapeId },
         currentPricePoints: calculationResult?.totalPoints || 0,
       };
@@ -188,6 +221,7 @@ export const WizardStep5_Summary: React.FC = () => {
     setSaveMessage(null);
 
     const payload = {
+      name: currentDraftName,
       configuration: {
         wizardTempMaterial: wizardTempMaterial,
         mainPieces: mainPieces,
@@ -369,9 +403,25 @@ export const WizardStep5_Summary: React.FC = () => {
                 <Typography variant="subtitle1" fontWeight="bold">
                   {piece.pieceName}
                 </Typography>
-                <Typography variant="h6" color="primary.main" fontWeight="bold">
-                  {piece.subtotalPoints.toFixed(2)} Pts
-                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                  {piece.discountAmount && piece.discountAmount > 0 ? (
+                    <>
+                      <Typography variant="body2" sx={{ textDecoration: "line-through", opacity: 0.5 }}>
+                        {piece.originalPrice || piece.subtotalPoints} Pts
+                      </Typography>
+                      <Typography variant="h6" color="success.main" fontWeight="bold">
+                        {piece.finalPrice || piece.subtotalPoints} Pts
+                      </Typography>
+                      <MuiTooltip title="Descuento aplicado por regla de material/categoría">
+                        <LocalOfferIcon color="success" sx={{ fontSize: 16 }} />
+                      </MuiTooltip>
+                    </>
+                  ) : (
+                    <Typography variant="h6" color="primary.main" fontWeight="bold">
+                      {piece.subtotalPoints.toFixed(2)} Pts
+                    </Typography>
+                  )}
+                </Box>
               </Box>
 
               {/* Detalles de la Pieza */}
@@ -531,6 +581,30 @@ export const WizardStep5_Summary: React.FC = () => {
             </Paper>
           ))}
 
+          {/* RESUMEN DE DESCUENTOS GLOBALES */}
+          {result.appliedRules && result.appliedRules.length > 0 && (
+            <Paper
+              elevation={0}
+              sx={{ p: 2, bgcolor: alpha(theme.palette.success.main, 0.05), borderRadius: 3, border: `1px dashed ${theme.palette.success.main}` }}
+            >
+              <Typography variant="subtitle2" fontWeight="800" color="success.main" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 1 }}>
+                <LocalOfferIcon sx={{ fontSize: "1rem" }} /> Descuentos Aplicados
+              </Typography>
+              <Stack spacing={0.5}>
+                {result.appliedRules.map((rule, ridx) => (
+                  <Box key={ridx} sx={{ display: "flex", justifyContent: "space-between" }}>
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                      {rule.ruleName}
+                    </Typography>
+                    <Typography variant="body2" color="success.main" fontWeight="bold">
+                      -{rule.discountAmount.toFixed(2)} Pts
+                    </Typography>
+                  </Box>
+                ))}
+              </Stack>
+            </Paper>
+          )}
+
           {/* TOTAL FINAL */}
           <Paper
             elevation={4}
@@ -547,10 +621,15 @@ export const WizardStep5_Summary: React.FC = () => {
           >
             <Box>
               <Typography variant="h5" fontWeight="bold">
-                TOTAL PUNTOS
+                TOTAL FINAL
               </Typography>
+              {result.originalTotal && (
+                <Typography variant="body2" sx={{ opacity: 0.7, textDecoration: "line-through" }}>
+                  Antes: {result.originalTotal.toFixed(2)} Pts
+                </Typography>
+              )}
               <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                Presupuesto calculado
+                Tras descuentos aplicados
               </Typography>
             </Box>
             <Typography variant="h3" fontWeight="bold">
@@ -611,11 +690,56 @@ export const WizardStep5_Summary: React.FC = () => {
         </Box>
       </Box>
 
+      {/* SELECCIÓN DE CLIENTE (ADMIN) */}
+      <Paper elevation={0} sx={{ p: 3, mb: 3, borderRadius: 3, border: "1px solid", borderColor: "divider", bgcolor: alpha(theme.palette.primary.main, 0.02) }}>
+        <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
+          <Person color="primary" sx={{ fontSize: 20 }} /> Asignar Cliente (Opcional - Aplica descuentos automáticos)
+        </Typography>
+        <Grid container spacing={2} alignItems="center">
+          <Grid size={{ xs: 12, sm: 8 }}>
+            <Autocomplete
+              options={customers}
+              getOptionLabel={(option) => `${option.officialName} (${option.nif || "Sin NIF"})`}
+              value={selectedCustomer}
+              onChange={(_, newValue) => {
+                setSelectedCustomer(newValue);
+              }}
+              renderInput={(params) => <TextField {...params} label="Buscar Cliente" placeholder="Nombre o NIF..." size="small" />}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 4 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, color: "text.secondary" }}>
+              <InfoOutlinedIcon fontSize="small" />
+              <Typography variant="caption">Al cambiar el cliente, pulsa "Calcular" para actualizar descuentos.</Typography>
+            </Box>
+          </Grid>
+        </Grid>
+      </Paper>
+
       {/* BOTÓN DE CALCULAR */}
       <Paper elevation={1} sx={{ p: 3, textAlign: "center", mb: 4, backgroundColor: "#fff" }}>
         <Typography variant="body1" paragraph>
           Pulsa el botón para procesar tu configuración y obtener el valor en Puntos.
         </Typography>
+
+        {/* CAMPO NOMBRE DEL BORRADOR */}
+        <Box sx={{ maxWidth: 400, mx: "auto", mb: 4 }}>
+          <TextField
+            fullWidth
+            label="Nombre del presupuesto (Borrador)"
+            placeholder="Ej: Cocina de Verano, Apartamento Cala..."
+            variant="outlined"
+            size="medium"
+            value={currentDraftName || ""}
+            onChange={(e) => dispatch({ type: "SET_DRAFT_NAME", payload: e.target.value })}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 2,
+                bgcolor: alpha(theme.palette.primary.main, 0.02),
+              },
+            }}
+          />
+        </Box>
 
         {/* GRUPO DE BOTONES DE ACCIÓN */}
         <Box sx={{ display: "flex", justifyContent: "center", gap: 2, flexWrap: "wrap" }}>

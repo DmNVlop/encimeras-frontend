@@ -23,10 +23,23 @@ export interface BreakdownPiece {
   pieceName: string;
   basePricePoints: number;
   subtotalPoints: number;
+  originalPrice?: number;
+  finalPrice?: number;
+  discountAmount?: number;
   addons: BreakdownAddon[];
+}
+
+export interface AppliedRule {
+  ruleId: string;
+  ruleName: string;
+  discountAmount: number;
 }
 
 export interface CalculationResponse {
   totalPoints: number;
+  originalTotal?: number;
+  finalTotal?: number;
+  totalDiscount?: number;
+  appliedRules?: AppliedRule[];
   pieces: BreakdownPiece[];
 }

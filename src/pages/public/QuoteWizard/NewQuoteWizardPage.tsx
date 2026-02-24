@@ -62,7 +62,7 @@ const WizardContent: React.FC<{ activeStep: number }> = ({ activeStep }) => {
 const WizardStepperContent: React.FC = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [validationError, setValidationError] = useState<string | null>(null);
-  const { wizardTempMaterial, mainPieces, selectedShapeId, currentDraftId, calculationResult } = useQuoteState();
+  const { wizardTempMaterial, mainPieces, selectedShapeId, currentDraftId, currentDraftName, calculationResult } = useQuoteState();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -222,6 +222,7 @@ const WizardStepperContent: React.FC = () => {
     setIsSavingAndResetting(true);
     try {
       const payload = {
+        name: currentDraftName,
         configuration: { wizardTempMaterial, mainPieces, selectedShapeId },
         currentPricePoints: calculationResult?.totalPoints || 0,
       };
@@ -245,6 +246,7 @@ const WizardStepperContent: React.FC = () => {
     setIsSavingAndResetting(true);
     try {
       const payload = {
+        name: currentDraftName,
         configuration: { wizardTempMaterial, mainPieces, selectedShapeId },
         currentPricePoints: calculationResult?.totalPoints || 0,
       };

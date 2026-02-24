@@ -1,11 +1,13 @@
 export interface IDraft {
   _id: string; // Mongoose ID
+  name?: string; // Custom name
   userId?: string;
   userEmail?: string;
   configuration: {
     wizardTempMaterial: any;
     mainPieces: any[];
     // Add other properties if needed
+    selectedShapeId?: string | null;
   };
   currentPricePoints: number;
   expirationDate: string; // ISO Date string
@@ -15,9 +17,11 @@ export interface IDraft {
 }
 
 export interface CreateDraftPayload {
+  name?: string;
   configuration: {
     wizardTempMaterial: any;
     mainPieces: any[];
+    selectedShapeId?: string | null;
   };
   currentPricePoints: number;
 }
