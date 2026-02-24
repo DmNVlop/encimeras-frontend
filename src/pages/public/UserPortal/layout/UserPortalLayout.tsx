@@ -35,6 +35,7 @@ import { Badge } from "@mui/material";
 import { useAuth } from "@/context/AuthProvider";
 import { useCart } from "@/context/CartContext";
 import { Role } from "@/interfases/user.interfase";
+import { MiniCartMenu } from "./MiniCartMenu";
 
 const drawerWidth = 240;
 const logo = "/logos/kuuk-logo.png";
@@ -64,6 +65,7 @@ export default function UserPortalLayout() {
   ];
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [cartAnchorEl, setCartAnchorEl] = useState<null | HTMLElement>(null);
 
   const handleDrawerToggle = () => {
     setOpen(!open);
@@ -80,6 +82,14 @@ export default function UserPortalLayout() {
   const handleLogout = () => {
     logout();
     setAnchorEl(null);
+  };
+
+  const handleCartMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setCartAnchorEl(event.currentTarget);
+  };
+
+  const handleCartMenuClose = () => {
+    setCartAnchorEl(null);
   };
 
   return (
@@ -133,11 +143,38 @@ export default function UserPortalLayout() {
 
           {/* Cart and User Menu */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <IconButton color="inherit" onClick={() => navigate("/cart")} sx={{ mr: 1 }}>
+            <IconButton color="inherit" onClick={handleCartMenuOpen} sx={{ mr: 1 }}>
               <Badge badgeContent={cartItemsCount} color="error">
                 <ShoppingCartIcon />
               </Badge>
             </IconButton>
+
+            <Menu
+              id="menu-cart"
+              anchorEl={cartAnchorEl}
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "right",
+              }}
+              keepMounted
+              transformOrigin={{
+                vertical: "top",
+                horizontal: "right",
+              }}
+              open={Boolean(cartAnchorEl)}
+              onClose={handleCartMenuClose}
+              PaperProps={{
+                sx: {
+                  mt: 1.5,
+                  borderRadius: 3,
+                  boxShadow: "0px 10px 40px rgba(0,0,0,0.1)",
+                  border: "1px solid",
+                  borderColor: "divider",
+                },
+              }}
+            >
+              <MiniCartMenu onClose={handleCartMenuClose} />
+            </Menu>
 
             <Typography variant="body2" sx={{ display: { xs: "none", sm: "block" }, textAlign: "right" }}>
               <Box component="span" sx={{ display: "block", fontWeight: "bold" }}>
