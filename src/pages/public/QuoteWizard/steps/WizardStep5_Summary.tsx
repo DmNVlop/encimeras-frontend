@@ -142,7 +142,7 @@ export const WizardStep5_Summary: React.FC = () => {
       const payload = mapStateToApiPayload(mainPieces);
 
       // Usamos 'post' en lugar de 'create' para ser semánticamente correctos
-      const response = await post<CalculationResponse>("/budget/calculate", payload);
+      const response = await post<CalculationResponse>("/quotes/calculate", payload);
 
       dispatch({
         type: "CALCULATION_SUCCESS",
