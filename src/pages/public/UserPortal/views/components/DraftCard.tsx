@@ -3,7 +3,7 @@ import { Box, Card, CardContent, Typography, Button, LinearProgress, IconButton 
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Tooltip } from "@mui/material";
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Tooltip, Chip } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import type { IDraft } from "@/interfases/draft.interfase";
 
@@ -195,6 +195,33 @@ export default function DraftCard({ draft, onDelete }: DraftCardProps) {
               </Box>
             ))}
         </Box>
+
+        {draft.currentPricePoints > 0 && (
+          <Box mb={2}>
+            {draft.discountAmount > 0 ? (
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ textDecoration: "line-through" }}>
+                    {draft.originalPoints?.toLocaleString()} pts
+                  </Typography>
+                  <Typography variant="h6" color="primary.main" fontWeight="bold">
+                    {draft.currentPricePoints?.toLocaleString()} pts
+                  </Typography>
+                </Box>
+                <Chip
+                  label={`¡Ahorras ${draft.discountAmount.toLocaleString()} pts!`}
+                  size="small"
+                  color="success"
+                  sx={{ fontWeight: "bold", alignSelf: "flex-start", height: 24, fontSize: "0.75rem" }}
+                />
+              </Box>
+            ) : (
+              <Typography variant="h6" color="primary.main" fontWeight="bold">
+                {draft.currentPricePoints?.toLocaleString()} pts
+              </Typography>
+            )}
+          </Box>
+        )}
 
         <Box mt={3}>
           <LinearProgress

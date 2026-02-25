@@ -1,6 +1,5 @@
 import React from "react";
-import { Paper, Box, Typography, Avatar, Tooltip as MuiTooltip, Divider, Chip } from "@mui/material";
-import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import { Paper, Box, Typography, Avatar, Divider, Chip } from "@mui/material";
 import StraightenIcon from "@mui/icons-material/Straighten";
 import type { BreakdownPiece } from "@/interfases/price.interfase";
 
@@ -51,9 +50,12 @@ export const PieceBreakdownItem: React.FC<PieceBreakdownItemProps> = ({ piece, m
               <Typography variant="h6" color="success.main" fontWeight="bold">
                 {piece.finalPricePoints.toFixed(2)} Pts
               </Typography>
-              <MuiTooltip title={`Descuento aplicado: -${piece.discountAmount.toFixed(2)} Pts`}>
-                <LocalOfferIcon color="success" sx={{ fontSize: 16 }} />
-              </MuiTooltip>
+              <Chip
+                label={`¡Ahorras ${piece.discountAmount.toFixed(2)} pts!`}
+                size="small"
+                color="success"
+                sx={{ fontWeight: "bold", height: 24, fontSize: "0.75rem" }}
+              />
             </>
           ) : (
             <Typography variant="h6" color="primary.main" fontWeight="bold">

@@ -12,6 +12,8 @@ export interface OrderHeader {
   orderNumber: string; // Ej: ORD-2026-0001
   customerId: string; // ID del usuario o referencia externa
   status: OrderStatus;
+  totalOriginalPoints: number;
+  totalDiscount: number;
   totalPoints: number; // Valor inmutable
   orderDate: Date | string;
   deliveryDate?: Date | string;
@@ -20,6 +22,9 @@ export interface OrderHeader {
 export interface OrderLineItem {
   cartItemName: string; // Nuevo: Trazabilidad técnica (ej: "Cocina de Juana")
   type: string;
+  originalPoints: number;
+  discountAmount: number;
+  subtotalPoints: number; // Precio final con descuento de la línea
   technicalSnapshot: {
     materials: any[];
     pieces: any[]; // MainPieces con medidas finales

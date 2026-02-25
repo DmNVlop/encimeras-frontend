@@ -15,6 +15,7 @@ import {
   alpha,
   useTheme,
   Backdrop,
+  Chip,
 } from "@mui/material";
 import {
   Delete as DeleteIcon,
@@ -98,6 +99,8 @@ export default function Cart() {
   }
 
   const totalPoints = cart.items.reduce((sum, item) => sum + item.subtotalPoints, 0);
+  const totalOriginalPoints = cart.items.reduce((sum, item) => sum + (item.originalPoints || item.subtotalPoints), 0);
+  const totalDiscount = cart.items.reduce((sum, item) => sum + (item.discountAmount || 0), 0);
 
   return (
     <Box sx={{ maxWidth: 1000, mx: "auto", py: 4 }}>
@@ -152,9 +155,26 @@ export default function Cart() {
                         <Typography variant="body2" color="text.secondary">
                           {item.hydratedContext?.materials?.[0]?.name || item.uiState?.wizardTempMaterial?.materialName || "Configuración Personalizada"}
                         </Typography>
-                        <Typography variant="h6" color="primary.main" fontWeight="bold" sx={{ mt: 1 }}>
-                          {item.subtotalPoints.toLocaleString()} pts
-                        </Typography>
+                        {item.discountAmount > 0 ? (
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1, flexWrap: "wrap" }}>
+                            <Typography variant="body2" color="text.secondary" sx={{ textDecoration: "line-through" }}>
+                              {item.originalPoints?.toLocaleString()} pts
+                            </Typography>
+                            <Typography variant="h6" color="primary.main" fontWeight="bold">
+                              {item.subtotalPoints?.toLocaleString()} pts
+                            </Typography>
+                            <Chip
+                              label={`¡Ahorras ${item.discountAmount.toLocaleString()} pts!`}
+                              size="small"
+                              color="success"
+                              sx={{ fontWeight: "bold", height: 24, fontSize: "0.75rem" }}
+                            />
+                          </Box>
+                        ) : (
+                          <Typography variant="h6" color="primary.main" fontWeight="bold" sx={{ mt: 1 }}>
+                            {item.subtotalPoints?.toLocaleString()} pts
+                          </Typography>
+                        )}
                       </Box>
                     </Box>
                     <IconButton color="error" onClick={() => removeFromCart(item.cartItemId || item._id || item.id || "")} size="small">
@@ -182,6 +202,23 @@ export default function Cart() {
               <Typography color="text.secondary">Items totales:</Typography>
               <Typography fontWeight="medium">{cart.items.length}</Typography>
             </Box>
+
+            {totalDiscount > 0 && (
+              <>
+                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+                  <Typography color="text.secondary">Subtotal bruto:</Typography>
+                  <Typography fontWeight="medium">{totalOriginalPoints.toLocaleString()} pts</Typography>
+                </Box>
+                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+                  <Typography color="success.main" fontWeight="bold">
+                    Ahorro total:
+                  </Typography>
+                  <Typography color="success.main" fontWeight="bold">
+                    - {totalDiscount.toLocaleString()} pts
+                  </Typography>
+                </Box>
+              </>
+            )}
 
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 2 }}>
               <Typography variant="h6" fontWeight="bold">

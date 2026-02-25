@@ -12,6 +12,8 @@ export interface IDraft {
     mainPieces: any[];
     selectedShapeId?: string | null;
   }; // DEPRECATED: Mantener por compatibilidad temporal
+  originalPoints: number;
+  discountAmount: number;
   currentPricePoints: number; // EL BACKEND IGNORARÁ ESTO AL GUARDAR, SE RECALCULA
   expirationDate: string; // ISO Date string
   isConverted: boolean;

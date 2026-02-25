@@ -11,6 +11,8 @@ export interface CartItem {
   uiState?: UIStateDto; // OPCIONAL: Metadatos Visuales
   hydratedContext?: HydratedContextDto; // INYECTADO POR BACKEND EN GET
   configuration?: any; // Mantener por compatibilidad si se usa en otros sitios (deprecated)
+  originalPoints: number;
+  discountAmount: number;
   subtotalPoints: number;
   draftId?: string;
   createdAt?: string;
@@ -21,6 +23,8 @@ export interface Cart {
   _id: string;
   userId: string;
   items: CartItem[];
+  totalOriginalPoints: number;
+  totalDiscount: number;
   totalPoints: number;
   status: "ACTIVE" | "CONVERTED";
   createdAt?: string;

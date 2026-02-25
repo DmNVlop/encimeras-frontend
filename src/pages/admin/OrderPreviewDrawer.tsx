@@ -67,6 +67,37 @@ export const OrderPreviewDrawer: React.FC<any> = ({ open, onClose, order, onAppr
           </Typography>
         </Paper>
 
+        {/* 1.5. Resumen Económico */}
+        <Paper variant="outlined" sx={{ p: 2, mb: 3, bgcolor: "#fafafa" }}>
+          <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+            Resumen Económico
+          </Typography>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
+            <Typography variant="body2" color="text.secondary">
+              Subtotal bruto:
+            </Typography>
+            <Typography variant="body2">{(header.totalOriginalPoints || header.totalPoints)?.toLocaleString()} pts</Typography>
+          </Box>
+          {header.totalDiscount > 0 && (
+            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
+              <Typography variant="body2" color="success.main" fontWeight="bold">
+                Descuento aplicado:
+              </Typography>
+              <Typography variant="body2" color="success.main" fontWeight="bold">
+                - {header.totalDiscount?.toLocaleString()} pts
+              </Typography>
+            </Box>
+          )}
+          <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1, pt: 1, borderTop: "1px solid #ddd" }}>
+            <Typography variant="body1" fontWeight="bold">
+              Total final:
+            </Typography>
+            <Typography variant="body1" fontWeight="bold" color="primary.main">
+              {header.totalPoints?.toLocaleString()} pts
+            </Typography>
+          </Box>
+        </Paper>
+
         {/* 2. Resumen Técnico (Aquí iría el loop de piezas si tienes el snapshot) */}
         <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2, mb: 1, display: "flex", alignItems: "center", gap: 1 }}>
           <PrecisionManufacturingIcon fontSize="small" /> Producción
