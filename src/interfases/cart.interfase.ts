@@ -1,12 +1,16 @@
 // d:\Proyectos\DEV\presupuesto-encimeras\frontend\src\interfases\cart.interfase.ts
 
+import type { CoreEntityDto, UIStateDto, HydratedContextDto } from "./core.interfase";
+
 export interface CartItem {
   _id?: string;
   id?: string;
   cartItemId: string; // ID real devuelto por la API de carrito
   customName: string;
-  technicalSnapshot: any; // Mapeado desde el backend
-  configuration?: any; // Mantener por compatibilidad si se usa en otros sitios
+  core: CoreEntityDto; // REQUERIDO: Contrato estricto
+  uiState?: UIStateDto; // OPCIONAL: Metadatos Visuales
+  hydratedContext?: HydratedContextDto; // INYECTADO POR BACKEND EN GET
+  configuration?: any; // Mantener por compatibilidad si se usa en otros sitios (deprecated)
   subtotalPoints: number;
   draftId?: string;
   createdAt?: string;
@@ -25,8 +29,8 @@ export interface Cart {
 
 export interface AddToCartPayload {
   customName: string;
-  configuration: any;
-  subtotalPoints: number;
+  core: CoreEntityDto;
+  uiState?: UIStateDto;
   draftId?: string;
 }
 

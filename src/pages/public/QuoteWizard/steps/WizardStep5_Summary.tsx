@@ -31,6 +31,9 @@ import { draftsApi } from "@/services/drafts.service";
 import { ApiErrorFeedback } from "@/pages/public/common/ApiErrorFeedback";
 import { DraftNamingDialog } from "../components/DraftNamingDialog";
 
+// --- MAPPERS ---
+import { mapStateToCoreDto, mapStateToUiState } from "@/utils/coreMapper";
+
 export const WizardStep5_Summary: React.FC = () => {
   const { user } = useAuth();
 
@@ -155,11 +158,12 @@ export const WizardStep5_Summary: React.FC = () => {
       // PASO 1: Garantizar que existe un Borrador actualizado
       let activeDraftId = currentDraftId;
 
-      // Payload actual del contexto
+      // Usamos los mappers para generar el payload alineado al backend
+      const state = { mainPieces, selectedShapeId, wizardTempMaterial } as any; // Cast temporal para el mapper
       const currentPayload = {
         name: currentDraftName,
-        configuration: { wizardTempMaterial, mainPieces, selectedShapeId },
-        currentPricePoints: calculationResult?.finalTotalPoints || calculationResult?.totalPoints || 0,
+        core: mapStateToCoreDto(state),
+        uiState: mapStateToUiState(state),
       };
 
       if (activeDraftId) {
@@ -199,14 +203,11 @@ export const WizardStep5_Summary: React.FC = () => {
     setIsSavingDraft(true);
     setSaveMessage(null);
 
+    const state = { mainPieces, selectedShapeId, wizardTempMaterial } as any;
     const payload = {
       name: nameToSave,
-      configuration: {
-        wizardTempMaterial: wizardTempMaterial,
-        mainPieces: mainPieces,
-        selectedShapeId: selectedShapeId,
-      },
-      currentPricePoints: calculationResult?.finalTotalPoints || calculationResult?.totalPoints || 0,
+      core: mapStateToCoreDto(state),
+      uiState: mapStateToUiState(state),
     };
 
     try {
@@ -242,14 +243,11 @@ export const WizardStep5_Summary: React.FC = () => {
   const handleAddToCart = async (alias: string) => {
     setIsAddingToCart(true);
     try {
+      const state = { mainPieces, selectedShapeId, wizardTempMaterial } as any;
       const payload = {
         customName: alias,
-        configuration: {
-          wizardTempMaterial,
-          mainPieces,
-          selectedShapeId,
-        },
-        subtotalPoints: calculationResult?.finalTotalPoints || calculationResult?.totalPoints || 0,
+        core: mapStateToCoreDto(state),
+        uiState: mapStateToUiState(state),
         draftId: currentDraftId || undefined,
       };
 

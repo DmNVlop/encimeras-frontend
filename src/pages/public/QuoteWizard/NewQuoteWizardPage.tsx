@@ -18,7 +18,8 @@ import { WizardStep5_Summary } from "./steps/WizardStep5_Summary";
 import { useLocation, useNavigate } from "react-router-dom";
 import { draftsApi } from "@/services/drafts.service";
 import { validateAssemblies } from "@/utils/quoteValidation";
-import { useCart } from "@/context/CartContext"; // Nuevo
+import { useCart } from "@/context/CartContext";
+import { mapStateToCoreDto, mapStateToUiState } from "@/utils/coreMapper";
 
 const steps = ["Material", "Forma y Medidas", "Trabajos y Ensamblaje", "Complementos", "Resumen"];
 
@@ -44,7 +45,7 @@ const WizardContent: React.FC<{ activeStep: number }> = ({ activeStep }) => {
 const WizardStepperContent: React.FC = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [validationError, setValidationError] = useState<string | null>(null);
-  const { wizardTempMaterial, mainPieces, selectedShapeId, currentDraftId, currentDraftName, calculationResult } = useQuoteState();
+  const { wizardTempMaterial, mainPieces, selectedShapeId, currentDraftId, currentDraftName } = useQuoteState();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -222,10 +223,11 @@ const WizardStepperContent: React.FC = () => {
   const handleSaveAsNewAndReset = async (nameToSave: string) => {
     setIsSavingAndResetting(true);
     try {
+      const state = { wizardTempMaterial, mainPieces, selectedShapeId } as any;
       const payload = {
         name: nameToSave || currentDraftName,
-        configuration: { wizardTempMaterial, mainPieces, selectedShapeId },
-        currentPricePoints: calculationResult?.totalPoints || 0,
+        core: mapStateToCoreDto(state),
+        uiState: mapStateToUiState(state),
       };
 
       await draftsApi.create(payload);
@@ -246,10 +248,11 @@ const WizardStepperContent: React.FC = () => {
     if (!currentDraftId) return;
     setIsSavingAndResetting(true);
     try {
+      const state = { wizardTempMaterial, mainPieces, selectedShapeId } as any;
       const payload = {
         name: nameToSave || currentDraftName,
-        configuration: { wizardTempMaterial, mainPieces, selectedShapeId },
-        currentPricePoints: calculationResult?.totalPoints || 0,
+        core: mapStateToCoreDto(state),
+        uiState: mapStateToUiState(state),
       };
 
       await draftsApi.update(currentDraftId, payload);

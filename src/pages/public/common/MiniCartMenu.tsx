@@ -131,7 +131,7 @@ export const MiniCartMenu: React.FC<MiniCartMenuProps> = ({ onClose }) => {
                   {item.customName}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ display: "block" }} noWrap>
-                  {item.technicalSnapshot?.wizardTempMaterial?.materialName || "Configuración"}
+                  {item.hydratedContext?.materials?.[0]?.name || item.uiState?.wizardTempMaterial?.materialName || "Configuración"}
                 </Typography>
                 <Typography variant="body2" color="primary.main" fontWeight="bold">
                   {item.subtotalPoints.toLocaleString()} pts
