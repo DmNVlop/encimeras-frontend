@@ -6,6 +6,7 @@ import { Box, CircularProgress } from "@mui/material";
 import type { AppRouteConfig } from "./types/auth.types";
 import { AuthProvider } from "./context/AuthProvider";
 import { CartProvider } from "./context/CartContext";
+import { QuoteProvider } from "./context/QuoteContext";
 import { RoleGuard } from "./components/guards/RoleGuard";
 import { appRoutes } from "./config/routes.config";
 
@@ -90,9 +91,11 @@ function App() {
   return (
     <AuthProvider>
       <CartProvider>
-        <AppErrorBoundary>
-          <AppRouter />
-        </AppErrorBoundary>
+        <QuoteProvider>
+          <AppErrorBoundary>
+            <AppRouter />
+          </AppErrorBoundary>
+        </QuoteProvider>
       </CartProvider>
     </AuthProvider>
   );

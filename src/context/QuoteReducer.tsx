@@ -246,10 +246,10 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
       };
 
     case "LOAD_SAVED_PROJECT": {
-      const { data, recalculated, _id, name, currentPricePoints } = action.payload;
+      const { recalculated, _id, name, currentPricePoints } = action.payload;
 
-      // Usamos el de-mapper para reconstruir el estado visual
-      const hydratedState = mapBackendDataToState(data);
+      // Usamos el de-mapper para reconstruir el estado visual pasándole el objeto completo
+      const hydratedState = mapBackendDataToState(action.payload);
 
       return {
         ...state,
@@ -275,6 +275,20 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
         ...state,
         currentDraftName: action.payload,
       };
+
+    case "LOAD_CART_ITEM": {
+      const { cartItemId, customName, subtotalPoints } = action.payload;
+      const hydratedState = mapBackendDataToState(action.payload);
+      return {
+        ...state,
+        ...hydratedState,
+        currentCartItemId: cartItemId,
+        currentCartItemName: customName,
+        currentDraftId: action.payload.draftId || null,
+        calculationResult: subtotalPoints ? { totalPoints: subtotalPoints } : null,
+      };
+    }
+
     case "CLEAR_CALCULATION":
       return {
         ...state,
@@ -293,6 +307,8 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
         currentDraftId: null,
         currentDraftName: "",
         isDraftRecalculated: false,
+        currentCartItemId: null,
+        currentCartItemName: null,
       };
 
     default:

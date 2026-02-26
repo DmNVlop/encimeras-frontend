@@ -1,14 +1,12 @@
 import { Box, Typography, Button, Container } from "@mui/material";
 import { Refresh as RefreshIcon, Dashboard as DashboardIcon } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
 
 interface ServerErrorPageProps {
   errorCode?: string;
+  errorDetail?: string;
 }
 
-const ServerErrorPage: React.FC<ServerErrorPageProps> = ({ errorCode = "SYS_ERR_5920" }) => {
-  const navigate = useNavigate();
-
+const ServerErrorPage: React.FC<ServerErrorPageProps> = ({ errorCode = "SYS_ERR_5920", errorDetail }) => {
   return (
     <Box
       sx={{
@@ -87,7 +85,7 @@ const ServerErrorPage: React.FC<ServerErrorPageProps> = ({ errorCode = "SYS_ERR_
             variant="outlined"
             size="large"
             startIcon={<DashboardIcon />}
-            onClick={() => navigate("/")}
+            onClick={() => (window.location.href = "/")}
             sx={{
               px: 4,
               py: 1.5,
@@ -118,6 +116,7 @@ const ServerErrorPage: React.FC<ServerErrorPageProps> = ({ errorCode = "SYS_ERR_
           }}
         >
           ID del reporte: {errorCode}
+          {errorDetail && ` - ${errorDetail}`}
         </Typography>
       </Container>
     </Box>

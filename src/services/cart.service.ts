@@ -1,4 +1,4 @@
-import { get, post, remove } from "./api.service";
+import { get, post, remove, put } from "./api.service";
 import type { Cart, AddToCartPayload, CheckoutResponse } from "@/interfases/cart.interfase";
 
 export const cartApi = {
@@ -14,6 +14,13 @@ export const cartApi = {
    */
   addItem: async (payload: AddToCartPayload) => {
     return post<Cart, AddToCartPayload>("/cart/items", payload);
+  },
+
+  /**
+   * Actualiza una configuración existente en el carrito
+   */
+  updateItem: async (cartItemId: string, payload: AddToCartPayload) => {
+    return put<Cart, AddToCartPayload>("/cart/items", cartItemId, payload);
   },
 
   /**

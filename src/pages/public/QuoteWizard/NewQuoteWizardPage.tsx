@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Container, Box, Paper, Button, Typography, useTheme, useMediaQuery, Alert, Backdrop, CircularProgress, Snackbar, AlertTitle } from "@mui/material";
-import { QuoteProvider, useQuoteDispatch, useQuoteState } from "@/context/QuoteContext";
+import { useQuoteDispatch, useQuoteState } from "@/context/QuoteContext";
 
 // Importar los componentes visuales extraidos
 import { WizardHeader } from "./components/WizardHeader";
@@ -91,6 +91,10 @@ const WizardStepperContent: React.FC = () => {
     try {
       const { data } = await draftsApi.getById(id);
 
+      if (!data || !data.data) {
+        throw new Error("El borrador no existe o está vacío.");
+      }
+
       // Despachamos al reducer
       dispatch({
         type: "LOAD_SAVED_PROJECT",
@@ -111,12 +115,12 @@ const WizardStepperContent: React.FC = () => {
         setPendingGroupId((data.data as any).cartGroupId);
         setShowGroupLoader(true);
       }
-
-      // Opcional: Saltar directo al resumen o al paso 2
-      // setActiveStep(1);
     } catch (error) {
-      console.error(error);
-      setLoadError("No se pudo recuperar el presupuesto.");
+      console.error("Draft loading error:", error);
+      setLoadError("El borrador ha caducado o no existe. Iniciando un presupuesto nuevo.");
+      // Limpiamos la URL para evitar reintentos de carga fallidos y resetear estado
+      navigate("/quote", { replace: true });
+      dispatch({ type: "RESET_WIZARD" });
     } finally {
       setIsLoadingDraft(false);
     }
@@ -441,11 +445,7 @@ const WizardStepperContent: React.FC = () => {
 };
 
 const NewQuoteWizardPage: React.FC = () => {
-  return (
-    <QuoteProvider>
-      <WizardStepperContent />
-    </QuoteProvider>
-  );
+  return <WizardStepperContent />;
 };
 
 export default NewQuoteWizardPage;

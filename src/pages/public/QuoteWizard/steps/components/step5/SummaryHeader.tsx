@@ -13,7 +13,8 @@ interface SummaryHeaderProps {
   canAction: boolean;
   onSaveDraft: () => void;
   onCalculate: () => void;
-  onAddToCart: () => void; // Nuevo
+  onAddToCart: () => void;
+  isEditingCart?: boolean; // Nuevo
 }
 
 export const SummaryHeader: React.FC<SummaryHeaderProps> = ({
@@ -23,7 +24,8 @@ export const SummaryHeader: React.FC<SummaryHeaderProps> = ({
   canAction,
   onSaveDraft,
   onCalculate,
-  onAddToCart, // Nuevo
+  onAddToCart,
+  isEditingCart = false, // Nuevo
 }) => {
   const theme = useTheme();
 
@@ -94,7 +96,7 @@ export const SummaryHeader: React.FC<SummaryHeaderProps> = ({
             "&:hover": { bgcolor: alpha(theme.palette.secondary.main, 0.05) },
           }}
         >
-          {isAddingToCart ? "Añadiendo..." : "Añadir al Carrito"}
+          {isAddingToCart ? (isEditingCart ? "Actualizando..." : "Añadiendo...") : isEditingCart ? "Actualizar Carrito" : "Añadir al Carrito"}
         </Button>
 
         <Box sx={{ position: "relative" }}>

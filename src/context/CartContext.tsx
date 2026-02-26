@@ -11,6 +11,7 @@ interface CartContextType {
   isProcessingCheckout: boolean;
   lastCreatedOrder: OrderHeader | null; // Nuevo
   addToCart: (payload: AddToCartPayload) => Promise<void>;
+  updateCartItem: (cartItemId: string, payload: AddToCartPayload) => Promise<void>;
   removeFromCart: (cartItemId: string) => Promise<void>;
   refreshCart: () => Promise<void>;
   checkout: () => Promise<CheckoutResponse>;
@@ -82,6 +83,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCart(updatedCart);
     } catch (error) {
       console.error("Error adding to cart:", error);
+      throw error;
+    }
+  };
+
+  const updateCartItem = async (cartItemId: string, payload: AddToCartPayload) => {
+    try {
+      const updatedCart = await cartApi.updateItem(cartItemId, payload);
+      setCart(updatedCart);
+    } catch (error) {
+      console.error("Error updating cart item:", error);
       throw error;
     }
   };
@@ -170,6 +181,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         lastCreatedOrder,
         clearLastOrder,
         addToCart,
+        updateCartItem,
         removeFromCart,
         refreshCart,
         checkout,

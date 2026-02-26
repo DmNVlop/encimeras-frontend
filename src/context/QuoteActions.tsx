@@ -56,5 +56,6 @@ export type QuoteAction =
   | { type: "LOAD_SAVED_PROJECT"; payload: any }
   | { type: "SET_DRAFT_ID"; payload: string }
   | { type: "SET_DRAFT_NAME"; payload: string }
+  | { type: "LOAD_CART_ITEM"; payload: any }
   | { type: "CLEAR_CALCULATION" }
   | { type: "RESET_WIZARD" };

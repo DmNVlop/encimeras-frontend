@@ -6,9 +6,12 @@ import {
   ArrowForward as ArrowForwardIcon,
   ShoppingCart as CartIcon,
   Description as DescriptionIcon,
+  Edit as EditIcon,
 } from "@mui/icons-material";
 import { useCart } from "@/context/CartContext";
 import { useNavigate } from "react-router-dom";
+import { useCartLoadAction } from "@/hooks/useCartLoadAction";
+import { CartLoadConflictDialog } from "@/components/cart/CartLoadConflictDialog";
 
 interface MiniCartMenuProps {
   onClose: () => void;
@@ -18,6 +21,7 @@ export const MiniCartMenu: React.FC<MiniCartMenuProps> = ({ onClose }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { cart, loading, removeFromCart, clearCart, checkout, isProcessingCheckout } = useCart();
+  const { initiateLoad, isDialogOpen, closeDialog, handleConflictAction, isProcessing } = useCartLoadAction();
 
   const totalPoints = cart?.items.reduce((sum, item) => sum + item.subtotalPoints, 0) || 0;
   const itemsCount = cart?.items.length || 0;
@@ -137,14 +141,33 @@ export const MiniCartMenu: React.FC<MiniCartMenuProps> = ({ onClose }) => {
                   {item.subtotalPoints.toLocaleString()} pts
                 </Typography>
               </Box>
-              <IconButton
-                size="small"
-                color="error"
-                onClick={() => removeFromCart(item.cartItemId || item._id || item.id || "")}
-                sx={{ opacity: 0.6, "&:hover": { opacity: 1 } }}
-              >
-                <DeleteIcon fontSize="small" />
-              </IconButton>
+
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                <Tooltip title="Editar diseño">
+                  <IconButton
+                    size="small"
+                    color="primary"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      initiateLoad(item);
+                    }}
+                    sx={{ opacity: 0.6, "&:hover": { opacity: 1 } }}
+                  >
+                    <EditIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+
+                <Tooltip title="Eliminar del carrito">
+                  <IconButton
+                    size="small"
+                    color="error"
+                    onClick={() => removeFromCart(item.cartItemId || item._id || item.id || "")}
+                    sx={{ opacity: 0.6, "&:hover": { opacity: 1 } }}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
             </ListItem>
             {index < itemsCount - 1 && <Divider component="li" />}
           </React.Fragment>
@@ -189,6 +212,9 @@ export const MiniCartMenu: React.FC<MiniCartMenuProps> = ({ onClose }) => {
           </Button>
         </Box>
       </Box>
+
+      {/* DIÁLOGO DE CONFLICTO */}
+      <CartLoadConflictDialog open={isDialogOpen} onClose={closeDialog} onAction={handleConflictAction} isProcessing={isProcessing} />
     </Box>
   );
 };

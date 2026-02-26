@@ -105,6 +105,10 @@ export interface QuoteState {
   currentDraftId: string | null; // NULL = Nuevo proyecto, STRING = Editando borrador
   currentDraftName?: string; // Nombre personalizado del borrador
   isDraftRecalculated: boolean; // Para mostrar alertas si el precio cambió al cargar
+
+  // --- CART EDITING ---
+  currentCartItemId?: string | null; // ID del item del carrito si estamos editándolo
+  currentCartItemName?: string | null; // Nombre personalizado del item del carrito
 }
 
 /**

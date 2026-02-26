@@ -46,6 +46,14 @@ export const mapStateToUiState = (state: QuoteState): UIStateDto => {
  * Prioriza uiState para la experiencia de usuario, pero podría usar core si uiState no existe (compatibilidad).
  */
 export const mapBackendDataToState = (data: any): Partial<QuoteState> => {
+  if (!data) {
+    return {
+      mainPieces: [],
+      wizardTempMaterial: null,
+      selectedShapeId: null,
+      activePieceIndex: null,
+    };
+  }
   const uiState = data.uiState || {};
   const core = data.core || {};
 

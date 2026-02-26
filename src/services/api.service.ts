@@ -132,10 +132,9 @@ export const update = <T>(endpoint: string, id: string | number, data: Partial<T
 
 /**
  * Realiza una petición PUT (Reemplazo completo).
- * Añadido por completitud si tu API lo requiere.
  */
-export const put = <T>(endpoint: string, id: string | number, data: T, config?: AxiosRequestConfig): Promise<T> => {
-  return apiClient.put<T>(`${endpoint}/${id}`, data, config).then((res) => res.data);
+export const put = <R, B = any>(endpoint: string, id: string | number, data: B, config?: AxiosRequestConfig): Promise<R> => {
+  return apiClient.put<R>(`${endpoint}/${id}`, data, config).then((res) => res.data);
 };
 
 /**

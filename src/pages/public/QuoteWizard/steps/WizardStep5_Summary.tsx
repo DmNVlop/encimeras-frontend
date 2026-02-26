@@ -37,14 +37,25 @@ import { mapStateToCoreDto, mapStateToUiState } from "@/utils/coreMapper";
 export const WizardStep5_Summary: React.FC = () => {
   const { user } = useAuth();
 
-  const { mainPieces, selectedShapeId, isCalculating, calculationResult, error, currentDraftId, currentDraftName, wizardTempMaterial } = useQuoteState();
+  const {
+    mainPieces,
+    selectedShapeId,
+    isCalculating,
+    calculationResult,
+    error,
+    currentDraftId,
+    currentDraftName,
+    wizardTempMaterial,
+    currentCartItemId,
+    currentCartItemName,
+  } = useQuoteState();
   const dispatch = useQuoteDispatch();
 
   // Estado local para el envío final
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const { addToCart } = useCart(); // Nuevo
+  const { addToCart, updateCartItem } = useCart(); // Nuevo
 
   // --- ESTADOS PARA BORRADORES ---
   const [isSavingDraft, setIsSavingDraft] = useState(false);
@@ -251,8 +262,13 @@ export const WizardStep5_Summary: React.FC = () => {
         draftId: currentDraftId || undefined,
       };
 
-      await addToCart(payload);
-      setSaveMessage({ type: "success", text: "Añadido al carrito correctamente." });
+      if (currentCartItemId) {
+        await updateCartItem(currentCartItemId, payload);
+        setSaveMessage({ type: "success", text: "Ítem del carrito actualizado." });
+      } else {
+        await addToCart(payload);
+        setSaveMessage({ type: "success", text: "Añadido al carrito correctamente." });
+      }
     } catch (err: any) {
       console.error("Add to Cart Error:", err);
       setSaveMessage({ type: "error", text: "No se pudo añadir al carrito." });
@@ -297,9 +313,10 @@ export const WizardStep5_Summary: React.FC = () => {
         }}
         onCalculate={handleCalculate}
         onAddToCart={() => {
-          setTempDraftName(currentDraftName || "");
+          setTempDraftName(currentDraftName || (currentCartItemName as string) || "");
           setOpenCartModal(true);
         }}
+        isEditingCart={!!currentCartItemId}
       />
 
       {/* Snackbar para el feedback de guardado */}

@@ -24,13 +24,17 @@ import {
   ArrowForward as ArrowForwardIcon,
   Save as SaveIcon,
   Construction as ConstructionIcon,
+  Edit as EditIcon,
 } from "@mui/icons-material";
 import { useCart } from "@/context/CartContext";
+import { useCartLoadAction } from "@/hooks/useCartLoadAction";
+import { CartLoadConflictDialog } from "@/components/cart/CartLoadConflictDialog";
 
 export default function Cart() {
   const theme = useTheme();
   const navigate = useNavigate();
   const { cart, loading, isProcessingCheckout, lastCreatedOrder, removeFromCart, checkout, saveAsDrafts, clearCart, clearLastOrder } = useCart();
+  const { initiateLoad, isDialogOpen, closeDialog, handleConflictAction, isProcessing } = useCartLoadAction();
   const [showRescuePolling, setShowRescuePolling] = useState(false);
 
   // Redirigir al éxito cuando el pedido se complete
@@ -177,9 +181,14 @@ export default function Cart() {
                         )}
                       </Box>
                     </Box>
-                    <IconButton color="error" onClick={() => removeFromCart(item.cartItemId || item._id || item.id || "")} size="small">
-                      <DeleteIcon />
-                    </IconButton>
+                    <Box sx={{ display: "flex", gap: 1 }}>
+                      <Button size="small" startIcon={<EditIcon />} onClick={() => initiateLoad(item)} sx={{ borderRadius: 2 }}>
+                        Editar
+                      </Button>
+                      <IconButton color="error" onClick={() => removeFromCart(item.cartItemId || item._id || item.id || "")} size="small">
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
                   </Box>
                 </CardContent>
               </Card>
@@ -310,6 +319,9 @@ export default function Cart() {
           }
         `}
       </style>
+
+      {/* DIÁLOGO DE CONFLICTO */}
+      <CartLoadConflictDialog open={isDialogOpen} onClose={closeDialog} onAction={handleConflictAction} isProcessing={isProcessing} />
     </Box>
   );
 }
