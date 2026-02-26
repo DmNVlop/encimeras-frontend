@@ -56,11 +56,11 @@ export default function UserPortalLayout() {
   const location = useLocation();
   const { logout, user } = useAuth();
   const { cart } = useCart();
-  const isAdmin = user?.roles?.includes(Role.ADMIN);
+  const isAdminOrSales = user?.roles?.some((role) => role === Role.ADMIN || role === Role.SALES);
   const cartItemsCount = cart?.items?.length || 0;
 
   const sidebarItems = [
-    ...(isAdmin ? [{ text: "Panel Admin", icon: <AdminPanelSettingsIcon sx={{ color: theme.palette.primary.main }} />, path: "/admin/orders" }] : []),
+    ...(isAdminOrSales ? [{ text: "Panel Admin", icon: <AdminPanelSettingsIcon sx={{ color: theme.palette.primary.main }} />, path: "/admin/orders" }] : []),
     ...menuItems,
   ];
 
@@ -210,7 +210,7 @@ export default function UserPortalLayout() {
               >
                 Perfil
               </MenuItem>
-              {isAdmin && (
+              {isAdminOrSales && (
                 <MenuItem
                   onClick={() => {
                     handleClose();

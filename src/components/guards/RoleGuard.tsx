@@ -1,8 +1,9 @@
 // components/guards/RoleGuard.tsx (Versión Final)
 import React from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { UserRole } from "../../types/auth.types";
+import { UserRole } from "@/types/auth.types";
 import { useAuth } from "@/hooks/useAuth";
+import ForbiddenPage from "@/pages/errors/ForbiddenPage";
 
 interface RoleGuardProps {
   allowedRoles: UserRole[];
@@ -33,7 +34,7 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({ allowedRoles, children }) 
   const hasPermission = user?.roles.some((role) => allowedRoles.includes(role));
 
   if (!hasPermission) {
-    return <Navigate to="/403" replace />;
+    return <ForbiddenPage />;
   }
 
   return children ? <>{children}</> : <Outlet />;

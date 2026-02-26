@@ -9,7 +9,13 @@ import { CartProvider } from "./context/CartContext";
 import { RoleGuard } from "./components/guards/RoleGuard";
 import { appRoutes } from "./config/routes.config";
 
+// Error Pages
+import NotFoundPage from "./pages/errors/NotFoundPage";
+import ForbiddenPage from "./pages/errors/ForbiddenPage";
+import ServerErrorPage from "./pages/errors/ServerErrorPage";
+
 import { useAuth } from "./context/AuthProvider";
+import AppErrorBoundary from "./components/errors/AppErrorBoundary";
 
 // Loading Fallback Component
 const LoadingFallback = () => (
@@ -22,7 +28,7 @@ const LoadingFallback = () => (
  * Componente que contiene la lógica de rutas y tiene acceso al contexto de autenticación
  */
 const AppRouter = () => {
-  const { isAuthenticated, isInitializing } = useAuth();
+  const { user, isAuthenticated, isInitializing } = useAuth();
 
   // Función recursiva para renderizar rutas y sub-rutas
   const renderRoutes = (routes: AppRouteConfig[]) => {
@@ -60,16 +66,20 @@ const AppRouter = () => {
           {/* 
             REDIRECCIÓN DE INICIO: 
             Si el usuario llega a '/' y está autenticado, lo mandamos al dashboard.
-            Si no lo está, el RoleGuard de la ruta '/' (UserPortalLayout) se encargará de pedir login
-            o el renderRoutes pintará la ruta normal.
           */}
-          {isAuthenticated && <Route path="/" element={<Navigate to="/dashboard" replace />} />}
+          {isAuthenticated && (
+            <Route path="/" element={user?.roles.includes("WORKER") ? <Navigate to="/factory-pos" replace /> : <Navigate to="/dashboard" replace />} />
+          )}
 
           {/* Generar todas las rutas desde la config */}
           {renderRoutes(appRoutes)}
 
-          {/* Redirección por defecto para rutas no encontradas */}
-          <Route path="*" element={<Navigate to="/" />} />
+          {/* Rutas de Error Explícitas */}
+          <Route path="/403" element={<ForbiddenPage />} />
+          <Route path="/500" element={<ServerErrorPage />} />
+
+          {/* Redirección por defecto para rutas no encontradas -> Ahora muestra NotFoundPage */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
     </Router>
@@ -80,7 +90,9 @@ function App() {
   return (
     <AuthProvider>
       <CartProvider>
-        <AppRouter />
+        <AppErrorBoundary>
+          <AppRouter />
+        </AppErrorBoundary>
       </CartProvider>
     </AuthProvider>
   );
