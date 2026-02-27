@@ -24,6 +24,7 @@ export const mapPieceToCoreDto = (piece: MainPiece): MainPieceDto => {
 export const mapStateToCoreDto = (state: QuoteState): CoreEntityDto => {
   return {
     mainPieces: state.mainPieces.map(mapPieceToCoreDto),
+    customerId: state.selectedCustomer?._id,
     // factoryId: state.factoryId, // Si tuviéramos factoryId en el state
   };
 };

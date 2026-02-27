@@ -19,6 +19,7 @@ export interface MainPieceDto {
 export interface CoreEntityDto {
   mainPieces: MainPieceDto[];
   factoryId?: string;
+  customerId?: string;
 }
 
 /**

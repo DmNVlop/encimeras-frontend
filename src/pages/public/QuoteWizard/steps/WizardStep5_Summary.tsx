@@ -48,6 +48,7 @@ export const WizardStep5_Summary: React.FC = () => {
     wizardTempMaterial,
     currentCartItemId,
     currentCartItemName,
+    selectedCustomer,
   } = useQuoteState();
   const dispatch = useQuoteDispatch();
 
@@ -65,7 +66,7 @@ export const WizardStep5_Summary: React.FC = () => {
   const [open3D, setOpen3D] = useState(false);
 
   const [customers, setCustomers] = useState<ICustomer[]>([]);
-  const [selectedCustomer, setSelectedCustomer] = useState<ICustomer | null>(null);
+  // --- REMOVED LOCAL STATE: selectedCustomer now comes from useQuoteState ---
 
   // --- MODAL GUARDAR BORRADOR ---
   const [openSaveModal, setOpenSaveModal] = useState(false);
@@ -88,6 +89,18 @@ export const WizardStep5_Summary: React.FC = () => {
     };
     fetchCustomers();
   }, []);
+
+  // --- AUTOMATIC CUSTOMER RESOLUTION ---
+  // If we loaded a draft, the context might only have the customer ID as string.
+  // We resolve it to the full object once the customers list is loaded.
+  React.useEffect(() => {
+    if (typeof selectedCustomer === "string" && customers.length > 0) {
+      const fullCustomer = customers.find((c) => c._id === selectedCustomer);
+      if (fullCustomer) {
+        dispatch({ type: "SET_SELECTED_CUSTOMER", payload: fullCustomer });
+      }
+    }
+  }, [selectedCustomer, customers, dispatch]);
 
   // --- REMOVED AUTO-CALCULATE ON CUSTOMER CHANGE ---
   // We now force the user to click "Calculate" to see the impact.
@@ -190,10 +203,10 @@ export const WizardStep5_Summary: React.FC = () => {
       }
 
       // PASO 2: Convertir ese Borrador en Orden Oficial
-      // Usamos el email del usuario logueado
+      // USA EL CLIENTE SELECCIONADO PARA LA CABECERA, NO EL EMAIL DEL VENDEDOR
       const orderRes = await draftsApi.convertToOrder({
         draftId: activeDraftId,
-        customerId: user?.email || user?.username || "usuario-autenticado",
+        customerId: selectedCustomer?._id || "cliente-desconocido",
       });
 
       console.log("Orden Creada:", orderRes.data.orderNumber);
@@ -339,8 +352,7 @@ export const WizardStep5_Summary: React.FC = () => {
         selectedCustomer={selectedCustomer}
         loadingCustomers={loadingCustomers}
         onCustomerChange={(newValue) => {
-          setSelectedCustomer(newValue);
-          dispatch({ type: "CLEAR_CALCULATION" });
+          dispatch({ type: "SET_SELECTED_CUSTOMER", payload: newValue });
         }}
       />
 

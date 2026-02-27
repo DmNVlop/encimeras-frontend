@@ -8,6 +8,12 @@ import { mapBackendDataToState } from "@/utils/coreMapper";
  */
 export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState => {
   switch (action.type) {
+    case "SET_SELECTED_CUSTOMER":
+      return {
+        ...state,
+        selectedCustomer: action.payload,
+        calculationResult: null, // Limpiamos cálculo si cambia el cliente (nuevos descuentos aplicables)
+      };
     // --- ACCIÓN DE STEP 1 ---
     case "SET_WIZARD_MATERIAL": {
       const newMaterialPayload = action.payload;
@@ -260,6 +266,8 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
         currentDraftName: name || "",
         isDraftRecalculated: recalculated || false,
         calculationResult: currentPricePoints ? { totalPoints: currentPricePoints } : null,
+        // Hidratamos el cliente si viene en el core (BFF Pattern)
+        selectedCustomer: (action.payload.core?.customerId as any) || state.selectedCustomer,
       };
     }
 
@@ -286,6 +294,8 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
         currentCartItemName: customName,
         currentDraftId: action.payload.draftId || null,
         calculationResult: subtotalPoints ? { totalPoints: subtotalPoints } : null,
+        // Hidratamos el cliente desde el core del item del carrito
+        selectedCustomer: (action.payload.core?.customerId as any) || state.selectedCustomer,
       };
     }
 
@@ -309,6 +319,7 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
         isDraftRecalculated: false,
         currentCartItemId: null,
         currentCartItemName: null,
+        selectedCustomer: null,
       };
 
     default:

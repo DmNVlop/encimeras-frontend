@@ -1,5 +1,5 @@
 import React from "react";
-import { Drawer, Box, Typography, IconButton, List, ListItem, ListItemText, Chip, Button, Grid, Paper, Avatar, ListItemAvatar } from "@mui/material";
+import { Drawer, Box, Typography, IconButton, List, ListItem, ListItemText, Chip, Button, Grid, Paper, Avatar, ListItemAvatar, Divider } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DoNotDisturbOnIcon from "@mui/icons-material/DoNotDisturbOn";
@@ -56,14 +56,25 @@ export const OrderPreviewDrawer: React.FC<any> = ({ open, onClose, order, onAppr
 
       {/* --- CONTENIDO SCROLLEABLE --- */}
       <Box sx={{ p: 3, overflowY: "auto", flexGrow: 1 }}>
-        {/* 1. Datos Cliente */}
+        {/* 1. Datos Propietario y Cliente */}
         <Paper variant="outlined" sx={{ p: 2, mb: 3, bgcolor: "#fafafa" }}>
-          <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
-            Cliente
-          </Typography>
-          <Typography variant="body1">{header.customerId}</Typography>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 6 }}>
+              <Typography variant="subtitle2" fontWeight="bold" color="text.secondary">
+                Vendedor / Propietario
+              </Typography>
+              <Typography variant="body2">{header.userId || "N/A"}</Typography>
+            </Grid>
+            <Grid size={{ xs: 6 }}>
+              <Typography variant="subtitle2" fontWeight="bold" color="text.secondary">
+                Cliente Final (B2B)
+              </Typography>
+              <Typography variant="body2">{header.customerId || "Sin cliente asignado"}</Typography>
+            </Grid>
+          </Grid>
+          <Divider sx={{ my: 1.5 }} />
           <Typography variant="caption" color="text.secondary">
-            Fecha: {new Date(header.orderDate).toLocaleString()}
+            Fecha de Orden: {new Date(header.orderDate).toLocaleString()}
           </Typography>
         </Paper>
 

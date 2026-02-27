@@ -1,9 +1,11 @@
+import type { ICustomer } from "@/interfases/customer.interfase";
 import type { AppliedAddon, MainPiece, SelectedAttributes, ShapeVariationPayload } from "./QuoteInterfases";
 
 /**
  * DEFINICIÓN DE ACCIONES
  */
 export type QuoteAction =
+  | { type: "SET_SELECTED_CUSTOMER"; payload: ICustomer | null }
   // --- ACCIONES DEL WIZARD (NUEVAS / ACTUALIZADAS) ---
   | {
       type: "SET_WIZARD_MATERIAL"; // Step 1

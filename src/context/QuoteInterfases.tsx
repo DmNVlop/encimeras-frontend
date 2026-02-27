@@ -1,3 +1,5 @@
+import type { ICustomer } from "@/interfases/customer.interfase";
+
 /**
  * Representa los atributos seleccionados.
  * Ejemplo: { MAT_GROUP: 'Basic', MAT_FINISH: 'OAK' }
@@ -109,6 +111,9 @@ export interface QuoteState {
   // --- CART EDITING ---
   currentCartItemId?: string | null; // ID del item del carrito si estamos editándolo
   currentCartItemName?: string | null; // Nombre personalizado del item del carrito
+
+  // --- SELECCIÓN DE CLIENTE ---
+  selectedCustomer: ICustomer | null;
 }
 
 /**

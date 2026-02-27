@@ -33,6 +33,7 @@ export const initialState: QuoteState = {
   isDraftRecalculated: false,
   currentCartItemId: null,
   currentCartItemName: null,
+  selectedCustomer: null,
 };
 
 // --- 5. CONTEXTO, PROVIDER Y HOOKS (Sin cambios) ---

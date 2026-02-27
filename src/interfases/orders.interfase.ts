@@ -10,7 +10,8 @@ export type OrderStatus = "PENDING" | "MANUFACTURING" | "SHIPPED" | "INSTALLED" 
 
 export interface OrderHeader {
   orderNumber: string; // Ej: ORD-2026-0001
-  customerId: string; // ID del usuario o referencia externa
+  userId: string; // ID del vendedor/comercial
+  customerId: string; // ID del cliente b2b / final
   status: OrderStatus;
   totalOriginalPoints: number;
   totalDiscount: number;

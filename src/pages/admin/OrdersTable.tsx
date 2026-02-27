@@ -12,10 +12,11 @@ import { ordersApi } from "@/services/orders.service";
 
 // Definición de columnas basada en tu OrderHeader [cite: 82]
 const columns: GridColDef[] = [
-  { field: "orderNumber", headerName: "Nº Orden", width: 150 },
-  { field: "orderDate", headerName: "Fecha", width: 180, valueFormatter: (params) => new Date(params).toLocaleString() },
-  { field: "customerId", headerName: "Cliente / Email", width: 250 },
-  { field: "totalPoints", headerName: "Puntos", width: 120, type: "number" },
+  { field: "orderNumber", headerName: "Nº Orden", width: 140 },
+  { field: "orderDate", headerName: "Fecha", width: 160, valueFormatter: (params) => new Date(params).toLocaleString() },
+  { field: "userId", headerName: "Vendedor (ID)", width: 180 },
+  { field: "customerId", headerName: "Cliente (ID)", width: 180 },
+  { field: "totalPoints", headerName: "Puntos", width: 110, type: "number" },
   {
     field: "status",
     headerName: "Estado",
