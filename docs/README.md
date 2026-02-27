@@ -27,6 +27,7 @@ Arquitectura interna para desarrolladores backend.
 
 - [Infraestructura de Colas (Redis)](./dev/infra-colas-redis.md): Procesamiento asíncrono.
 - [Especificación Técnica Carrito](./dev/especificacion-modulo-carrito.md): Detalles de implementación interna.
+- [Lógica de Selección de Cliente en Carrito](./dev/logica-cliente-carrito.md): Implementación frontend y propuestas backend.
 
 ### 4. 💼 [Negocio / Admin](./business/)
 

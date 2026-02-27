@@ -15,7 +15,6 @@ import {
   alpha,
   useTheme,
   Backdrop,
-  Chip,
 } from "@mui/material";
 import {
   Delete as DeleteIcon,
@@ -29,13 +28,61 @@ import {
 import { useCart } from "@/context/CartContext";
 import { useCartLoadAction } from "@/hooks/useCartLoadAction";
 import { CartLoadConflictDialog } from "@/components/cart/CartLoadConflictDialog";
+import { CustomerSelection } from "@/pages/public/QuoteWizard/steps/components/step5/CustomerSelection";
+import type { ICustomer } from "@/interfases/customer.interfase";
+import { get } from "@/services/api.service";
 
 export default function Cart() {
   const theme = useTheme();
   const navigate = useNavigate();
-  const { cart, loading, isProcessingCheckout, lastCreatedOrder, removeFromCart, checkout, saveAsDrafts, clearCart, clearLastOrder } = useCart();
+  const { cart, loading, isProcessingCheckout, lastCreatedOrder, removeFromCart, checkout, saveAsDrafts, clearCart, clearLastOrder, assignCustomer } =
+    useCart();
   const { initiateLoad, isDialogOpen, closeDialog, handleConflictAction, isProcessing } = useCartLoadAction();
   const [showRescuePolling, setShowRescuePolling] = useState(false);
+
+  // Estados para el cliente
+  const [customers, setCustomers] = useState<ICustomer[]>([]);
+  const [loadingCustomers, setLoadingCustomers] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<ICustomer | null>(null);
+
+  // Cargar clientes
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      setLoadingCustomers(true);
+      try {
+        const data = await get<ICustomer[]>("/customers");
+        setCustomers(data);
+      } catch (err) {
+        console.error("Error fetching customers for cart:", err);
+      } finally {
+        setLoadingCustomers(false);
+      }
+    };
+    fetchCustomers();
+  }, []);
+
+  // Setear cliente seleccionado desde el carrito
+  useEffect(() => {
+    if (cart?.customerId && customers.length > 0) {
+      const customer = customers.find((c) => c._id === cart.customerId);
+      if (customer) {
+        setSelectedCustomer(customer);
+      }
+    } else if (!cart?.customerId) {
+      setSelectedCustomer(null);
+    }
+  }, [cart?.customerId, customers]);
+
+  const handleCustomerChange = async (newCustomer: ICustomer | null) => {
+    setSelectedCustomer(newCustomer);
+    if (newCustomer) {
+      try {
+        await assignCustomer(newCustomer._id!);
+      } catch (error) {
+        console.error("Error al asignar el cliente en el carrito:", error);
+      }
+    }
+  };
 
   // Redirigir al éxito cuando el pedido se complete
   useEffect(() => {
@@ -102,9 +149,10 @@ export default function Cart() {
     );
   }
 
-  const totalPoints = cart.items.reduce((sum, item) => sum + item.subtotalPoints, 0);
-  const totalOriginalPoints = cart.items.reduce((sum, item) => sum + (item.originalPoints || item.subtotalPoints), 0);
-  const totalDiscount = cart.items.reduce((sum, item) => sum + (item.discountAmount || 0), 0);
+  // Totales
+  const totalPoints = cart.totalPoints || cart.items.reduce((sum, item) => sum + item.subtotalPoints, 0);
+  const totalOriginalPoints = cart.totalOriginalPoints || cart.items.reduce((sum, item) => sum + (item.originalPoints || item.subtotalPoints), 0);
+  const totalDiscount = cart.totalDiscount || cart.items.reduce((sum, item) => sum + (item.discountAmount || 0), 0);
 
   return (
     <Box sx={{ maxWidth: 1000, mx: "auto", py: 4 }}>
@@ -137,8 +185,15 @@ export default function Cart() {
       </Box>
 
       <Box sx={{ display: "flex", gap: 4, flexDirection: { xs: "column", md: "row" } }}>
-        {/* Listado de Items */}
+        {/* Listado de Items y Selección de Cliente */}
         <Box sx={{ flexGrow: 1 }}>
+          <CustomerSelection
+            customers={customers}
+            selectedCustomer={selectedCustomer}
+            loadingCustomers={loadingCustomers}
+            onCustomerChange={handleCustomerChange}
+          />
+
           <List sx={{ p: 0, display: "flex", flexDirection: "column", gap: 2 }}>
             {cart.items.map((item, index) => (
               <Card
@@ -159,26 +214,10 @@ export default function Cart() {
                         <Typography variant="body2" color="text.secondary">
                           {item.hydratedContext?.materials?.[0]?.name || item.uiState?.wizardTempMaterial?.materialName || "Configuración Personalizada"}
                         </Typography>
-                        {item.discountAmount > 0 ? (
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1, flexWrap: "wrap" }}>
-                            <Typography variant="body2" color="text.secondary" sx={{ textDecoration: "line-through" }}>
-                              {item.originalPoints?.toLocaleString()} pts
-                            </Typography>
-                            <Typography variant="h6" color="primary.main" fontWeight="bold">
-                              {item.subtotalPoints?.toLocaleString()} pts
-                            </Typography>
-                            <Chip
-                              label={`¡Ahorras ${item.discountAmount.toLocaleString()} pts!`}
-                              size="small"
-                              color="success"
-                              sx={{ fontWeight: "bold", height: 24, fontSize: "0.75rem" }}
-                            />
-                          </Box>
-                        ) : (
-                          <Typography variant="h6" color="primary.main" fontWeight="bold" sx={{ mt: 1 }}>
-                            {item.subtotalPoints?.toLocaleString()} pts
-                          </Typography>
-                        )}
+                        {/* Ocultamos los descuentos individuales para mostrar el descuento global */}
+                        <Typography variant="h6" color="primary.main" fontWeight="bold" sx={{ mt: 1 }}>
+                          {(item.originalPoints || item.subtotalPoints)?.toLocaleString()} pts
+                        </Typography>
                       </Box>
                     </Box>
                     <Box sx={{ display: "flex", gap: 1 }}>

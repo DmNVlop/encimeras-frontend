@@ -2,7 +2,6 @@ import React from "react";
 import { Box, Alert, Typography } from "@mui/material";
 import { ProjectGlobalSummary } from "./ProjectGlobalSummary";
 import { PieceBreakdownItem } from "./PieceBreakdownItem";
-import { AppliedDiscounts } from "./AppliedDiscounts";
 import { FinalTotals } from "./FinalTotals";
 import type { CalculationResponse } from "@/interfases/price.interfase";
 
@@ -49,13 +48,8 @@ export const BreakdownSection: React.FC<BreakdownSectionProps> = ({ calculationR
           />
         ))}
 
-        <AppliedDiscounts appliedRules={calculationResult.appliedRules || []} />
-
-        <FinalTotals
-          totalPoints={calculationResult.totalPoints}
-          totalDiscount={calculationResult.totalDiscount}
-          finalTotalPoints={calculationResult.finalTotalPoints}
-        />
+        {/* <AppliedDiscounts appliedRules={calculationResult.appliedRules || []} /> */}
+        <FinalTotals totalPoints={calculationResult.totalPoints} totalDiscount={0} finalTotalPoints={calculationResult.totalPoints} />
       </Box>
     </Box>
   );

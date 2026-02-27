@@ -22,6 +22,7 @@ export interface CartItem {
 export interface Cart {
   _id: string;
   userId: string;
+  customerId?: string;
   items: CartItem[];
   totalOriginalPoints: number;
   totalDiscount: number;

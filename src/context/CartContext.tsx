@@ -19,6 +19,7 @@ interface CartContextType {
   clearCart: () => Promise<void>;
   clearLastOrder: () => void; // Nuevo
   addItemsFromGroup: (groupId: string, clearFirst?: boolean) => Promise<void>; // Nuevo
+  assignCustomer: (customerId: string) => Promise<void>; // Nuevo
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -172,6 +173,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const assignCustomer = async (customerId: string) => {
+    try {
+      setLoading(true);
+      const updatedCart = await cartApi.assignCustomer(customerId);
+      setCart(updatedCart);
+    } catch (error) {
+      console.error("Error assigning customer to cart:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <CartContext.Provider
       value={{
@@ -188,6 +202,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         saveAsDrafts,
         clearCart,
         addItemsFromGroup,
+        assignCustomer,
       }}
     >
       {children}

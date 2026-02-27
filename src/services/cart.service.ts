@@ -57,4 +57,12 @@ export const cartApi = {
   importByGroup: async (groupId: string, clearFirst: boolean = false) => {
     return post<Cart>(`/cart/items/group/${groupId}`, { clearFirst });
   },
+
+  /**
+   * Asigna un cliente al carrito y recalcula los totales y descuentos.
+   */
+  assignCustomer: async (customerId: string) => {
+    // Si el backend espera PUT para modificar y la lógica está en /cart/customer
+    return post<Cart>("/cart/customer", { customerId });
+  },
 };
