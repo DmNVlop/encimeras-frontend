@@ -1,13 +1,13 @@
 // --- TIPOS ---
 import type { CalculationResponse } from "@/interfases/price.interfase";
-import type { ICustomer } from "@/interfases/customer.interfase";
+// ICustomer eliminado - Selección en el carrito
 
 // --- SUB-COMPONENTES EXTRAÍDOS ---
 import { SummaryHeader } from "./components/step5/SummaryHeader";
-import { CustomerSelection } from "./components/step5/CustomerSelection";
 import { BreakdownSection } from "./components/step5/BreakdownSection";
 import { RequesterInfo } from "./components/step5/RequesterInfo";
-import { SuccessView } from "./components/step5/SuccessView";
+import { SummaryActions } from "./components/step5/SummaryActions";
+// SuccessView eliminado - El envío se hace desde el carrito
 
 // =============================================================================
 // COMPONENTE WizardStep5_Summary
@@ -24,7 +24,7 @@ import { validateAssemblies } from "@/utils/quoteValidation";
 import { useQuoteState, useQuoteDispatch } from "@/context/QuoteContext";
 import { useAuth } from "@/context/AuthProvider";
 import { useCart } from "@/context/CartContext"; // Nuevo
-import { post, get } from "@/services/api.service";
+import { post } from "@/services/api.service";
 import { draftsApi } from "@/services/drafts.service";
 
 // --- COMPONENTES COMUNES ---
@@ -52,10 +52,6 @@ export const WizardStep5_Summary: React.FC = () => {
   } = useQuoteState();
   const dispatch = useQuoteDispatch();
 
-  // Estado local para el envío final
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
   const { addToCart, updateCartItem } = useCart(); // Nuevo
 
   // --- ESTADOS PARA BORRADORES ---
@@ -65,42 +61,13 @@ export const WizardStep5_Summary: React.FC = () => {
   // ESTADO PARA EL MODAL 3D
   const [open3D, setOpen3D] = useState(false);
 
-  const [customers, setCustomers] = useState<ICustomer[]>([]);
-  // --- REMOVED LOCAL STATE: selectedCustomer now comes from useQuoteState ---
-
   // --- MODAL GUARDAR BORRADOR ---
   const [openSaveModal, setOpenSaveModal] = useState(false);
-  const [openCartModal, setOpenCartModal] = useState(false); // Nuevo
-  const [isAddingToCart, setIsAddingToCart] = useState(false); // Nuevo
+  const [openCartModal, setOpenCartModal] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [tempDraftName, setTempDraftName] = useState("");
-  const [loadingCustomers, setLoadingCustomers] = useState(false);
 
-  React.useEffect(() => {
-    const fetchCustomers = async () => {
-      setLoadingCustomers(true);
-      try {
-        const data = await get<ICustomer[]>("/customers");
-        setCustomers(data);
-      } catch (err) {
-        console.error("Error fetching customers for wizard:", err);
-      } finally {
-        setLoadingCustomers(false);
-      }
-    };
-    fetchCustomers();
-  }, []);
-
-  // --- AUTOMATIC CUSTOMER RESOLUTION ---
-  // If we loaded a draft, the context might only have the customer ID as string.
-  // We resolve it to the full object once the customers list is loaded.
-  React.useEffect(() => {
-    if (typeof selectedCustomer === "string" && customers.length > 0) {
-      const fullCustomer = customers.find((c) => c._id === selectedCustomer);
-      if (fullCustomer) {
-        dispatch({ type: "SET_SELECTED_CUSTOMER", payload: fullCustomer });
-      }
-    }
-  }, [selectedCustomer, customers, dispatch]);
+  // --- AUTOMATIC CUSTOMER RESOLUTION REMOVED (Handled in Cart) ---
 
   // --- REMOVED AUTO-CALCULATE ON CUSTOMER CHANGE ---
   // We now force the user to click "Calculate" to see the impact.
@@ -167,56 +134,6 @@ export const WizardStep5_Summary: React.FC = () => {
       console.error("Calculation Error:", err);
       // const errorMsg = err.response?.data?.message || "Error al conectar con el servidor de cálculo.";
       dispatch({ type: "CALCULATION_ERROR", payload: { error: err } });
-    }
-  };
-
-  // ---------------------------------------------------------------------------
-  // HANDLER: ENVIAR PEDIDO (POST /quotes)
-  // ---------------------------------------------------------------------------
-  const handleFinalSubmit = async () => {
-    setIsSubmitting(true);
-    setSubmitSuccess(false);
-
-    try {
-      setSubmitError(null);
-      // PASO 1: Garantizar que existe un Borrador actualizado
-      let activeDraftId = currentDraftId;
-
-      // Usamos los mappers para generar el payload alineado al backend
-      const state = { mainPieces, selectedShapeId, wizardTempMaterial } as any; // Cast temporal para el mapper
-      const currentPayload = {
-        name: currentDraftName,
-        core: mapStateToCoreDto(state),
-        uiState: mapStateToUiState(state),
-      };
-
-      if (activeDraftId) {
-        // A) Si YA existe: Lo actualizamos silenciosamente para asegurar que
-        // lo que se convierte en orden es EXACTAMENTE lo que hay en pantalla.
-        await draftsApi.update(activeDraftId, currentPayload);
-      } else {
-        // B) Si NO existe: Lo creamos en segundo plano
-        const draftRes = await draftsApi.create(currentPayload);
-        activeDraftId = draftRes.data.id;
-        // Importante: Actualizamos el contexto por si el usuario se queda aquí
-        dispatch({ type: "SET_DRAFT_ID", payload: activeDraftId });
-      }
-
-      // PASO 2: Convertir ese Borrador en Orden Oficial
-      // USA EL CLIENTE SELECCIONADO PARA LA CABECERA, NO EL EMAIL DEL VENDEDOR
-      const orderRes = await draftsApi.convertToOrder({
-        draftId: activeDraftId,
-        customerId: selectedCustomer?._id || "cliente-desconocido",
-      });
-
-      console.log("Orden Creada:", orderRes.data.orderNumber);
-      setSubmitSuccess(true);
-    } catch (err: any) {
-      console.error("Submit Error:", err);
-      const errorMessage = err.response?.data?.message || "Hubo un error al procesar tu pedido. Por favor, intenta de nuevo.";
-      setSubmitError(errorMessage);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -291,27 +208,8 @@ export const WizardStep5_Summary: React.FC = () => {
   };
 
   // ---------------------------------------------------------------------------
-  // HANDLER: REINICIAMOS EL PRESUPUESTADOR
-  // ---------------------------------------------------------------------------
-  const handleStartNew = () => {
-    // 1. Obtenemos la ruta base sin parámetros (ej. "/presupuestador" en lugar de "/presupuestador?draftId=xyz")
-    const basePath = window.location.pathname;
-
-    // 2. Forzamos una navegación nativa del navegador.
-    // Esto hace dos cosas:
-    // a) Elimina el query param ?draftId=...
-    // b) Provoca un refresco real (Hard Reload), lo que limpia la memoria RAM,
-    //    el Contexto de React y el contexto WebGL de BabylonJS.
-    window.location.href = basePath;
-  };
-
-  // ---------------------------------------------------------------------------
   // RENDER PRINCIPAL
   // ---------------------------------------------------------------------------
-  if (submitSuccess) {
-    return <SuccessView onStartNew={handleStartNew} />;
-  }
-
   return (
     <Box sx={{ pb: 4 }}>
       {/* CABECERA CON TÍTULO Y ACCIONES */}
@@ -346,16 +244,6 @@ export const WizardStep5_Summary: React.FC = () => {
         </Box>
       )}
 
-      {/* SELECCIÓN DE CLIENTE */}
-      <CustomerSelection
-        customers={customers}
-        selectedCustomer={selectedCustomer}
-        loadingCustomers={loadingCustomers}
-        onCustomerChange={(newValue) => {
-          dispatch({ type: "SET_SELECTED_CUSTOMER", payload: newValue });
-        }}
-      />
-
       {/* DESGLOSE Y PROYECTO */}
       <BreakdownSection
         calculationResult={calculationResult as CalculationResponse}
@@ -364,15 +252,28 @@ export const WizardStep5_Summary: React.FC = () => {
         selectedShapeId={selectedShapeId}
       />
 
-      {/* DATOS DE USUARIO Y ENVÍO FINAL */}
+      {calculationResult && <RequesterInfo user={user} submitError={null} />}
+
+      {/* BOTONES DE ACCIÓN AL FINAL (SOLO SI HAY RESULTADOS) */}
       {calculationResult && (
-        <RequesterInfo
-          user={user}
-          isSubmitting={isSubmitting}
-          submitError={submitError}
-          canSubmit={!!selectedCustomer && !!calculationResult}
-          onSubmit={handleFinalSubmit}
-        />
+        <Box sx={{ mt: 5, pt: 3, borderTop: "1px solid", borderColor: "divider", display: "flex", justifyContent: "flex-end" }}>
+          <SummaryActions
+            isSavingDraft={isSavingDraft}
+            isCalculating={isCalculating}
+            isAddingToCart={isAddingToCart}
+            canAction={mainPieces.length > 0}
+            onSaveDraft={() => {
+              setTempDraftName(currentDraftName || "");
+              setOpenSaveModal(true);
+            }}
+            onCalculate={handleCalculate}
+            onAddToCart={() => {
+              setTempDraftName(currentDraftName || (currentCartItemName as string) || "");
+              setOpenCartModal(true);
+            }}
+            isEditingCart={!!currentCartItemId}
+          />
+        </Box>
       )}
 
       {/* --- MODAL DEL VISOR 3D --- */}

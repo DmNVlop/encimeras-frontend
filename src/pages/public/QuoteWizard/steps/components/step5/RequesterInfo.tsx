@@ -1,21 +1,17 @@
 import React from "react";
-import { Box, Typography, Avatar, Paper, Grid, Stack, Chip, Button, Alert, alpha, useTheme } from "@mui/material";
+import { Box, Typography, Avatar, Paper, Grid, Stack, Chip, Alert, alpha, useTheme } from "@mui/material";
 import Person from "@mui/icons-material/Person";
 import EmailIcon from "@mui/icons-material/Email";
 import PhoneIcon from "@mui/icons-material/Phone";
 import BadgeIcon from "@mui/icons-material/Badge";
 import EventIcon from "@mui/icons-material/Event";
-import SendIcon from "@mui/icons-material/Send";
 
 interface RequesterInfoProps {
   user: any;
-  isSubmitting: boolean;
   submitError: string | null;
-  canSubmit: boolean;
-  onSubmit: () => void;
 }
 
-export const RequesterInfo: React.FC<RequesterInfoProps> = ({ user, isSubmitting, submitError, canSubmit, onSubmit }) => {
+export const RequesterInfo: React.FC<RequesterInfoProps> = ({ user, submitError }) => {
   const theme = useTheme();
 
   return (
@@ -107,7 +103,7 @@ export const RequesterInfo: React.FC<RequesterInfoProps> = ({ user, isSubmitting
                       Correo Electrónico
                     </Typography>
                     <Typography variant="body1" fontWeight="600">
-                      {user?.email || "No especificado"}
+                      {user?.email || user?.username || "No especificado"}
                     </Typography>
                   </Box>
                 </Box>
@@ -139,7 +135,7 @@ export const RequesterInfo: React.FC<RequesterInfoProps> = ({ user, isSubmitting
                       ID de Usuario
                     </Typography>
                     <Typography variant="body2" sx={{ fontFamily: "monospace", opacity: 0.8 }}>
-                      {user?._id || "N/A"}
+                      {user?._id || user?.id || "N/A"}
                     </Typography>
                   </Box>
                 </Box>
@@ -155,7 +151,11 @@ export const RequesterInfo: React.FC<RequesterInfoProps> = ({ user, isSubmitting
                       Registrado en
                     </Typography>
                     <Typography variant="body1" fontWeight="600">
-                      {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "Fecha desconocida"}
+                      {user?.createdAt
+                        ? new Date(user.createdAt).toLocaleDateString()
+                        : user?.created_at
+                          ? new Date(user.created_at).toLocaleDateString()
+                          : "Fecha desconocida"}
                     </Typography>
                   </Box>
                 </Box>
@@ -168,6 +168,12 @@ export const RequesterInfo: React.FC<RequesterInfoProps> = ({ user, isSubmitting
               </Alert>
             )}
 
+            {/* 
+              BOTÓN DE ENVÍO FINAL OCULTO: 
+              La orden se procesa ahora exclusivamente desde el Carrito.
+              Mantener este componente solo para visualización de los datos del solicitante.
+            */}
+            {/* 
             <Box sx={{ mt: 4 }}>
               <Button
                 variant="contained"
@@ -199,7 +205,8 @@ export const RequesterInfo: React.FC<RequesterInfoProps> = ({ user, isSubmitting
               <Typography variant="caption" sx={{ mt: 2, display: "block", textAlign: "center", fontStyle: "italic", opacity: 0.6 }}>
                 Al hacer clic, se generará una orden formal con los datos mostrados arriba.
               </Typography>
-            </Box>
+            </Box> 
+            */}
           </Grid>
         </Grid>
       </Paper>
