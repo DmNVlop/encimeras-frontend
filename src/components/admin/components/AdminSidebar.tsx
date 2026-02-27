@@ -20,7 +20,7 @@ interface NavItem {
 }
 
 const menuConfig: NavItem[] = [
-  { text: "Dashboard", icon: <DashboardIcon />, path: "/admin/dashboard", type: "item", allowedRoles: ["ADMIN", "SALES"] },
+  { text: "Dashboard", icon: <DashboardIcon />, path: "/admin/dashboard", type: "item", allowedRoles: ["ADMIN"] },
   { text: "Presupuestador", icon: <CalculateIcon />, path: "/dashboard", type: "item", allowedRoles: ["ADMIN", "SALES"] },
   { text: "Ordenes", icon: <ShoppingBagIcon />, path: "/admin/orders", type: "item", allowedRoles: ["ADMIN", "SALES"] },
   { text: "divider", type: "divider" },
