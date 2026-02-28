@@ -24,6 +24,9 @@ import {
   Save as SaveIcon,
   Construction as ConstructionIcon,
   Edit as EditIcon,
+  InfoOutlined as InfoOutlinedIcon,
+  ViewInAr as ViewInArIcon,
+  BuildOutlined as BuildOutlinedIcon,
 } from "@mui/icons-material";
 import { useCart } from "@/context/CartContext";
 import { useCartLoadAction } from "@/hooks/useCartLoadAction";
@@ -35,8 +38,19 @@ import { get } from "@/services/api.service";
 export default function Cart() {
   const theme = useTheme();
   const navigate = useNavigate();
-  const { cart, loading, isProcessingCheckout, lastCreatedOrder, removeFromCart, checkout, saveAsDrafts, clearCart, clearLastOrder, assignCustomer } =
-    useCart();
+  const {
+    cart,
+    loading,
+    isProcessingCheckout,
+    lastCreatedOrder,
+    removeFromCart,
+    checkout,
+    saveAsDrafts,
+    clearCart,
+    clearLastOrder,
+    assignCustomer,
+    clearCartCustomer, // Añadido
+  } = useCart();
   const { initiateLoad, isDialogOpen, closeDialog, handleConflictAction, isProcessing } = useCartLoadAction();
   const [showRescuePolling, setShowRescuePolling] = useState(false);
 
@@ -44,6 +58,8 @@ export default function Cart() {
   const [customers, setCustomers] = useState<ICustomer[]>([]);
   const [loadingCustomers, setLoadingCustomers] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<ICustomer | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
+  const [isAssigning, setIsAssigning] = useState(false);
 
   // Cargar clientes
   useEffect(() => {
@@ -73,14 +89,37 @@ export default function Cart() {
     }
   }, [cart?.customerId, customers]);
 
-  const handleCustomerChange = async (newCustomer: ICustomer | null) => {
+  const handleCustomerChange = (newCustomer: ICustomer | null) => {
     setSelectedCustomer(newCustomer);
-    if (newCustomer) {
+    // Si cambia respecto al cliente actual del carrito, marcamos como sucio
+    const currentId = cart?.customerId || null;
+    const nextId = newCustomer?._id || null;
+    setIsDirty(currentId !== nextId);
+  };
+
+  const handleApplyCustomer = async () => {
+    if (!selectedCustomer) {
+      // Si se limpia el cliente, también hay que persistirlo en el backend
       try {
-        await assignCustomer(newCustomer._id!);
+        setIsAssigning(true);
+        await clearCartCustomer(); // Necesitaremos esta función o usar assignCustomer con null/empty
+        setIsDirty(false);
       } catch (error) {
-        console.error("Error al asignar el cliente en el carrito:", error);
+        console.error("Error al limpiar el cliente:", error);
+      } finally {
+        setIsAssigning(false);
       }
+      return;
+    }
+
+    try {
+      setIsAssigning(true);
+      await assignCustomer(selectedCustomer._id!);
+      setIsDirty(false);
+    } catch (error) {
+      console.error("Error al asignar el cliente en el carrito:", error);
+    } finally {
+      setIsAssigning(false);
     }
   };
 
@@ -149,13 +188,14 @@ export default function Cart() {
     );
   }
 
-  // Totales
-  const totalPoints = cart.totalPoints || cart.items.reduce((sum, item) => sum + item.subtotalPoints, 0);
+  // Totales y Desgloses de Ahorro
   const totalOriginalPoints = cart.totalOriginalPoints || cart.items.reduce((sum, item) => sum + (item.originalPoints || item.subtotalPoints), 0);
-  const totalDiscount = cart.totalDiscount || cart.items.reduce((sum, item) => sum + (item.discountAmount || 0), 0);
+  const totalItemDiscounts = cart.items.reduce((sum, item) => sum + (item.discountAmount || 0), 0);
+  const totalGlobalDiscounts = cart.totalDiscount - totalItemDiscounts;
+  const totalPoints = cart.totalPoints || totalOriginalPoints - cart.totalDiscount;
 
   return (
-    <Box sx={{ maxWidth: 1000, mx: "auto", py: 4 }}>
+    <Box sx={{ maxWidth: "90vw", mx: "auto", py: 4 }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 4 }}>
         <Box>
           <Typography variant="h4" fontWeight="bold" gutterBottom>
@@ -187,12 +227,60 @@ export default function Cart() {
       <Box sx={{ display: "flex", gap: 4, flexDirection: { xs: "column", md: "row" } }}>
         {/* Listado de Items y Selección de Cliente */}
         <Box sx={{ flexGrow: 1 }}>
-          <CustomerSelection
-            customers={customers}
-            selectedCustomer={selectedCustomer}
-            loadingCustomers={loadingCustomers}
-            onCustomerChange={handleCustomerChange}
-          />
+          <Box sx={{ position: "relative", mb: 4 }}>
+            <CustomerSelection
+              customers={customers}
+              selectedCustomer={selectedCustomer}
+              loadingCustomers={loadingCustomers}
+              onCustomerChange={handleCustomerChange}
+              // Sobrescribimos el mensaje informativo por uno dinámico si es necesario,
+              // pero mejor manejamos el botón aquí para control total
+            />
+            {isDirty && (
+              <Paper
+                elevation={4}
+                sx={{
+                  p: 2,
+                  mt: -3,
+                  mb: 3,
+                  mx: 2,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  bgcolor: alpha(theme.palette.warning.main, 0.9),
+                  color: "warning.contrastText",
+                  borderRadius: 2,
+                  zIndex: 2,
+                  position: "relative",
+                  border: "1px solid",
+                  borderColor: "warning.light",
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <InfoOutlinedIcon />
+                  <Typography variant="body2" fontWeight="bold">
+                    Has cambiado el cliente. Los precios pueden haber variado.
+                  </Typography>
+                </Box>
+                <Button
+                  variant="contained"
+                  color="inherit"
+                  size="small"
+                  onClick={handleApplyCustomer}
+                  disabled={isAssigning}
+                  sx={{
+                    color: "warning.main",
+                    bgcolor: "white",
+                    fontWeight: "bold",
+                    "&:hover": { bgcolor: alpha("#fff", 0.9) },
+                  }}
+                  startIcon={isAssigning ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
+                >
+                  {isAssigning ? "Recalculando..." : "Recalcular Presupuesto"}
+                </Button>
+              </Paper>
+            )}
+          </Box>
 
           <List sx={{ p: 0, display: "flex", flexDirection: "column", gap: 2 }}>
             {cart.items.map((item, index) => (
@@ -211,13 +299,138 @@ export default function Cart() {
                         <Typography variant="subtitle1" fontWeight="bold">
                           {item.customName}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2" color="text.secondary" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                           {item.hydratedContext?.materials?.[0]?.name || item.uiState?.wizardTempMaterial?.materialName || "Configuración Personalizada"}
                         </Typography>
-                        {/* Ocultamos los descuentos individuales para mostrar el descuento global */}
-                        <Typography variant="h6" color="primary.main" fontWeight="bold" sx={{ mt: 1 }}>
-                          {(item.originalPoints || item.subtotalPoints)?.toLocaleString()} pts
-                        </Typography>
+
+                        {/* Detalles técnicos de las Piezas */}
+                        {item.core.mainPieces && item.core.mainPieces.length > 0 && (
+                          <Box sx={{ mt: 2 }}>
+                            <Typography
+                              variant="caption"
+                              fontWeight="bold"
+                              color="text.secondary"
+                              sx={{ textTransform: "uppercase", letterSpacing: 1, mb: 1, display: "inline-block" }}
+                            >
+                              Desglose Técnico ({item.core.mainPieces.length} piezas)
+                            </Typography>
+                            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                              {item.core.mainPieces.map((piece, idx) => (
+                                <Paper
+                                  key={idx}
+                                  elevation={0}
+                                  sx={{
+                                    p: 1.5,
+                                    bgcolor: alpha(theme.palette.primary.light, 0.05),
+                                    border: "1px solid",
+                                    borderColor: alpha(theme.palette.primary.main, 0.1),
+                                    borderRadius: 2,
+                                    minWidth: 160,
+                                    transition: "all 0.2s ease-in-out",
+                                    "&:hover": {
+                                      bgcolor: alpha(theme.palette.primary.light, 0.1),
+                                      borderColor: alpha(theme.palette.primary.main, 0.3),
+                                      transform: "translateY(-2px)",
+                                    },
+                                  }}
+                                >
+                                  <Typography
+                                    variant="caption"
+                                    fontWeight="bold"
+                                    color="primary.main"
+                                    gutterBottom
+                                    sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                                  >
+                                    <ViewInArIcon sx={{ fontSize: 14 }} /> PIEZA {idx + 1}
+                                  </Typography>
+                                  <Typography variant="body2" color="text.primary" fontWeight="medium">
+                                    {piece.length_mm}{" "}
+                                    <Typography component="span" variant="caption" color="text.secondary">
+                                      x
+                                    </Typography>{" "}
+                                    {piece.width_mm}{" "}
+                                    <Typography component="span" variant="caption" color="text.secondary">
+                                      mm
+                                    </Typography>
+                                  </Typography>
+
+                                  {piece.appliedAddons && piece.appliedAddons.length > 0 && (
+                                    <Box sx={{ mt: 1, pt: 1, borderTop: "1px dashed", borderColor: alpha(theme.palette.divider, 0.8) }}>
+                                      <Typography variant="caption" color="text.secondary" sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                                        <BuildOutlinedIcon sx={{ fontSize: 12, color: "text.secondary" }} /> {piece.appliedAddons.length}{" "}
+                                        {piece.appliedAddons.length === 1 ? "proceso" : "procesos"} adicionales
+                                      </Typography>
+                                    </Box>
+                                  )}
+                                </Paper>
+                              ))}
+                            </Box>
+                          </Box>
+                        )}
+
+                        {/* Feedback de Descuentos Individuales */}
+                        {item.discountAmount > 0 ? (
+                          <Box
+                            sx={{
+                              mt: 1,
+                              p: 1,
+                              bgcolor: alpha(theme.palette.success.main, 0.05),
+                              borderRadius: 2,
+                              border: "1px solid",
+                              borderColor: alpha(theme.palette.success.main, 0.2),
+                            }}
+                          >
+                            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+                              <Typography
+                                variant="caption"
+                                sx={{ fontWeight: "bold", px: 1, py: 0.2, bgcolor: "success.main", color: "white", borderRadius: 1 }}
+                              >
+                                DESCUENTO ÍTEM
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary" sx={{ textDecoration: "line-through" }}>
+                                Base: {(item.originalPoints || item.subtotalPoints + item.discountAmount)?.toLocaleString()} pts
+                              </Typography>
+                            </Box>
+
+                            {/* Mostrar reglas aplicadas si el backend las proporciona */}
+                            {(item.appliedRules || item.appliedDiscounts) && (item.appliedRules || item.appliedDiscounts)!.length > 0 ? (
+                              <>
+                                {(item.appliedRules || item.appliedDiscounts)!.map((discount, i) => (
+                                  <Typography key={i} variant="caption" color="success.main" display="block" fontWeight="medium">
+                                    ✓ {discount.ruleName}: -
+                                    {discount.discountAmount?.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} pts
+                                  </Typography>
+                                ))}
+                                {(item.appliedRules || item.appliedDiscounts)!.length > 1 && (
+                                  <Box sx={{ borderTop: "1px dashed", borderColor: alpha(theme.palette.success.main, 0.3), mt: 0.5, pt: 0.5 }}>
+                                    <Typography variant="caption" color="success.main" fontWeight="bold">
+                                      Total ítem: -{item.discountAmount?.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} pts
+                                    </Typography>
+                                  </Box>
+                                )}
+                              </>
+                            ) : (
+                              // Fallback si no hay array de reglas
+                              <Typography variant="caption" color="success.main" display="block" fontWeight="medium">
+                                ✓ Descuento aplicado: -{item.discountAmount?.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}{" "}
+                                pts
+                              </Typography>
+                            )}
+
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
+                              <Typography variant="caption" fontWeight="bold" color="text.secondary">
+                                Subtotal Neto:
+                              </Typography>
+                              <Typography variant="h6" color="primary.main" fontWeight="bold" sx={{ lineHeight: 1 }}>
+                                {item.subtotalPoints?.toLocaleString()} pts
+                              </Typography>
+                            </Box>
+                          </Box>
+                        ) : (
+                          <Typography variant="h6" color="primary.main" fontWeight="bold" sx={{ mt: 1 }}>
+                            {(item.originalPoints || item.subtotalPoints)?.toLocaleString()} pts
+                          </Typography>
+                        )}
                       </Box>
                     </Box>
                     <Box sx={{ display: "flex", gap: 1 }}>
@@ -251,18 +464,63 @@ export default function Cart() {
               <Typography fontWeight="medium">{cart.items.length}</Typography>
             </Box>
 
-            {totalDiscount > 0 && (
+            {cart.totalDiscount > 0 && (
               <>
                 <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                   <Typography color="text.secondary">Subtotal bruto:</Typography>
                   <Typography fontWeight="medium">{totalOriginalPoints.toLocaleString()} pts</Typography>
                 </Box>
+
+                {/* Ahorro en Ítems (si existe) */}
+                {totalItemDiscounts > 0 && (
+                  <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
+                    <Typography color="success.main" variant="body2">
+                      Ahorro en ítems:
+                    </Typography>
+                    <Typography color="success.main" variant="body2" fontWeight="medium">
+                      - {totalItemDiscounts.toLocaleString()} pts
+                    </Typography>
+                  </Box>
+                )}
+
+                {/* Ahorro Global (si existe) */}
+                {totalGlobalDiscounts > 0 && (
+                  <>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
+                      <Typography color="success.main" variant="body2">
+                        Descuentos globales:
+                      </Typography>
+                      <Typography color="success.main" variant="body2" fontWeight="medium">
+                        - {totalGlobalDiscounts.toLocaleString(undefined, { maximumFractionDigits: 2 })} pts
+                      </Typography>
+                    </Box>
+
+                    {/* Desglose de Reglas Globales */}
+                    {cart.appliedGlobalRules && cart.appliedGlobalRules.length > 0 && (
+                      <Box sx={{ mb: 1, pl: 2, borderLeft: "2px solid", borderColor: alpha(theme.palette.success.main, 0.2) }}>
+                        {cart.appliedGlobalRules.map((rule, i) => (
+                          <Box key={i} sx={{ display: "flex", justifyContent: "space-between", mb: 0.2 }}>
+                            <Typography variant="caption" color="text.secondary" sx={{ fontStyle: "italic" }}>
+                              • {rule.ruleName}
+                            </Typography>
+                            <Typography variant="caption" color="success.main">
+                              -{rule.discountAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })} pts
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    )}
+                  </>
+                )}
+
+                <Divider sx={{ my: 1, borderStyle: "dashed" }} />
+
                 <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                   <Typography color="success.main" fontWeight="bold">
                     Ahorro total:
                   </Typography>
                   <Typography color="success.main" fontWeight="bold">
-                    - {totalDiscount.toLocaleString()} pts
+                    - {cart.totalDiscount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} pts
                   </Typography>
                 </Box>
               </>
@@ -284,10 +542,10 @@ export default function Cart() {
                 fullWidth
                 endIcon={<ArrowForwardIcon />}
                 onClick={handleCheckout}
-                disabled={isProcessingCheckout}
+                disabled={isProcessingCheckout || isDirty || isAssigning}
                 sx={{ py: 1.5, borderRadius: 2, fontWeight: "bold", fontSize: "1.1rem" }}
               >
-                Finalizar Pedido
+                {isDirty ? "Recalcule para finalizar" : "Finalizar Pedido"}
               </Button>
 
               <Button variant="outlined" fullWidth startIcon={<SaveIcon />} onClick={saveAsDrafts} disabled={isProcessingCheckout} sx={{ borderRadius: 2 }}>

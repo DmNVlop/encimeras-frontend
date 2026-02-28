@@ -2,6 +2,13 @@
 
 import type { CoreEntityDto, UIStateDto, HydratedContextDto } from "./core.interfase";
 
+export interface AppliedDiscountDto {
+  ruleId: string;
+  ruleName: string;
+  discountAmount: number;
+  percentage?: number;
+}
+
 export interface CartItem {
   _id?: string;
   id?: string;
@@ -14,6 +21,8 @@ export interface CartItem {
   originalPoints: number;
   discountAmount: number;
   subtotalPoints: number;
+  appliedDiscounts?: AppliedDiscountDto[]; // Alias para UI
+  appliedRules?: AppliedDiscountDto[]; // Nombre real del backend
   draftId?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -27,6 +36,7 @@ export interface Cart {
   totalOriginalPoints: number;
   totalDiscount: number;
   totalPoints: number;
+  appliedGlobalRules?: AppliedDiscountDto[]; // Reglas aplicadas al total
   status: "ACTIVE" | "CONVERTED";
   createdAt?: string;
   updatedAt?: string;
