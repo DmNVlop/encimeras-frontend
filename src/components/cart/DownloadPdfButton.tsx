@@ -6,22 +6,48 @@ import { CartPdfDocument } from "./CartPdfDocument";
 import { usePdfData } from "../../utils/pdfAdapter";
 import type { Cart } from "../../interfases/cart.interfase";
 
+import type { ICustomer } from "../../interfases/customer.interfase";
+
 interface DownloadPdfButtonProps {
   cart: Cart;
+  user?: any;
+  customer?: ICustomer | null;
   disabled?: boolean;
 }
 
-const DownloadPdfButton: React.FC<DownloadPdfButtonProps> = ({ cart, disabled }) => {
+const DownloadPdfButton: React.FC<DownloadPdfButtonProps> = ({ cart, user, customer, disabled }) => {
   const [isClient, setIsClient] = useState(false);
-  const pdfData = usePdfData(cart);
+  const pdfData = usePdfData(cart, user, customer);
 
   // Evita errores de hidratación en SSR y asegura que estamos en el navegador
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // Si no estamos en el cliente o no hay datos parseados, abortamos
-  if (!isClient || !pdfData) return null;
+  // Si no estamos en el cliente, abortamos
+  if (!isClient) return null;
+
+  // Si no hay datos, mostramos el botón deshabilitado para que la UI no se rompa o desaparezca
+  if (!pdfData) {
+    return (
+      <Box sx={{ width: "100%" }}>
+        <Button
+          component="span"
+          variant="outlined"
+          fullWidth
+          color="info"
+          startIcon={<PictureAsPdfIcon />}
+          disabled
+          sx={{
+            borderRadius: 2,
+            borderWidth: 2,
+          }}
+        >
+          No disponible
+        </Button>
+      </Box>
+    );
+  }
 
   // Renderizamos el Link con un componente span-button interno para heredar UI de Material-UI
   return (

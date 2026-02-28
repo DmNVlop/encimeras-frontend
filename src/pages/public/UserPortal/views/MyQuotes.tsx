@@ -217,6 +217,7 @@ export default function MyQuotes() {
 
 // Sub-component for individual Order Card
 function OrderCard({ order }: { order: Order }) {
+  const navigate = useNavigate();
   const { header } = order;
   const activeStep = getStatusStep(header.status);
 
@@ -307,7 +308,12 @@ function OrderCard({ order }: { order: Order }) {
               </Stepper>
             </Box>
 
-            <Button variant="text" endIcon={<ChevronRight />} sx={{ fontWeight: 600, minWidth: 120 }}>
+            <Button
+              variant="text"
+              endIcon={<ChevronRight />}
+              sx={{ fontWeight: 600, minWidth: 120, whiteSpace: "nowrap" }}
+              onClick={() => navigate(`/my-quotes/${order._id}`)}
+            >
               Ver detalles
             </Button>
           </Stack>

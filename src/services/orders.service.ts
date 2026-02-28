@@ -1,16 +1,25 @@
-import { update, get } from "@/services/api.service"; // Tu utilidad genérica
+import { update, get } from "@/services/api.service";
+import type { Order } from "@/interfases/orders.interfase";
 
 export const ordersApi = {
-  // Método específico y tipado
-  findAll: async (status?: string) => {
+  /**
+   * Retorna el listado ligero de órdenes (solo header).
+   * Documentación: GET /orders → solo devuelve la cabecera para optimizar listados.
+   */
+  findAll: async (status?: string): Promise<Order[]> => {
     const params = status ? { status } : {};
-    return get<any[]>("/orders", { params }); // Ajustar tipo de retorno a Order[] cuando sea posible importarlo aqui o dejar any[] y castear
+    return get<Order[]>("/orders", { params });
+  },
+
+  /**
+   * Retorna la orden completa con items, core, uiState y hydratedContext.
+   * Documentación: GET /orders/:id
+   */
+  findById: async (orderId: string): Promise<Order> => {
+    return get<Order>(`/orders/${orderId}`);
   },
 
   updateStatus: async (orderId: string, status: "APPROVED" | "REJECTED" | "PENDING") => {
-    // Aquí usamos tu utilidad genérica
-    // Endpoint: '/orders'
-    // ID: orderId + '/status' para coincidir con la ruta del backend
     return update("/orders", `${orderId}/status`, { status });
   },
 };

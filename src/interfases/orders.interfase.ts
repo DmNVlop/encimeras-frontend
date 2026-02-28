@@ -20,17 +20,35 @@ export interface OrderHeader {
   deliveryDate?: Date | string;
 }
 
+export interface AppliedGlobalRule {
+  ruleId: string;
+  ruleName: string;
+  discountAmount: number;
+}
+
 export interface OrderLineItem {
-  cartItemName: string; // Nuevo: Trazabilidad técnica (ej: "Cocina de Juana")
+  cartItemId?: string;
+  cartItemName: string; // Trazabilidad técnica (ej: "Cocina de Juana")
   type: string;
   originalPoints: number;
   discountAmount: number;
   subtotalPoints: number; // Precio final con descuento de la línea
-  technicalSnapshot: {
+  core?: {
+    mainPieces: any[];
+    factoryId?: string;
+    customerId?: string;
+  };
+  uiState?: any;
+  hydratedContext?: {
     materials: any[];
-    pieces: any[]; // MainPieces con medidas finales
-    addons: any[]; // Accesorios aplicados
-    [key: string]: any; // Allow other properties just in case
+    [key: string]: any;
+  };
+  technicalSnapshot?: {
+    materials: any[];
+    pieces: any[];
+    mainPieces?: any[];
+    addons: any[];
+    [key: string]: any;
   };
 }
 
@@ -38,6 +56,7 @@ export interface Order {
   _id: string; // Mongoose Document ID
   header: OrderHeader;
   items: OrderLineItem[];
+  appliedGlobalRules?: AppliedGlobalRule[];
   originDraftId?: string;
   createdAt?: string;
   updatedAt?: string;

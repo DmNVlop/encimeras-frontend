@@ -24,6 +24,7 @@ const FactoryPosPage = lazy(() => import("@/pages/worker/FactoryPosPage"));
 const UserPortalLayout = lazy(() => import("@/pages/public/UserPortal/layout/UserPortalLayout"));
 const UserDashboard = lazy(() => import("@/pages/public/UserPortal/views/Dashboard"));
 const UserQuotes = lazy(() => import("@/pages/public/UserPortal/views/MyQuotes"));
+const OrderDetail = lazy(() => import("@/pages/public/UserPortal/views/OrderDetail"));
 const UserDrafts = lazy(() => import("@/pages/public/UserPortal/views/Drafts"));
 const UserProfile = lazy(() => import("@/pages/public/UserPortal/views/UserProfile"));
 const CartView = lazy(() => import("@/pages/public/UserPortal/views/Cart"));
@@ -52,6 +53,7 @@ export const appRoutes: AppRouteConfig[] = [
     children: [
       { path: "dashboard", component: UserDashboard, allowedRoles: [UserRole.USER, UserRole.SALES, UserRole.ADMIN] },
       { path: "my-quotes", component: UserQuotes, allowedRoles: [UserRole.USER, UserRole.SALES, UserRole.ADMIN] },
+      { path: "my-quotes/:orderId", component: OrderDetail, allowedRoles: [UserRole.USER, UserRole.SALES, UserRole.ADMIN] },
       { path: "cart", component: CartView, allowedRoles: [UserRole.USER, UserRole.SALES, UserRole.ADMIN] },
       { path: "drafts", component: UserDrafts, allowedRoles: [UserRole.USER, UserRole.SALES, UserRole.ADMIN] },
       { path: "user-profile", component: UserProfile, allowedRoles: [UserRole.USER, UserRole.SALES, UserRole.ADMIN] },

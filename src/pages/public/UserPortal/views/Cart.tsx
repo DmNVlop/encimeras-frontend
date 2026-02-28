@@ -34,6 +34,7 @@ import { CartLoadConflictDialog } from "@/components/cart/CartLoadConflictDialog
 import { CustomerSelection } from "@/pages/public/QuoteWizard/steps/components/step5/CustomerSelection";
 import type { ICustomer } from "@/interfases/customer.interfase";
 import { get } from "@/services/api.service";
+import { useAuth } from "@/context/AuthProvider";
 
 // Importación diferida (Lazy Load) del módulo pesado PDF
 const LazyDownloadPdfButton = lazy(() => import("@/components/cart/DownloadPdfButton"));
@@ -41,6 +42,7 @@ const LazyDownloadPdfButton = lazy(() => import("@/components/cart/DownloadPdfBu
 export default function Cart() {
   const theme = useTheme();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const {
     cart,
     loading,
@@ -562,7 +564,7 @@ export default function Cart() {
                   </Button>
                 }
               >
-                <LazyDownloadPdfButton cart={cart} disabled={isProcessingCheckout || isDirty || isAssigning} />
+                <LazyDownloadPdfButton cart={cart} user={user} customer={selectedCustomer} disabled={isProcessingCheckout || isDirty || isAssigning} />
               </Suspense>
             </Box>
           </Paper>
