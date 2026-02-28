@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense, lazy } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -34,6 +34,9 @@ import { CartLoadConflictDialog } from "@/components/cart/CartLoadConflictDialog
 import { CustomerSelection } from "@/pages/public/QuoteWizard/steps/components/step5/CustomerSelection";
 import type { ICustomer } from "@/interfases/customer.interfase";
 import { get } from "@/services/api.service";
+
+// Importación diferida (Lazy Load) del módulo pesado PDF
+const LazyDownloadPdfButton = lazy(() => import("@/components/cart/DownloadPdfButton"));
 
 export default function Cart() {
   const theme = useTheme();
@@ -551,6 +554,16 @@ export default function Cart() {
               <Button variant="outlined" fullWidth startIcon={<SaveIcon />} onClick={saveAsDrafts} disabled={isProcessingCheckout} sx={{ borderRadius: 2 }}>
                 Guardar todo como Borrador
               </Button>
+
+              <Suspense
+                fallback={
+                  <Button variant="outlined" color="info" disabled fullWidth sx={{ borderRadius: 2, borderWidth: 2 }}>
+                    Cargando módulo PDF...
+                  </Button>
+                }
+              >
+                <LazyDownloadPdfButton cart={cart} disabled={isProcessingCheckout || isDirty || isAssigning} />
+              </Suspense>
             </Box>
           </Paper>
         </Box>
