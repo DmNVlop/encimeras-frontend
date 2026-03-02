@@ -1,29 +1,31 @@
+import type { CoreEntityDto, UIStateDto } from "./core.interfase";
+
 export interface IDraft {
   _id: string; // Mongoose ID
   name?: string; // Custom name
   userId?: string;
   userEmail?: string;
-  configuration: {
+  core: CoreEntityDto; // REQUERIDO: Contrato estricto
+  uiState?: UIStateDto; // OPCIONAL: Metadatos Visuales
+  configuration?: {
     wizardTempMaterial: any;
     mainPieces: any[];
-    // Add other properties if needed
     selectedShapeId?: string | null;
-  };
-  currentPricePoints: number;
+  }; // DEPRECATED: Mantener por compatibilidad temporal
+  originalPoints: number;
+  discountAmount: number;
+  currentPricePoints: number; // EL BACKEND IGNORARÁ ESTO AL GUARDAR, SE RECALCULA
   expirationDate: string; // ISO Date string
   isConverted: boolean;
+  cartGroupId?: string; // Nuevo: ID para agrupar borradores
   createdAt?: string;
   updatedAt?: string;
 }
 
 export interface CreateDraftPayload {
   name?: string;
-  configuration: {
-    wizardTempMaterial: any;
-    mainPieces: any[];
-    selectedShapeId?: string | null;
-  };
-  currentPricePoints: number;
+  core: CoreEntityDto;
+  uiState?: UIStateDto;
 }
 
 export interface DraftResponse {

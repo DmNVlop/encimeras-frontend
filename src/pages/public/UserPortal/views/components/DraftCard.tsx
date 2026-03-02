@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Box, Card, CardContent, Typography, Button, LinearProgress, IconButton } from "@mui/material";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Tooltip, Chip } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import type { IDraft } from "@/interfases/draft.interfase";
 
@@ -43,13 +44,15 @@ export default function DraftCard({ draft, onDelete }: DraftCardProps) {
   };
 
   // Derive display data
-  // const materialName = draft.configuration.wizardTempMaterial?.name || "Sin material seleccionado";
-  const materialCategory = draft.configuration.wizardTempMaterial?.category || draft.configuration.wizardTempMaterial?.materialName || "Borrador";
+  const wizardTempMaterial = draft.uiState?.wizardTempMaterial;
+  const mainPieces = draft.core.mainPieces || [];
+
+  const materialCategory = wizardTempMaterial?.category || wizardTempMaterial?.materialName || "Borrador";
 
   // Calculate mock progress based on data presence
   let progress = 20;
-  if (draft.configuration.wizardTempMaterial) progress += 20;
-  if (draft.configuration.mainPieces && draft.configuration.mainPieces.length > 0) progress += 40;
+  if (wizardTempMaterial) progress += 20;
+  if (mainPieces.length > 0) progress += 40;
   if (draft.currentPricePoints > 0) progress = 90;
 
   const handleContinue = () => {
@@ -80,20 +83,20 @@ export default function DraftCard({ draft, onDelete }: DraftCardProps) {
             sx={{
               width: 80,
               height: 80,
-              backgroundColor: draft.configuration.wizardTempMaterial?.materialImage ? "transparent" : "#FFF8E1",
+              backgroundColor: wizardTempMaterial?.materialImage ? "transparent" : "#FFF8E1",
               borderRadius: 2,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               overflow: "hidden",
-              border: draft.configuration.wizardTempMaterial?.materialImage ? "1px solid" : "none",
+              border: wizardTempMaterial?.materialImage ? "1px solid" : "none",
               borderColor: "divider",
             }}
           >
-            {draft.configuration.wizardTempMaterial?.materialImage ? (
+            {wizardTempMaterial?.materialImage ? (
               <Box
                 component="img"
-                src={draft.configuration.wizardTempMaterial.materialImage}
+                src={wizardTempMaterial.materialImage}
                 alt={materialCategory}
                 sx={{
                   width: "100%",
@@ -106,7 +109,7 @@ export default function DraftCard({ draft, onDelete }: DraftCardProps) {
             )}
           </Box>
 
-          {draft.configuration.mainPieces && draft.configuration.mainPieces.length > 0 && (
+          {mainPieces.length > 0 && (
             <Box
               sx={{
                 bgcolor: "primary.light",
@@ -117,10 +120,31 @@ export default function DraftCard({ draft, onDelete }: DraftCardProps) {
                 fontSize: "0.75rem",
                 fontWeight: "bold",
                 display: "inline-block",
+                mr: 1,
               }}
             >
-              {draft.configuration.mainPieces.length} Piezas
+              {mainPieces.length} Piezas
             </Box>
+          )}
+
+          {draft.cartGroupId && (
+            <Tooltip title={`En carrito: ${draft.cartGroupId.slice(-6)}`}>
+              <Box
+                sx={{
+                  bgcolor: "success.light",
+                  color: "success.main",
+                  width: 28,
+                  height: 28,
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  mr: 1,
+                }}
+              >
+                <ShoppingCartIcon sx={{ fontSize: 16 }} />
+              </Box>
+            </Tooltip>
           )}
 
           <IconButton size="small" sx={{ color: "error.main" }} onClick={handleDeleteClick}>
@@ -151,8 +175,8 @@ export default function DraftCard({ draft, onDelete }: DraftCardProps) {
 
         {/* Selected Attributes & Piece Count */}
         <Box mt={2} mb={2} sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-          {draft.configuration.wizardTempMaterial?.selectedAttributes &&
-            Object.values(draft.configuration.wizardTempMaterial.selectedAttributes).map((attr: any, index) => (
+          {wizardTempMaterial?.selectedAttributes &&
+            Object.values(wizardTempMaterial.selectedAttributes).map((attr: any, index) => (
               <Box
                 key={index}
                 sx={{
@@ -171,6 +195,33 @@ export default function DraftCard({ draft, onDelete }: DraftCardProps) {
               </Box>
             ))}
         </Box>
+
+        {draft.currentPricePoints > 0 && (
+          <Box mb={2}>
+            {draft.discountAmount > 0 ? (
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ textDecoration: "line-through" }}>
+                    {draft.originalPoints?.toLocaleString()} pts
+                  </Typography>
+                  <Typography variant="h6" color="primary.main" fontWeight="bold">
+                    {draft.currentPricePoints?.toLocaleString()} pts
+                  </Typography>
+                </Box>
+                <Chip
+                  label={`¡Ahorras ${draft.discountAmount.toLocaleString()} pts!`}
+                  size="small"
+                  color="success"
+                  sx={{ fontWeight: "bold", alignSelf: "flex-start", height: 24, fontSize: "0.75rem" }}
+                />
+              </Box>
+            ) : (
+              <Typography variant="h6" color="primary.main" fontWeight="bold">
+                {draft.currentPricePoints?.toLocaleString()} pts
+              </Typography>
+            )}
+          </Box>
+        )}
 
         <Box mt={3}>
           <LinearProgress

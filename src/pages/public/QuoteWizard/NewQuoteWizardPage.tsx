@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { Container, Box, Paper, Button, Typography, useTheme, useMediaQuery, Alert, Backdrop, CircularProgress, Snackbar, AlertTitle } from "@mui/material";
-import { QuoteProvider, useQuoteDispatch, useQuoteState } from "@/context/QuoteContext";
+import { useQuoteDispatch, useQuoteState } from "@/context/QuoteContext";
 
 // Importar los componentes visuales extraidos
 import { WizardHeader } from "./components/WizardHeader";
 import { WizardFooter } from "./components/WizardFooter";
 import { ResetQuoteDialog } from "./components/ResetQuoteDialog";
 import { DraftNamingDialog } from "./components/DraftNamingDialog";
+import { GroupLoaderDialog } from "./components/GroupLoaderDialog"; // Nuevo
 
 // Importar los pasos
 import { WizardStep1_Materials } from "./steps/WizardStep1_Materials";
@@ -17,6 +18,8 @@ import { WizardStep5_Summary } from "./steps/WizardStep5_Summary";
 import { useLocation, useNavigate } from "react-router-dom";
 import { draftsApi } from "@/services/drafts.service";
 import { validateAssemblies } from "@/utils/quoteValidation";
+import { useCart } from "@/context/CartContext";
+import { mapStateToCoreDto, mapStateToUiState } from "@/utils/coreMapper";
 
 const steps = ["Material", "Forma y Medidas", "Trabajos y Ensamblaje", "Complementos", "Resumen"];
 
@@ -42,7 +45,7 @@ const WizardContent: React.FC<{ activeStep: number }> = ({ activeStep }) => {
 const WizardStepperContent: React.FC = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [validationError, setValidationError] = useState<string | null>(null);
-  const { wizardTempMaterial, mainPieces, selectedShapeId, currentDraftId, currentDraftName, calculationResult } = useQuoteState();
+  const { wizardTempMaterial, mainPieces, selectedShapeId, currentDraftId, currentDraftName } = useQuoteState();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -58,11 +61,18 @@ const WizardStepperContent: React.FC = () => {
   const [openNamingModal, setOpenNamingModal] = useState(false);
   const [tempDraftName, setTempDraftName] = useState("");
   const [pendingResetAction, setPendingResetAction] = useState<"SAVE_AS_COPY" | "UPDATE" | null>(null);
+  const [showGroupLoader, setShowGroupLoader] = useState(false); // Nuevo
+  const [pendingGroupId, setPendingGroupId] = useState<string | null>(null); // Nuevo
 
   // --- HOOKS ---
   const dispatch = useQuoteDispatch(); // <--- Necesitas exponer esto en tu Context
   const location = useLocation(); // Para leer ?draftId=...
   const navigate = useNavigate();
+  const { cart, addItemsFromGroup } = useCart(); // Nuevo
+
+  // Feedback para carga grupal
+  const [groupLoadSuccess, setGroupLoadSuccess] = useState(false);
+  const [groupLoadError, setGroupLoadError] = useState<string | null>(null);
 
   // --- EFECTO DE CARGA PARA LEER RUTA ---
   React.useEffect(() => {
@@ -81,6 +91,10 @@ const WizardStepperContent: React.FC = () => {
     try {
       const { data } = await draftsApi.getById(id);
 
+      if (!data || !data.data) {
+        throw new Error("El borrador no existe o está vacío.");
+      }
+
       // Despachamos al reducer
       dispatch({
         type: "LOAD_SAVED_PROJECT",
@@ -96,11 +110,17 @@ const WizardStepperContent: React.FC = () => {
         setShowPriceWarning(true);
       }
 
-      // Opcional: Saltar directo al resumen o al paso 2
-      // setActiveStep(1);
+      // NUEVO: Verificar si es parte de un grupo
+      if ((data.data as any).cartGroupId) {
+        setPendingGroupId((data.data as any).cartGroupId);
+        setShowGroupLoader(true);
+      }
     } catch (error) {
-      console.error(error);
-      setLoadError("No se pudo recuperar el presupuesto.");
+      console.error("Draft loading error:", error);
+      setLoadError("El borrador ha caducado o no existe. Iniciando un presupuesto nuevo.");
+      // Limpiamos la URL para evitar reintentos de carga fallidos y resetear estado
+      navigate("/quote", { replace: true });
+      dispatch({ type: "RESET_WIZARD" });
     } finally {
       setIsLoadingDraft(false);
     }
@@ -200,16 +220,18 @@ const WizardStepperContent: React.FC = () => {
     setActiveStep(0);
     dispatch({ type: "RESET_WIZARD" });
     navigate(location.pathname, { replace: true });
+    setOpenResetDialog(false); // Asegurar que se cierra el modal
   };
 
   // --- HANDLER: GUARDAR COMO NUEVO Y REINICIAR ---
   const handleSaveAsNewAndReset = async (nameToSave: string) => {
     setIsSavingAndResetting(true);
     try {
+      const state = { wizardTempMaterial, mainPieces, selectedShapeId } as any;
       const payload = {
         name: nameToSave || currentDraftName,
-        configuration: { wizardTempMaterial, mainPieces, selectedShapeId },
-        currentPricePoints: calculationResult?.totalPoints || 0,
+        core: mapStateToCoreDto(state),
+        uiState: mapStateToUiState(state),
       };
 
       await draftsApi.create(payload);
@@ -230,10 +252,11 @@ const WizardStepperContent: React.FC = () => {
     if (!currentDraftId) return;
     setIsSavingAndResetting(true);
     try {
+      const state = { wizardTempMaterial, mainPieces, selectedShapeId } as any;
       const payload = {
         name: nameToSave || currentDraftName,
-        configuration: { wizardTempMaterial, mainPieces, selectedShapeId },
-        currentPricePoints: calculationResult?.totalPoints || 0,
+        core: mapStateToCoreDto(state),
+        uiState: mapStateToUiState(state),
       };
 
       await draftsApi.update(currentDraftId, payload);
@@ -382,16 +405,47 @@ const WizardStepperContent: React.FC = () => {
         initialName={tempDraftName}
         title={pendingResetAction === "SAVE_AS_COPY" ? "Guardar Copia" : "Guardar Presupuesto"}
       />
+
+      {/* --- 6. DIÁLOGO DE CARGA GRUPAL --- */}
+      <GroupLoaderDialog
+        open={showGroupLoader}
+        onClose={() => setShowGroupLoader(false)}
+        hasItemsInCart={(cart?.items.length || 0) > 0}
+        onConfirm={async (clearFirst) => {
+          if (!pendingGroupId) return;
+          try {
+            await addItemsFromGroup(pendingGroupId, clearFirst);
+            setGroupLoadSuccess(true);
+            // Resetear el presupuestador y limpiar la URL al cargar un grupo
+            handleReset();
+          } catch (error) {
+            console.error("Group Load Error:", error);
+            setGroupLoadError("No se pudieron cargar todos los elementos del grupo.");
+          } finally {
+            setShowGroupLoader(false);
+          }
+        }}
+      />
+
+      {/* 7. Snackbar de éxito de carga grupal */}
+      <Snackbar open={groupLoadSuccess} autoHideDuration={6000} onClose={() => setGroupLoadSuccess(false)}>
+        <Alert severity="success" variant="filled">
+          Grupo de presupuestos añadido correctamente al carrito.
+        </Alert>
+      </Snackbar>
+
+      {/* 8. Snackbar de error de carga grupal */}
+      <Snackbar open={!!groupLoadError} autoHideDuration={6000} onClose={() => setGroupLoadError(null)}>
+        <Alert severity="error" variant="filled">
+          {groupLoadError}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
 
 const NewQuoteWizardPage: React.FC = () => {
-  return (
-    <QuoteProvider>
-      <WizardStepperContent />
-    </QuoteProvider>
-  );
+  return <WizardStepperContent />;
 };
 
 export default NewQuoteWizardPage;

@@ -8,6 +8,7 @@ import TuneIcon from "@mui/icons-material/Tune";
 import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import CalculateIcon from "@mui/icons-material/Calculate";
+import { useAuth } from "@/hooks/useAuth";
 
 interface NavItem {
   text: string;
@@ -15,30 +16,31 @@ interface NavItem {
   path?: string;
   type?: "item" | "divider" | "subheader";
   children?: NavItem[];
+  allowedRoles?: string[]; // Añadido para control de visibilidad
 }
 
 const menuConfig: NavItem[] = [
-  { text: "Dashboard", icon: <DashboardIcon />, path: "/admin/dashboard", type: "item" },
-  { text: "Presupuestador", icon: <CalculateIcon />, path: "/dashboard", type: "item" },
-  { text: "Ordenes", icon: <ShoppingBagIcon />, path: "/admin/orders", type: "item" },
-  // { text: "Borradores", icon: <ReceiptLongIcon />, path: "/admin/drafts", type: "item" },
+  { text: "Dashboard", icon: <DashboardIcon />, path: "/admin/dashboard", type: "item", allowedRoles: ["ADMIN"] },
+  { text: "Presupuestador", icon: <CalculateIcon />, path: "/dashboard", type: "item", allowedRoles: ["ADMIN", "SALES"] },
+  { text: "Ordenes", icon: <ShoppingBagIcon />, path: "/admin/orders", type: "item", allowedRoles: ["ADMIN", "SALES"] },
   { text: "divider", type: "divider" },
-  { text: "ADMINISTRACIÓN", type: "subheader" },
+  { text: "ADMINISTRACIÓN", type: "subheader", allowedRoles: ["ADMIN", "SALES"] },
   {
     text: "Configuración",
     icon: <SettingsIcon />,
     type: "item",
+    allowedRoles: ["ADMIN", "SALES"],
     children: [
-      { text: "Usuarios", path: "/admin/users" },
-      { text: "Clientes", path: "/admin/customers" },
-      { text: "Descuentos", path: "/admin/discount-rules" },
-      // { text: "Identidad", path: "/admin/identity" },
+      { text: "Usuarios", path: "/admin/users", allowedRoles: ["ADMIN"] },
+      { text: "Clientes", path: "/admin/customers", allowedRoles: ["ADMIN", "SALES"] },
+      { text: "Descuentos", path: "/admin/discount-rules", allowedRoles: ["ADMIN", "SALES"] },
     ],
   },
   {
     text: "Parametrización",
     icon: <TuneIcon />,
     type: "item",
+    allowedRoles: ["ADMIN"],
     children: [
       { text: "Atributos", path: "/admin/attributes" },
       { text: "Materiales", path: "/admin/materials" },
@@ -55,10 +57,17 @@ interface AdminSidebarProps {
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ drawerWidth }) => {
   const location = useLocation();
+  const { user } = useAuth(); // Inyectamos el usuario
   const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({
     Configuración: true,
     Parametrización: true,
   });
+
+  // Función para verificar si un ítem es visible para el usuario actual
+  const isVisible = (item: NavItem) => {
+    if (!item.allowedRoles) return true;
+    return user?.roles.some((role: string) => item.allowedRoles?.includes(role));
+  };
 
   // Auto-open menus if a child is active
   useEffect(() => {
@@ -90,7 +99,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ drawerWidth }) => {
       <Toolbar />
       <Box sx={{ overflow: "auto", px: 2, py: 1 }}>
         <List disablePadding>
-          {menuConfig.map((item, index) => {
+          {menuConfig.filter(isVisible).map((item, index) => {
             if (item.type === "divider") {
               return <Divider key={`divider-${index}`} sx={{ my: 1.5, opacity: 0.6 }} />;
             }
@@ -186,11 +195,11 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ drawerWidth }) => {
                           bottom: 14,
                           width: "1.5px",
                           bgcolor: "rgba(0,0,0,0.06)",
-                          borderRadius: "1px",
+                          borderRadius: "1.5px",
                         }}
                       />
 
-                      {item.children?.map((child) => {
+                      {item.children?.filter(isVisible).map((child) => {
                         const isChildCurrent = location.pathname === child.path;
                         return (
                           <ListItem key={child.text} disablePadding sx={{ mb: 0.1 }}>

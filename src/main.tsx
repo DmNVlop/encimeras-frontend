@@ -8,7 +8,7 @@ import App from "./App.tsx";
 createRoot(document.getElementById("root")!).render(
   // <StrictMode>
   <SocketProvider>
-    <App />,
+    <App />
   </SocketProvider>,
   // </StrictMode>,
 );

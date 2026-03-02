@@ -1,13 +1,13 @@
 // --- TIPOS ---
 import type { CalculationResponse } from "@/interfases/price.interfase";
-import type { ICustomer } from "@/interfases/customer.interfase";
+// ICustomer eliminado - Selección en el carrito
 
 // --- SUB-COMPONENTES EXTRAÍDOS ---
 import { SummaryHeader } from "./components/step5/SummaryHeader";
-import { CustomerSelection } from "./components/step5/CustomerSelection";
 import { BreakdownSection } from "./components/step5/BreakdownSection";
 import { RequesterInfo } from "./components/step5/RequesterInfo";
-import { SuccessView } from "./components/step5/SuccessView";
+import { SummaryActions } from "./components/step5/SummaryActions";
+// SuccessView eliminado - El envío se hace desde el carrito
 
 // =============================================================================
 // COMPONENTE WizardStep5_Summary
@@ -23,23 +23,36 @@ import { validateAssemblies } from "@/utils/quoteValidation";
 // --- CONTEXTO Y SERVICIOS ---
 import { useQuoteState, useQuoteDispatch } from "@/context/QuoteContext";
 import { useAuth } from "@/context/AuthProvider";
-import { post, get } from "@/services/api.service";
+import { useCart } from "@/context/CartContext"; // Nuevo
+import { post } from "@/services/api.service";
 import { draftsApi } from "@/services/drafts.service";
 
 // --- COMPONENTES COMUNES ---
 import { ApiErrorFeedback } from "@/pages/public/common/ApiErrorFeedback";
 import { DraftNamingDialog } from "../components/DraftNamingDialog";
 
+// --- MAPPERS ---
+import { mapStateToCoreDto, mapStateToUiState } from "@/utils/coreMapper";
+
 export const WizardStep5_Summary: React.FC = () => {
   const { user } = useAuth();
 
-  const { mainPieces, selectedShapeId, isCalculating, calculationResult, error, currentDraftId, currentDraftName, wizardTempMaterial } = useQuoteState();
+  const {
+    mainPieces,
+    selectedShapeId,
+    isCalculating,
+    calculationResult,
+    error,
+    currentDraftId,
+    currentDraftName,
+    wizardTempMaterial,
+    currentCartItemId,
+    currentCartItemName,
+    selectedCustomer,
+  } = useQuoteState();
   const dispatch = useQuoteDispatch();
 
-  // Estado local para el envío final
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const { addToCart, updateCartItem } = useCart(); // Nuevo
 
   // --- ESTADOS PARA BORRADORES ---
   const [isSavingDraft, setIsSavingDraft] = useState(false);
@@ -48,28 +61,13 @@ export const WizardStep5_Summary: React.FC = () => {
   // ESTADO PARA EL MODAL 3D
   const [open3D, setOpen3D] = useState(false);
 
-  const [customers, setCustomers] = useState<ICustomer[]>([]);
-  const [selectedCustomer, setSelectedCustomer] = useState<ICustomer | null>(null);
-
   // --- MODAL GUARDAR BORRADOR ---
   const [openSaveModal, setOpenSaveModal] = useState(false);
+  const [openCartModal, setOpenCartModal] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [tempDraftName, setTempDraftName] = useState("");
-  const [loadingCustomers, setLoadingCustomers] = useState(false);
 
-  React.useEffect(() => {
-    const fetchCustomers = async () => {
-      setLoadingCustomers(true);
-      try {
-        const data = await get<ICustomer[]>("/customers");
-        setCustomers(data);
-      } catch (err) {
-        console.error("Error fetching customers for wizard:", err);
-      } finally {
-        setLoadingCustomers(false);
-      }
-    };
-    fetchCustomers();
-  }, []);
+  // --- AUTOMATIC CUSTOMER RESOLUTION REMOVED (Handled in Cart) ---
 
   // --- REMOVED AUTO-CALCULATE ON CUSTOMER CHANGE ---
   // We now force the user to click "Calculate" to see the impact.
@@ -140,69 +138,17 @@ export const WizardStep5_Summary: React.FC = () => {
   };
 
   // ---------------------------------------------------------------------------
-  // HANDLER: ENVIAR PEDIDO (POST /quotes)
-  // ---------------------------------------------------------------------------
-  const handleFinalSubmit = async () => {
-    setIsSubmitting(true);
-    setSubmitSuccess(false);
-
-    try {
-      setSubmitError(null);
-      // PASO 1: Garantizar que existe un Borrador actualizado
-      let activeDraftId = currentDraftId;
-
-      // Payload actual del contexto
-      const currentPayload = {
-        name: currentDraftName,
-        configuration: { wizardTempMaterial, mainPieces, selectedShapeId },
-        currentPricePoints: calculationResult?.finalTotalPoints || calculationResult?.totalPoints || 0,
-      };
-
-      if (activeDraftId) {
-        // A) Si YA existe: Lo actualizamos silenciosamente para asegurar que
-        // lo que se convierte en orden es EXACTAMENTE lo que hay en pantalla.
-        await draftsApi.update(activeDraftId, currentPayload);
-      } else {
-        // B) Si NO existe: Lo creamos en segundo plano
-        const draftRes = await draftsApi.create(currentPayload);
-        activeDraftId = draftRes.data.id;
-        // Importante: Actualizamos el contexto por si el usuario se queda aquí
-        dispatch({ type: "SET_DRAFT_ID", payload: activeDraftId });
-      }
-
-      // PASO 2: Convertir ese Borrador en Orden Oficial
-      // Usamos el email del usuario logueado
-      const orderRes = await draftsApi.convertToOrder({
-        draftId: activeDraftId,
-        customerId: user?.email || user?.username || "usuario-autenticado",
-      });
-
-      console.log("Orden Creada:", orderRes.data.orderNumber);
-      setSubmitSuccess(true);
-    } catch (err: any) {
-      console.error("Submit Error:", err);
-      const errorMessage = err.response?.data?.message || "Hubo un error al procesar tu pedido. Por favor, intenta de nuevo.";
-      setSubmitError(errorMessage);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // ---------------------------------------------------------------------------
   // HANDLER: GUARDAR/ACTUALIZAR BORRADOR
   // ---------------------------------------------------------------------------
   const handleSaveDraft = async (nameToSave: string) => {
     setIsSavingDraft(true);
     setSaveMessage(null);
 
+    const state = { mainPieces, selectedShapeId, wizardTempMaterial } as any;
     const payload = {
       name: nameToSave,
-      configuration: {
-        wizardTempMaterial: wizardTempMaterial,
-        mainPieces: mainPieces,
-        selectedShapeId: selectedShapeId,
-      },
-      currentPricePoints: calculationResult?.finalTotalPoints || calculationResult?.totalPoints || 0,
+      core: mapStateToCoreDto(state),
+      uiState: mapStateToUiState(state),
     };
 
     try {
@@ -233,39 +179,55 @@ export const WizardStep5_Summary: React.FC = () => {
   };
 
   // ---------------------------------------------------------------------------
-  // HANDLER: REINICIAMOS EL PRESUPUESTADOR
+  // HANDLER: AÑADIR AL CARRITO
   // ---------------------------------------------------------------------------
-  const handleStartNew = () => {
-    // 1. Obtenemos la ruta base sin parámetros (ej. "/presupuestador" en lugar de "/presupuestador?draftId=xyz")
-    const basePath = window.location.pathname;
+  const handleAddToCart = async (alias: string) => {
+    setIsAddingToCart(true);
+    try {
+      const state = { mainPieces, selectedShapeId, wizardTempMaterial } as any;
+      const payload = {
+        customName: alias,
+        core: mapStateToCoreDto(state),
+        uiState: mapStateToUiState(state),
+        draftId: currentDraftId || undefined,
+      };
 
-    // 2. Forzamos una navegación nativa del navegador.
-    // Esto hace dos cosas:
-    // a) Elimina el query param ?draftId=...
-    // b) Provoca un refresco real (Hard Reload), lo que limpia la memoria RAM,
-    //    el Contexto de React y el contexto WebGL de BabylonJS.
-    window.location.href = basePath;
+      if (currentCartItemId) {
+        await updateCartItem(currentCartItemId, payload);
+        setSaveMessage({ type: "success", text: "Ítem del carrito actualizado." });
+      } else {
+        await addToCart(payload);
+        setSaveMessage({ type: "success", text: "Añadido al carrito correctamente." });
+      }
+    } catch (err: any) {
+      console.error("Add to Cart Error:", err);
+      setSaveMessage({ type: "error", text: "No se pudo añadir al carrito." });
+    } finally {
+      setIsAddingToCart(false);
+    }
   };
 
   // ---------------------------------------------------------------------------
   // RENDER PRINCIPAL
   // ---------------------------------------------------------------------------
-  if (submitSuccess) {
-    return <SuccessView onStartNew={handleStartNew} />;
-  }
-
   return (
     <Box sx={{ pb: 4 }}>
       {/* CABECERA CON TÍTULO Y ACCIONES */}
       <SummaryHeader
         isSavingDraft={isSavingDraft}
         isCalculating={isCalculating}
+        isAddingToCart={isAddingToCart}
         canAction={mainPieces.length > 0}
         onSaveDraft={() => {
           setTempDraftName(currentDraftName || "");
           setOpenSaveModal(true);
         }}
         onCalculate={handleCalculate}
+        onAddToCart={() => {
+          setTempDraftName(currentDraftName || (currentCartItemName as string) || "");
+          setOpenCartModal(true);
+        }}
+        isEditingCart={!!currentCartItemId}
       />
 
       {/* Snackbar para el feedback de guardado */}
@@ -282,17 +244,6 @@ export const WizardStep5_Summary: React.FC = () => {
         </Box>
       )}
 
-      {/* SELECCIÓN DE CLIENTE */}
-      <CustomerSelection
-        customers={customers}
-        selectedCustomer={selectedCustomer}
-        loadingCustomers={loadingCustomers}
-        onCustomerChange={(newValue) => {
-          setSelectedCustomer(newValue);
-          dispatch({ type: "CLEAR_CALCULATION" });
-        }}
-      />
-
       {/* DESGLOSE Y PROYECTO */}
       <BreakdownSection
         calculationResult={calculationResult as CalculationResponse}
@@ -301,15 +252,28 @@ export const WizardStep5_Summary: React.FC = () => {
         selectedShapeId={selectedShapeId}
       />
 
-      {/* DATOS DE USUARIO Y ENVÍO FINAL */}
+      {calculationResult && <RequesterInfo user={user} submitError={null} />}
+
+      {/* BOTONES DE ACCIÓN AL FINAL (SOLO SI HAY RESULTADOS) */}
       {calculationResult && (
-        <RequesterInfo
-          user={user}
-          isSubmitting={isSubmitting}
-          submitError={submitError}
-          canSubmit={!!selectedCustomer && !!calculationResult}
-          onSubmit={handleFinalSubmit}
-        />
+        <Box sx={{ mt: 5, pt: 3, borderTop: "1px solid", borderColor: "divider", display: "flex", justifyContent: "flex-end" }}>
+          <SummaryActions
+            isSavingDraft={isSavingDraft}
+            isCalculating={isCalculating}
+            isAddingToCart={isAddingToCart}
+            canAction={mainPieces.length > 0}
+            onSaveDraft={() => {
+              setTempDraftName(currentDraftName || "");
+              setOpenSaveModal(true);
+            }}
+            onCalculate={handleCalculate}
+            onAddToCart={() => {
+              setTempDraftName(currentDraftName || (currentCartItemName as string) || "");
+              setOpenCartModal(true);
+            }}
+            isEditingCart={!!currentCartItemId}
+          />
+        </Box>
       )}
 
       {/* --- MODAL DEL VISOR 3D --- */}
@@ -335,6 +299,20 @@ export const WizardStep5_Summary: React.FC = () => {
         }}
         isSaving={isSavingDraft}
         initialName={tempDraftName}
+      />
+
+      {/* --- MODAL PARA AÑADIR AL CARRITO CON ALIAS --- */}
+      <DraftNamingDialog
+        open={openCartModal}
+        onClose={() => setOpenCartModal(false)}
+        onConfirm={(name) => {
+          handleAddToCart(name);
+          setOpenCartModal(false);
+        }}
+        isSaving={isAddingToCart}
+        initialName={tempDraftName}
+        title="Añadir al Carrito"
+        subtitle="Asigna un nombre a esta configuración (ej: Isla, Cocina Principal) para identificarla en tu carrito."
       />
     </Box>
   );

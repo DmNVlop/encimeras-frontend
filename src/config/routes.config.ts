@@ -18,19 +18,16 @@ const OrdersPage = lazy(() => import("@/pages/admin/OrdersTable"));
 const UsersPage = lazy(() => import("@/pages/admin/UsersPage"));
 const CustomersPage = lazy(() => import("@/pages/admin/CustomersPage"));
 const DiscountRulesPage = lazy(() => import("@/pages/admin/DiscountRulesPage"));
+const FactoryPosPage = lazy(() => import("@/pages/worker/FactoryPosPage"));
 
 // USER PORTAL
 const UserPortalLayout = lazy(() => import("@/pages/public/UserPortal/layout/UserPortalLayout"));
 const UserDashboard = lazy(() => import("@/pages/public/UserPortal/views/Dashboard"));
 const UserQuotes = lazy(() => import("@/pages/public/UserPortal/views/MyQuotes"));
+const OrderDetail = lazy(() => import("@/pages/public/UserPortal/views/OrderDetail"));
 const UserDrafts = lazy(() => import("@/pages/public/UserPortal/views/Drafts"));
 const UserProfile = lazy(() => import("@/pages/public/UserPortal/views/UserProfile"));
-
-// ADMIN: "ADMIN",
-// SALES_FACTORY: "SALES_FACTORY",
-// WORKER: "WORKER",
-// SALES_SHOP: "SALES_SHOP",
-// USER: "USER",
+const CartView = lazy(() => import("@/pages/public/UserPortal/views/Cart"));
 
 export const appRoutes: AppRouteConfig[] = [
   // 1. LOGIN [RUTA PÚBLICA]
@@ -52,23 +49,28 @@ export const appRoutes: AppRouteConfig[] = [
   {
     path: "/",
     component: UserPortalLayout,
-    allowedRoles: [UserRole.USER, UserRole.ADMIN],
+    allowedRoles: [UserRole.USER, UserRole.ADMIN, UserRole.SALES],
     children: [
-      { path: "dashboard", component: UserDashboard, allowedRoles: [UserRole.USER, UserRole.ADMIN] },
-      { path: "my-quotes", component: UserQuotes, allowedRoles: [UserRole.USER, UserRole.ADMIN] },
-      { path: "drafts", component: UserDrafts, allowedRoles: [UserRole.USER, UserRole.ADMIN] },
-      { path: "user-profile", component: UserProfile, allowedRoles: [UserRole.USER, UserRole.ADMIN] },
+      { path: "dashboard", component: UserDashboard, allowedRoles: [UserRole.USER, UserRole.SALES, UserRole.ADMIN] },
+      { path: "my-quotes", component: UserQuotes, allowedRoles: [UserRole.USER, UserRole.SALES, UserRole.ADMIN] },
+      { path: "my-quotes/:orderId", component: OrderDetail, allowedRoles: [UserRole.USER, UserRole.SALES, UserRole.ADMIN] },
+      { path: "cart", component: CartView, allowedRoles: [UserRole.USER, UserRole.SALES, UserRole.ADMIN] },
+      { path: "drafts", component: UserDrafts, allowedRoles: [UserRole.USER, UserRole.SALES, UserRole.ADMIN] },
+      { path: "user-profile", component: UserProfile, allowedRoles: [UserRole.USER, UserRole.SALES, UserRole.ADMIN] },
     ],
   },
 
-  // 4. PANEL DE ADMIN (ADMIN)
-  // Nota: El componente principal es el LAYOUT
+  // 4. PANEL DE ADMIN (ADMIN & SALES)
   {
     path: "/admin",
     component: AdminLayout,
-    allowedRoles: [UserRole.ADMIN], // El Guard protegerá todo lo que esté dentro
+    allowedRoles: [UserRole.ADMIN, UserRole.SALES],
     children: [
       { path: "dashboard", component: DashboardPage, allowedRoles: [UserRole.ADMIN] },
+      { path: "orders", component: OrdersPage, allowedRoles: [UserRole.ADMIN, UserRole.SALES] },
+      { path: "users", component: UsersPage, allowedRoles: [UserRole.ADMIN] },
+      { path: "customers", component: CustomersPage, allowedRoles: [UserRole.ADMIN, UserRole.SALES] },
+      { path: "discount-rules", component: DiscountRulesPage, allowedRoles: [UserRole.ADMIN, UserRole.SALES] },
       { path: "materials", component: MaterialsPage, allowedRoles: [UserRole.ADMIN] },
       { path: "rule-sets", component: MeasurementRuleSetPage, allowedRoles: [UserRole.ADMIN] },
       { path: "addons", component: AddonsPage, allowedRoles: [UserRole.ADMIN] },
@@ -76,10 +78,13 @@ export const appRoutes: AppRouteConfig[] = [
       { path: "cutouts", component: CutoutsPage, allowedRoles: [UserRole.ADMIN] },
       { path: "price-configs", component: PriceConfigsPage, allowedRoles: [UserRole.ADMIN] },
       { path: "attributes", component: AttributesPage, allowedRoles: [UserRole.ADMIN] },
-      { path: "orders", component: OrdersPage, allowedRoles: [UserRole.ADMIN] },
-      { path: "users", component: UsersPage, allowedRoles: [UserRole.ADMIN] },
-      { path: "customers", component: CustomersPage, allowedRoles: [UserRole.ADMIN, UserRole.SALES] },
-      { path: "discount-rules", component: DiscountRulesPage, allowedRoles: [UserRole.ADMIN] },
     ],
+  },
+
+  // 5. FACTORY POS (WORKER)
+  {
+    path: "/factory-pos",
+    component: FactoryPosPage,
+    allowedRoles: [UserRole.WORKER],
   },
 ];

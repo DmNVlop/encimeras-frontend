@@ -10,20 +10,45 @@ export type OrderStatus = "PENDING" | "MANUFACTURING" | "SHIPPED" | "INSTALLED" 
 
 export interface OrderHeader {
   orderNumber: string; // Ej: ORD-2026-0001
-  customerId: string; // ID del usuario o referencia externa
+  userId: string; // ID del vendedor/comercial
+  customerId: string; // ID del cliente b2b / final
   status: OrderStatus;
+  totalOriginalPoints: number;
+  totalDiscount: number;
   totalPoints: number; // Valor inmutable
   orderDate: Date | string;
   deliveryDate?: Date | string;
 }
 
+export interface AppliedGlobalRule {
+  ruleId: string;
+  ruleName: string;
+  discountAmount: number;
+}
+
 export interface OrderLineItem {
+  cartItemId?: string;
+  cartItemName: string; // Trazabilidad técnica (ej: "Cocina de Juana")
   type: string;
-  technicalSnapshot: {
+  originalPoints: number;
+  discountAmount: number;
+  subtotalPoints: number; // Precio final con descuento de la línea
+  core?: {
+    mainPieces: any[];
+    factoryId?: string;
+    customerId?: string;
+  };
+  uiState?: any;
+  hydratedContext?: {
     materials: any[];
-    pieces: any[]; // MainPieces con medidas finales
-    addons: any[]; // Accesorios aplicados
-    [key: string]: any; // Allow other properties just in case
+    [key: string]: any;
+  };
+  technicalSnapshot?: {
+    materials: any[];
+    pieces: any[];
+    mainPieces?: any[];
+    addons: any[];
+    [key: string]: any;
   };
 }
 
@@ -31,6 +56,7 @@ export interface Order {
   _id: string; // Mongoose Document ID
   header: OrderHeader;
   items: OrderLineItem[];
+  appliedGlobalRules?: AppliedGlobalRule[];
   originDraftId?: string;
   createdAt?: string;
   updatedAt?: string;

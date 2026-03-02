@@ -29,15 +29,20 @@ import {
   Logout as LogoutIcon,
   ChevronLeft as ChevronLeftIcon,
   AdminPanelSettings as AdminPanelSettingsIcon,
+  ShoppingCart as ShoppingCartIcon,
 } from "@mui/icons-material";
+import { Badge } from "@mui/material";
 import { useAuth } from "@/context/AuthProvider";
+import { useCart } from "@/context/CartContext";
 import { Role } from "@/interfases/user.interfase";
+import { MiniCartMenu } from "@/pages/public/common/MiniCartMenu";
 
 const drawerWidth = 240;
 const logo = "/logos/kuuk-logo.png";
 
 const menuItems = [
   { text: "Resumen", icon: <DashboardIcon />, path: "/dashboard" },
+  { text: "Carrito", icon: <ShoppingCartIcon />, path: "/cart" },
   { text: "Mis Pedidos", icon: <DescriptionIcon />, path: "/my-quotes" },
   { text: "Borradores", icon: <DraftsIcon />, path: "/drafts" },
   { text: "Mi Perfil", icon: <PersonIcon />, path: "/user-profile" },
@@ -50,14 +55,17 @@ export default function UserPortalLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, user } = useAuth();
-  const isAdmin = user?.roles?.includes(Role.ADMIN);
+  const { cart } = useCart();
+  const isAdminOrSales = user?.roles?.some((role) => role === Role.ADMIN || role === Role.SALES);
+  const cartItemsCount = cart?.items?.length || 0;
 
   const sidebarItems = [
-    ...(isAdmin ? [{ text: "Panel Admin", icon: <AdminPanelSettingsIcon sx={{ color: theme.palette.primary.main }} />, path: "/admin/orders" }] : []),
+    ...(isAdminOrSales ? [{ text: "Panel Admin", icon: <AdminPanelSettingsIcon sx={{ color: theme.palette.primary.main }} />, path: "/admin/orders" }] : []),
     ...menuItems,
   ];
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [cartAnchorEl, setCartAnchorEl] = useState<null | HTMLElement>(null);
 
   const handleDrawerToggle = () => {
     setOpen(!open);
@@ -74,6 +82,14 @@ export default function UserPortalLayout() {
   const handleLogout = () => {
     logout();
     setAnchorEl(null);
+  };
+
+  const handleCartMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setCartAnchorEl(event.currentTarget);
+  };
+
+  const handleCartMenuClose = () => {
+    setCartAnchorEl(null);
   };
 
   return (
@@ -125,8 +141,41 @@ export default function UserPortalLayout() {
             </Typography>
           </Box>
 
-          {/* User Menu */}
+          {/* Cart and User Menu */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <IconButton color="inherit" onClick={handleCartMenuOpen} sx={{ mr: 1 }}>
+              <Badge badgeContent={cartItemsCount} color="error">
+                <ShoppingCartIcon />
+              </Badge>
+            </IconButton>
+
+            <Menu
+              id="menu-cart"
+              anchorEl={cartAnchorEl}
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "right",
+              }}
+              keepMounted
+              transformOrigin={{
+                vertical: "top",
+                horizontal: "right",
+              }}
+              open={Boolean(cartAnchorEl)}
+              onClose={handleCartMenuClose}
+              PaperProps={{
+                sx: {
+                  mt: 1.5,
+                  borderRadius: 3,
+                  boxShadow: "0px 10px 40px rgba(0,0,0,0.1)",
+                  border: "1px solid",
+                  borderColor: "divider",
+                },
+              }}
+            >
+              <MiniCartMenu onClose={handleCartMenuClose} />
+            </Menu>
+
             <Typography variant="body2" sx={{ display: { xs: "none", sm: "block" }, textAlign: "right" }}>
               <Box component="span" sx={{ display: "block", fontWeight: "bold" }}>
                 {user?.name || "Usuario"}
@@ -161,7 +210,7 @@ export default function UserPortalLayout() {
               >
                 Perfil
               </MenuItem>
-              {isAdmin && (
+              {isAdminOrSales && (
                 <MenuItem
                   onClick={() => {
                     handleClose();

@@ -1,5 +1,5 @@
 import React from "react";
-import { Drawer, Box, Typography, IconButton, List, ListItem, ListItemText, Chip, Button, Grid, Paper, Avatar, ListItemAvatar } from "@mui/material";
+import { Drawer, Box, Typography, IconButton, List, ListItem, ListItemText, Chip, Button, Grid, Paper, Avatar, ListItemAvatar, Divider } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DoNotDisturbOnIcon from "@mui/icons-material/DoNotDisturbOn";
@@ -56,15 +56,57 @@ export const OrderPreviewDrawer: React.FC<any> = ({ open, onClose, order, onAppr
 
       {/* --- CONTENIDO SCROLLEABLE --- */}
       <Box sx={{ p: 3, overflowY: "auto", flexGrow: 1 }}>
-        {/* 1. Datos Cliente */}
+        {/* 1. Datos Propietario y Cliente */}
+        <Paper variant="outlined" sx={{ p: 2, mb: 3, bgcolor: "#fafafa" }}>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 6 }}>
+              <Typography variant="subtitle2" fontWeight="bold" color="text.secondary">
+                Vendedor / Propietario
+              </Typography>
+              <Typography variant="body2">{header.userId || "N/A"}</Typography>
+            </Grid>
+            <Grid size={{ xs: 6 }}>
+              <Typography variant="subtitle2" fontWeight="bold" color="text.secondary">
+                Cliente Final (B2B)
+              </Typography>
+              <Typography variant="body2">{header.customerId || "Sin cliente asignado"}</Typography>
+            </Grid>
+          </Grid>
+          <Divider sx={{ my: 1.5 }} />
+          <Typography variant="caption" color="text.secondary">
+            Fecha de Orden: {new Date(header.orderDate).toLocaleString()}
+          </Typography>
+        </Paper>
+
+        {/* 1.5. Resumen Económico */}
         <Paper variant="outlined" sx={{ p: 2, mb: 3, bgcolor: "#fafafa" }}>
           <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
-            Cliente
+            Resumen Económico
           </Typography>
-          <Typography variant="body1">{header.customerId}</Typography>
-          <Typography variant="caption" color="text.secondary">
-            Fecha: {new Date(header.orderDate).toLocaleString()}
-          </Typography>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
+            <Typography variant="body2" color="text.secondary">
+              Subtotal bruto:
+            </Typography>
+            <Typography variant="body2">{(header.totalOriginalPoints || header.totalPoints)?.toLocaleString()} pts</Typography>
+          </Box>
+          {header.totalDiscount > 0 && (
+            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
+              <Typography variant="body2" color="success.main" fontWeight="bold">
+                Descuento aplicado:
+              </Typography>
+              <Typography variant="body2" color="success.main" fontWeight="bold">
+                - {header.totalDiscount?.toLocaleString()} pts
+              </Typography>
+            </Box>
+          )}
+          <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1, pt: 1, borderTop: "1px solid #ddd" }}>
+            <Typography variant="body1" fontWeight="bold">
+              Total final:
+            </Typography>
+            <Typography variant="body1" fontWeight="bold" color="primary.main">
+              {header.totalPoints?.toLocaleString()} pts
+            </Typography>
+          </Box>
         </Paper>
 
         {/* 2. Resumen Técnico (Aquí iría el loop de piezas si tienes el snapshot) */}

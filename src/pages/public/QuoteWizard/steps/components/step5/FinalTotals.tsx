@@ -53,7 +53,7 @@ export const FinalTotals: React.FC<FinalTotalsProps> = ({ totalPoints, totalDisc
             TOTAL FINAL
           </Typography>
           <Typography variant="body2" sx={{ opacity: 0.8, fontWeight: 500 }}>
-            Puntos netos tras descuentos
+            {totalDiscount > 0 ? "Puntos netos tras descuentos" : "Puntos totales brutos"}
           </Typography>
         </Box>
         <Box sx={{ textAlign: "right" }}>

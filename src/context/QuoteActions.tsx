@@ -1,9 +1,11 @@
+import type { ICustomer } from "@/interfases/customer.interfase";
 import type { AppliedAddon, MainPiece, SelectedAttributes, ShapeVariationPayload } from "./QuoteInterfases";
 
 /**
  * DEFINICIÓN DE ACCIONES
  */
 export type QuoteAction =
+  | { type: "SET_SELECTED_CUSTOMER"; payload: ICustomer | null }
   // --- ACCIONES DEL WIZARD (NUEVAS / ACTUALIZADAS) ---
   | {
       type: "SET_WIZARD_MATERIAL"; // Step 1
@@ -56,5 +58,6 @@ export type QuoteAction =
   | { type: "LOAD_SAVED_PROJECT"; payload: any }
   | { type: "SET_DRAFT_ID"; payload: string }
   | { type: "SET_DRAFT_NAME"; payload: string }
+  | { type: "LOAD_CART_ITEM"; payload: any }
   | { type: "CLEAR_CALCULATION" }
   | { type: "RESET_WIZARD" };

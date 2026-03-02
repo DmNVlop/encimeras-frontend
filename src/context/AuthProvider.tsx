@@ -48,7 +48,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const data = await AuthService.login(credentials);
       TokenStorage.setToken(data.access_token);
-      setUser(data.user);
+
+      // Una vez tenemos el token, refrescamos con el perfil completo
+      const fullUserData = await AuthService.getMe();
+      setUser(fullUserData);
       setIsAuthenticated(true);
       return data;
     } catch (error) {

@@ -1,13 +1,19 @@
 import type { QuoteAction } from "./QuoteActions";
 import { createDefaultPiece } from "./QuoteContext";
 import type { MainPiece, QuoteState } from "./QuoteInterfases";
-import { shapeVariations } from "@/pages/public/common/shapes-step2";
+import { mapBackendDataToState } from "@/utils/coreMapper";
 
 /**
  * EL REDUCER (CON NUEVA LÓGICA)
  */
 export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState => {
   switch (action.type) {
+    case "SET_SELECTED_CUSTOMER":
+      return {
+        ...state,
+        selectedCustomer: action.payload,
+        calculationResult: null, // Limpiamos cálculo si cambia el cliente (nuevos descuentos aplicables)
+      };
     // --- ACCIÓN DE STEP 1 ---
     case "SET_WIZARD_MATERIAL": {
       const newMaterialPayload = action.payload;
@@ -246,37 +252,22 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
       };
 
     case "LOAD_SAVED_PROJECT": {
-      const config = action.payload.configuration;
-      let shapeId = config.selectedShapeId;
+      const { recalculated, _id, name, currentPricePoints } = action.payload;
 
-      // START INFERENCE: Si es un borrador antiguo sin shapeId
-      if (!shapeId && config.mainPieces && config.mainPieces.length > 0) {
-        const count = config.mainPieces.length;
-        // Buscamos candidatos con el mismo número de piezas
-        const candidates = shapeVariations.filter((v) => v.count === count);
-
-        if (candidates.length > 0) {
-          // Tomamos el primero por defecto (Mejor que nada para que no rompa la UI)
-          shapeId = candidates[0].id;
-        }
-      }
+      // Usamos el de-mapper para reconstruir el estado visual pasándole el objeto completo
+      const hydratedState = mapBackendDataToState(action.payload);
 
       return {
         ...state,
-        // Restauramos la configuración
-        wizardTempMaterial: config.wizardTempMaterial,
-        mainPieces: config.mainPieces,
-        // Es vital restaurar el material para que el Paso 1 se vea bien
-
-        // Restauramos también el shapeId (o el inferido)
-        selectedShapeId: shapeId || null,
-        activePieceIndex: config.mainPieces.length > 0 ? 0 : null,
+        ...hydratedState,
 
         // Restauramos identidad y alertas
-        currentDraftId: action.payload._id,
-        currentDraftName: action.payload.name || "",
-        isDraftRecalculated: action.payload.recalculated || false, // Flag que viene del backend
-        calculationResult: { totalPoints: action.payload.currentPricePoints }, // Hidratamos el precio
+        currentDraftId: _id,
+        currentDraftName: name || "",
+        isDraftRecalculated: recalculated || false,
+        calculationResult: currentPricePoints ? { totalPoints: currentPricePoints } : null,
+        // Hidratamos el cliente si viene en el core (BFF Pattern)
+        selectedCustomer: (action.payload.core?.customerId as any) || state.selectedCustomer,
       };
     }
 
@@ -292,6 +283,22 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
         ...state,
         currentDraftName: action.payload,
       };
+
+    case "LOAD_CART_ITEM": {
+      const { cartItemId, customName, subtotalPoints } = action.payload;
+      const hydratedState = mapBackendDataToState(action.payload);
+      return {
+        ...state,
+        ...hydratedState,
+        currentCartItemId: cartItemId,
+        currentCartItemName: customName,
+        currentDraftId: action.payload.draftId || null,
+        calculationResult: subtotalPoints ? { totalPoints: subtotalPoints } : null,
+        // Hidratamos el cliente desde el core del item del carrito
+        selectedCustomer: (action.payload.core?.customerId as any) || state.selectedCustomer,
+      };
+    }
+
     case "CLEAR_CALCULATION":
       return {
         ...state,
@@ -310,6 +317,9 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
         currentDraftId: null,
         currentDraftName: "",
         isDraftRecalculated: false,
+        currentCartItemId: null,
+        currentCartItemName: null,
+        selectedCustomer: null,
       };
 
     default:

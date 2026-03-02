@@ -1,7 +1,11 @@
 import React from "react";
 import { Box, Typography, Stepper, Step, StepButton, Tooltip, IconButton, Button, Alert, StepConnector } from "@mui/material";
-import { Add, Person } from "@mui/icons-material";
+import { Add, Person, ShoppingCart as ShoppingCartIcon, Edit as EditIcon } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import { useCart } from "@/context/CartContext";
+import { Badge, Menu, Chip } from "@mui/material";
+import { MiniCartMenu } from "@/pages/public/common/MiniCartMenu";
+import { useQuoteState } from "@/context/QuoteContext";
 
 interface WizardHeaderProps {
   activeStep: number;
@@ -16,6 +20,19 @@ interface WizardHeaderProps {
 
 export const WizardHeader: React.FC<WizardHeaderProps> = ({ activeStep, steps, isMobile, onStepClick, onResetClick, canReset, validationError, logo }) => {
   const navigate = useNavigate();
+  const { cart } = useCart();
+  const { currentCartItemId, currentCartItemName } = useQuoteState();
+  const [anchorElCart, setAnchorElCart] = React.useState<null | HTMLElement>(null);
+
+  const cartItemsCount = cart?.items?.length || 0;
+
+  const handleOpenCart = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorElCart(event.currentTarget);
+  };
+
+  const handleCloseCart = () => {
+    setAnchorElCart(null);
+  };
 
   return (
     <Box
@@ -77,6 +94,22 @@ export const WizardHeader: React.FC<WizardHeaderProps> = ({ activeStep, steps, i
           >
             Presupuestador
           </Typography>
+
+          {currentCartItemId && (
+            <Chip
+              icon={<EditIcon sx={{ fontSize: "0.9rem !important" }} />}
+              label={`Editando: ${currentCartItemName}`}
+              size="small"
+              color="secondary"
+              variant="outlined"
+              sx={{
+                borderRadius: 1,
+                fontWeight: "bold",
+                backgroundColor: "rgba(156, 39, 176, 0.05)",
+                display: { xs: "none", sm: "flex" },
+              }}
+            />
+          )}
         </Box>
 
         {/* 2. CENTRO: Stepper (Solo Desktop) */}
@@ -105,6 +138,41 @@ export const WizardHeader: React.FC<WizardHeaderProps> = ({ activeStep, steps, i
 
         {/* 3. DERECHA: Botones de Acción */}
         <Box sx={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Tooltip title="Carrito">
+              <IconButton color="inherit" onClick={handleOpenCart}>
+                <Badge badgeContent={cartItemsCount} color="error">
+                  <ShoppingCartIcon color="action" />
+                </Badge>
+              </IconButton>
+            </Tooltip>
+
+            <Menu
+              anchorEl={anchorElCart}
+              open={Boolean(anchorElCart)}
+              onClose={handleCloseCart}
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "right",
+              }}
+              transformOrigin={{
+                vertical: "top",
+                horizontal: "right",
+              }}
+              PaperProps={{
+                sx: {
+                  mt: 1.5,
+                  borderRadius: 3,
+                  boxShadow: "0px 10px 40px rgba(0,0,0,0.1)",
+                  border: "1px solid",
+                  borderColor: "divider",
+                },
+              }}
+            >
+              <MiniCartMenu onClose={handleCloseCart} />
+            </Menu>
+          </Box>
+
           <Tooltip title="Nuevo Presupuesto">
             <IconButton
               color="primary"
