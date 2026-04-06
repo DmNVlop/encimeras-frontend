@@ -47,8 +47,8 @@ export const cartApi = {
   /**
    * Inicia el proceso de checkout asíncrono
    */
-  checkout: async () => {
-    return post<CheckoutResponse>("/cart/checkout", {});
+  checkout: async (orderName: string) => {
+    return post<CheckoutResponse>("/cart/checkout", { orderName });
   },
 
   /**

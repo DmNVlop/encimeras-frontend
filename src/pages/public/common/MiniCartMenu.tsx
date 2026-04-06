@@ -20,7 +20,7 @@ interface MiniCartMenuProps {
 export const MiniCartMenu: React.FC<MiniCartMenuProps> = ({ onClose }) => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const { cart, loading, removeFromCart, clearCart, checkout, isProcessingCheckout } = useCart();
+  const { cart, loading, removeFromCart, clearCart, isProcessingCheckout } = useCart();
   const { initiateLoad, isDialogOpen, closeDialog, handleConflictAction, isProcessing } = useCartLoadAction();
 
   const totalPoints = cart?.items.reduce((sum, item) => sum + item.subtotalPoints, 0) || 0;
@@ -29,11 +29,7 @@ export const MiniCartMenu: React.FC<MiniCartMenuProps> = ({ onClose }) => {
   const handleCheckout = async () => {
     try {
       onClose();
-      // Si el checkout es exitoso, el CartContext manejará el estado.
-      // Podríamos navegar al carrito para mostrar el proceso detallado o dejarlo aquí.
-      // Para una experiencia fluida, si no está en el carrito, lo llevamos allí para que vea el progreso real.
       navigate("/cart");
-      await checkout();
     } catch (error) {
       console.error("MiniCart Checkout Error:", error);
     }

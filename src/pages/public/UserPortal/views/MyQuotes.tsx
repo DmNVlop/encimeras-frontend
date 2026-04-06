@@ -117,9 +117,10 @@ export default function MyQuotes() {
   const filteredOrders = orders.filter((order) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
+    const orderName = order.header.orderName.toLowerCase();
     const orderNum = order.header.orderNumber.toLowerCase();
     const customer = order.header.customerId.toLowerCase();
-    return orderNum.includes(query) || customer.includes(query);
+    return orderName.includes(query) || orderNum.includes(query) || customer.includes(query);
   });
 
   return (
@@ -226,8 +227,9 @@ function OrderCard({ order }: { order: Order }) {
   // We don't have this field in OrderHeader explicitly, so we use customerId or a fallback.
   // In a real app, customerId might need to be resolved to a name or the order might have a 'projectReference'.
   // Using customerId for now as per schema.
-  const title = `Pedido ${header.orderNumber}`;
-  const subtitle = header.customerId || "Cliente Desconocido";
+  const title = header.orderName;
+  const subtitle = `${header.orderNumber}`;
+  // const subtitle = `${header.orderNumber} • ${header.customerId || "Cliente Desconocido"}`;
 
   return (
     <Card

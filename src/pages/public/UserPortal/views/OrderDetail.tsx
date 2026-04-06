@@ -453,7 +453,7 @@ export default function OrderDetail() {
           /
         </Typography>
         <Typography variant="body2" color="text.primary" fontWeight={600}>
-          {header.orderNumber}
+          {header.orderName}
         </Typography>
       </Stack>
 
@@ -461,10 +461,10 @@ export default function OrderDetail() {
       <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ xs: "start", sm: "center" }} mb={3} gap={2}>
         <Box>
           <Typography variant="h4" fontWeight={800} gutterBottom>
-            {header.orderNumber}
+            {header.orderName}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            {customerDisplayName}
+            {header.orderNumber} — {customerDisplayName}
           </Typography>
         </Box>
         <Chip icon={statusCfg.icon} label={statusCfg.label} color={statusCfg.color} sx={{ fontWeight: 700, fontSize: "0.9rem", px: 1, py: 2 }} />

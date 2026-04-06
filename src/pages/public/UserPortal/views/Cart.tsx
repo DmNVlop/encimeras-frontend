@@ -31,6 +31,7 @@ import {
 import { useCart } from "@/context/CartContext";
 import { useCartLoadAction } from "@/hooks/useCartLoadAction";
 import { CartLoadConflictDialog } from "@/components/cart/CartLoadConflictDialog";
+import { DraftNamingDialog } from "@/pages/public/QuoteWizard/components/DraftNamingDialog";
 import { CustomerSelection } from "@/pages/public/QuoteWizard/steps/components/step5/CustomerSelection";
 import type { ICustomer } from "@/interfases/customer.interfase";
 import { get } from "@/services/api.service";
@@ -58,6 +59,7 @@ export default function Cart() {
   } = useCart();
   const { initiateLoad, isDialogOpen, closeDialog, handleConflictAction, isProcessing } = useCartLoadAction();
   const [showRescuePolling, setShowRescuePolling] = useState(false);
+  const [showNamingDialog, setShowNamingDialog] = useState(false);
 
   // Estados para el cliente
   const [customers, setCustomers] = useState<ICustomer[]>([]);
@@ -138,11 +140,15 @@ export default function Cart() {
     }
   }, [lastCreatedOrder, navigate, clearLastOrder]);
 
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
+    setShowNamingDialog(true);
+  };
+
+  const handleConfirmCheckout = async (orderName: string) => {
     try {
+      setShowNamingDialog(false);
       setShowRescuePolling(false);
-      await checkout();
-      // Timeout de rescate: 45 segundos
+      await checkout(orderName);
       setTimeout(() => setShowRescuePolling(true), 45000);
     } catch (error) {
       console.error("Error initiating checkout:", error);
@@ -634,6 +640,16 @@ export default function Cart() {
 
       {/* DIÁLOGO DE CONFLICTO */}
       <CartLoadConflictDialog open={isDialogOpen} onClose={closeDialog} onAction={handleConflictAction} isProcessing={isProcessing} />
+
+      {/* DIÁLOGO DE NOMBRADO DE ORDEN */}
+      <DraftNamingDialog
+        open={showNamingDialog}
+        onClose={() => setShowNamingDialog(false)}
+        onConfirm={handleConfirmCheckout}
+        isSaving={isProcessingCheckout}
+        title="Finalizar Pedido"
+        subtitle="Asigna un nombre a este presupuesto para identificarlo fácilmente."
+      />
     </Box>
   );
 }
