@@ -43,7 +43,7 @@ const logo = "/logos/kuuk-logo.png";
 const menuItems = [
   { text: "Resumen", icon: <DashboardIcon />, path: "/dashboard" },
   { text: "Carrito", icon: <ShoppingCartIcon />, path: "/cart" },
-  { text: "Mis Pedidos", icon: <DescriptionIcon />, path: "/my-quotes" },
+  { text: "Mis Presupuestos", icon: <DescriptionIcon />, path: "/my-quotes" },
   { text: "Borradores", icon: <DraftsIcon />, path: "/drafts" },
   { text: "Mi Perfil", icon: <PersonIcon />, path: "/user-profile" },
 ];

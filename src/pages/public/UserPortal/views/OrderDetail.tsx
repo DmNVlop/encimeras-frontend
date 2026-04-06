@@ -424,7 +424,7 @@ export default function OrderDetail() {
           {error || "No se encontró la orden solicitada."}
         </Alert>
         <Button startIcon={<ArrowBackIcon />} onClick={() => navigate("/my-quotes")}>
-          Volver a Mis Pedidos
+          Volver a Mis Presupuestos
         </Button>
       </Container>
     );
@@ -447,7 +447,7 @@ export default function OrderDetail() {
           <ArrowBackIcon fontSize="small" />
         </IconButton>
         <Typography variant="body2" color="text.secondary">
-          Mis Pedidos
+          Mis Presupuestos
         </Typography>
         <Typography variant="body2" color="text.disabled">
           /
@@ -511,10 +511,10 @@ export default function OrderDetail() {
                   <Stack direction="row" alignItems="center" spacing={1} mb={1.5}>
                     <ReceiptIcon sx={{ color: "primary.main", fontSize: 20 }} />
                     <Typography variant="subtitle2" fontWeight={700} textTransform="uppercase" color="text.secondary" letterSpacing={0.5}>
-                      Detalles del Pedido
+                      Detalles del Presupuesto
                     </Typography>
                   </Stack>
-                  <InfoRow label="Nº Pedido" value={header.orderNumber} />
+                  <InfoRow label="Nº Presupuesto" value={header.orderNumber} />
                   <InfoRow label="Fecha" value={formatDate(header.orderDate)} />
                   <InfoRow label="Entrega" value={formatDate(header.deliveryDate)} />
                   <InfoRow label="Creado por" value={user?.name} />

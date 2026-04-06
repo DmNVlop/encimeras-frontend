@@ -170,7 +170,7 @@ export const DistributionCharts: React.FC<DistributionChartsProps> = ({ material
             }}
           >
             Geometría de Proyectos
-            <Tooltip title="Distribución de las formas (L, U, Recto) seleccionadas por los clientes. Permite entender la complejidad física de los pedidos habituales.">
+            <Tooltip title="Distribución de las formas (L, U, Recto) seleccionadas por los clientes. Permite entender la complejidad física de los presupuestos habituales.">
               <InfoOutlinedIcon sx={{ fontSize: 18, color: "text.secondary", opacity: 0.5, cursor: "help" }} />
             </Tooltip>
           </Typography>

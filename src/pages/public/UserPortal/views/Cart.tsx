@@ -136,7 +136,7 @@ export default function Cart() {
       const orderNumber = lastCreatedOrder.orderNumber;
       clearLastOrder();
       // Podríamos navegar a una página de éxito específica o al dashboard con un mensaje
-      navigate("/my-quotes", { state: { message: `¡Pedido ${orderNumber} creado con éxito!` } });
+      navigate("/my-quotes", { state: { message: `¡Presupuesto ${orderNumber} creado con éxito!` } });
     }
   }, [lastCreatedOrder, navigate, clearLastOrder]);
 
@@ -213,7 +213,7 @@ export default function Cart() {
             Mi Carrito
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Gestiona tus presupuestos agrupados antes de confirmar el pedido final.
+            Gestiona tus presupuestos agrupados antes de confirmar finalmente.
           </Typography>
         </Box>
         <Button
@@ -466,7 +466,7 @@ export default function Cart() {
             sx={{ p: 3, borderRadius: 4, border: "1px solid", borderColor: "primary.light", bgcolor: alpha(theme.palette.primary.main, 0.02) }}
           >
             <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Resumen del Pedido
+              Resumen del Presupuesto
             </Typography>
             <Divider sx={{ my: 2 }} />
 
@@ -556,7 +556,7 @@ export default function Cart() {
                 disabled={isProcessingCheckout || isDirty || isAssigning}
                 sx={{ py: 1.5, borderRadius: 2, fontWeight: "bold", fontSize: "1.1rem" }}
               >
-                {isDirty ? "Recalcule para finalizar" : "Finalizar Pedido"}
+                {isDirty ? "Recalcule para finalizar" : "Finalizar Presupuesto"}
               </Button>
 
               <Button variant="outlined" fullWidth startIcon={<SaveIcon />} onClick={saveAsDrafts} disabled={isProcessingCheckout} sx={{ borderRadius: 2 }}>
@@ -609,7 +609,7 @@ export default function Cart() {
         </Box>
         <Box>
           <Typography variant="h4" fontWeight="bold" gutterBottom>
-            Procesando su pedido
+            Procesando su presupuesto
           </Typography>
           <Typography variant="h6" sx={{ opacity: 0.8, maxWidth: 600, mb: 4 }}>
             Estamos generando los planos técnicos y la documentación oficial. Este proceso puede tardar unos segundos. Por favor, no cierre la ventana.
@@ -647,7 +647,7 @@ export default function Cart() {
         onClose={() => setShowNamingDialog(false)}
         onConfirm={handleConfirmCheckout}
         isSaving={isProcessingCheckout}
-        title="Finalizar Pedido"
+        title="Finalizar Presupuesto"
         subtitle="Asigna un nombre a este presupuesto para identificarlo fácilmente."
       />
     </Box>

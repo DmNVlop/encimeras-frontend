@@ -55,7 +55,7 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({ filters, loa
               sx={{ borderRadius: 3, fontWeight: 500 }}
             >
               <MenuItem value="all">Todo el Flujo</MenuItem>
-              <MenuItem value="order">Solo Pedidos (Cerrado)</MenuItem>
+              <MenuItem value="order">Solo Presupuestos (Cerrado)</MenuItem>
               <MenuItem value="draft">Solo Borradores (Preventa)</MenuItem>
             </Select>
           </FormControl>

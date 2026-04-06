@@ -81,7 +81,7 @@ const resolveAppliedRules = (
   // Prioridad 3: regla sintética cuando solo tenemos el total del descuento (Orden)
   // Solo la creamos si hay un descuento real > 0
   if (isOrder && totalDiscount && totalDiscount > 0) {
-    return [{ ruleName: "Descuento aplicado al pedido", discountAmount: totalDiscount }];
+    return [{ ruleName: "Descuento aplicado al presupuesto", discountAmount: totalDiscount }];
   }
 
   return undefined;
@@ -101,7 +101,7 @@ export const mapCartToPdfModel = (cartOrOrder: any | null | undefined, user?: an
     cartOrOrder.items?.length > 0
       ? cartOrOrder.items
       : isOrder && cartOrOrder.technicalSnapshot
-        ? [{ technicalSnapshot: cartOrOrder.technicalSnapshot, cartItemName: "Pedido Completo" }]
+        ? [{ technicalSnapshot: cartOrOrder.technicalSnapshot, cartItemName: "Presupuesto Completo" }]
         : [];
 
   if (!itemsArray || itemsArray.length === 0) return null;
@@ -172,7 +172,7 @@ export const mapCartToPdfModel = (cartOrOrder: any | null | undefined, user?: an
 
     return {
       cartItemId: item.cartItemId || `item-${itemIndex}`,
-      name: isOrder ? item.cartItemName || "Estancia de Pedido" : item.customName || "Estancia sin nombre",
+      name: isOrder ? item.cartItemName || "Estancia de Presupuesto" : item.customName || "Estancia sin nombre",
       // En CARRITO: subtotalPoints (precio con descuento de línea)
       // En ORDEN:   originalPoints - discountAmount (subtotalPoints no viene del backend de órdenes)
       subtotal: item.subtotalPoints != null ? item.subtotalPoints : (item.originalPoints ?? 0) - (item.discountAmount ?? 0),

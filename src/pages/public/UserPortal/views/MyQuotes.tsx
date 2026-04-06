@@ -128,7 +128,7 @@ export default function MyQuotes() {
       {/* HEADER */}
       <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ xs: "start", sm: "center" }} spacing={2} mb={4}>
         <Typography variant="h4" fontWeight="bold" sx={{ color: "text.primary" }}>
-          Mis Pedidos
+          Mis Presupuestos
         </Typography>
         <Button
           variant="contained"
@@ -175,7 +175,7 @@ export default function MyQuotes() {
           <Box sx={{ p: 2, width: { xs: "100%", md: 300 } }}>
             <TextField
               fullWidth
-              placeholder="Buscar pedido..."
+              placeholder="Buscar presupuesto..."
               size="small"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -201,7 +201,7 @@ export default function MyQuotes() {
         <Box sx={{ textAlign: "center", py: 8, color: "text.secondary" }}>
           <ReceiptLong sx={{ fontSize: 60, mb: 2, opacity: 0.5 }} />
           <Typography variant="h6" gutterBottom>
-            No se encontraron pedidos
+            No se encontraron presupuestos
           </Typography>
           <Typography variant="body2">Intenta cambiar los filtros o crea un nuevo presupuesto.</Typography>
         </Box>

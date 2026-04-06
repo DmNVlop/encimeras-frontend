@@ -271,7 +271,7 @@ const DiscountRuleDrawer: React.FC<DiscountRuleDrawerProps> = ({ rule, open, onC
                   size="small"
                   sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
                 >
-                  <MenuItem value={DiscountScope.GLOBAL_TOTAL}>Total del Pedido</MenuItem>
+                  <MenuItem value={DiscountScope.GLOBAL_TOTAL}>Total del Presupuesto</MenuItem>
                   <MenuItem value={DiscountScope.SPECIFIC_MATERIALS}>Materiales Específicos</MenuItem>
                   <MenuItem value={DiscountScope.MATERIAL_CATEGORIES}>Categorías de Material</MenuItem>
                 </TextField>
@@ -407,7 +407,7 @@ const DiscountRuleDrawer: React.FC<DiscountRuleDrawerProps> = ({ rule, open, onC
                 <TextField
                   fullWidth
                   type="number"
-                  label="Importe Mínimo Pedido (€)"
+                  label="Importe Mínimo Presupuesto (€)"
                   value={formData.conditions?.minOrderValue || 0}
                   onChange={(e) => handleConditionChange("minOrderValue", Number(e.target.value))}
                   disabled={!editing || loading}

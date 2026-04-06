@@ -33,7 +33,7 @@ export const GroupLoaderDialog: React.FC<GroupLoaderDialogProps> = ({ open, onCl
         )}
 
         <Typography variant="body2" color="text.secondary">
-          ¿Deseas cargar también el resto de elementos de este grupo en tu carrito para realizar un pedido conjunto?
+          ¿Deseas cargar también el resto de elementos de este grupo en tu carrito para realizar un presupuesto conjunto?
         </Typography>
 
         <Box sx={{ mt: 3, display: "flex", flexDirection: "column", gap: 1.5 }}>
