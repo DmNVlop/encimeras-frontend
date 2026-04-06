@@ -34,7 +34,11 @@ import { DraftNamingDialog } from "../components/DraftNamingDialog";
 // --- MAPPERS ---
 import { mapStateToCoreDto, mapStateToUiState } from "@/utils/coreMapper";
 
-export const WizardStep5_Summary: React.FC = () => {
+interface WizardStep5_SummaryProps {
+  onReset?: () => void;
+}
+
+export const WizardStep5_Summary: React.FC<WizardStep5_SummaryProps> = ({ onReset }) => {
   const { user } = useAuth();
 
   const {
@@ -170,10 +174,14 @@ export const WizardStep5_Summary: React.FC = () => {
 
         setSaveMessage({ type: "success", text: "Borrador guardado correctamente." });
       }
+      // Reset después de mostrar feedback
+      setOpenSaveModal(false);
+      setTimeout(() => {
+        onReset?.();
+      }, 1500);
     } catch (err) {
       console.error("Save Draft Error:", err);
       setSaveMessage({ type: "error", text: "No se pudo guardar el borrador." });
-    } finally {
       setIsSavingDraft(false);
     }
   };
@@ -199,10 +207,14 @@ export const WizardStep5_Summary: React.FC = () => {
         await addToCart(payload);
         setSaveMessage({ type: "success", text: "Añadido al carrito correctamente." });
       }
+      // Reset después de mostrar feedback
+      setOpenCartModal(false);
+      setTimeout(() => {
+        onReset?.();
+      }, 1500);
     } catch (err: any) {
       console.error("Add to Cart Error:", err);
       setSaveMessage({ type: "error", text: "No se pudo añadir al carrito." });
-    } finally {
       setIsAddingToCart(false);
     }
   };

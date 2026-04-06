@@ -134,7 +134,7 @@ export default function Cart() {
       const orderNumber = lastCreatedOrder.orderNumber;
       clearLastOrder();
       // Podríamos navegar a una página de éxito específica o al dashboard con un mensaje
-      navigate("/dashboard", { state: { message: `¡Pedido ${orderNumber} creado con éxito!` } });
+      navigate("/my-quotes", { state: { message: `¡Pedido ${orderNumber} creado con éxito!` } });
     }
   }, [lastCreatedOrder, navigate, clearLastOrder]);
 
