@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Typography, Stack, Chip, IconButton, useTheme, alpha, Paper } from "@mui/material";
+import { Box, Typography, Stack, Chip, IconButton, useTheme, alpha, Paper, Checkbox } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import BusinessIcon from "@mui/icons-material/Business";
 import PersonIcon from "@mui/icons-material/Person";
@@ -9,24 +9,35 @@ import { type ICustomer, CustomerType } from "@/interfases/customer.interfase";
 
 interface CustomerItemProps {
   customer: ICustomer;
+  selected: boolean;
   onClick: (customer: ICustomer) => void;
+  onSelect: (customer: ICustomer, selected: boolean) => void;
   onActionClick: (e: React.MouseEvent, customer: ICustomer) => void;
 }
 
-const CustomerItem: React.FC<CustomerItemProps> = ({ customer, onClick, onActionClick }) => {
+const CustomerItem: React.FC<CustomerItemProps> = ({ customer, selected, onClick, onSelect, onActionClick }) => {
   const theme = useTheme();
   const isCompany = customer.type === CustomerType.COMPANY;
+
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onSelect(customer, !selected);
+  };
+
+  const handleRowClick = () => {
+    onClick(customer);
+  };
 
   return (
     <Paper
       elevation={0}
-      onClick={() => onClick(customer)}
+      onClick={handleRowClick}
       sx={{
         p: 2.5,
         mb: 1.5,
         borderRadius: 4,
-        border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
-        background: alpha(theme.palette.background.paper, 0.5),
+        border: `1px solid ${selected ? alpha(theme.palette.primary.main, 0.5) : alpha(theme.palette.divider, 0.08)}`,
+        background: selected ? alpha(theme.palette.primary.main, 0.04) : alpha(theme.palette.background.paper, 0.5),
         backdropFilter: "blur(10px)",
         transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
         cursor: "pointer",
@@ -40,6 +51,21 @@ const CustomerItem: React.FC<CustomerItemProps> = ({ customer, onClick, onAction
         },
       }}
     >
+      <Box sx={{ display: "flex", alignItems: "center", mr: 2 }}>
+        <Checkbox
+          checked={selected}
+          onClick={handleCheckboxClick}
+          sx={{
+            color: alpha(theme.palette.text.secondary, 0.3),
+            "&.Mui-checked": {
+              color: theme.palette.primary.main,
+            },
+            "&:hover": {
+              backgroundColor: alpha(theme.palette.primary.main, 0.08),
+            },
+          }}
+        />
+      </Box>
       <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center" }}>
         {/* Info Column */}
         <Box sx={{ flex: 2 }}>
