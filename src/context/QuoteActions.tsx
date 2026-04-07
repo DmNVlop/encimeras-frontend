@@ -29,6 +29,18 @@ export type QuoteAction =
         measurements: { length_mm: number; width_mm: number };
       };
     }
+  // --- ACCIONES DE GESTIÓN DE PIEZAS ---
+  | {
+      type: "ADD_EXTRA_PIECE";
+      payload: {
+        materialId: string;
+        selectedAttributes: SelectedAttributes;
+        measurements: { length_mm: number; width_mm: number };
+        connectionType: "LINEAR" | "CORNER_LEFT" | "CORNER_RIGHT" | "NONE";
+      };
+    }
+  | { type: "REMOVE_PIECE"; payload: { pieceIndex: number } }
+  | { type: "UPDATE_PIECE_ORDER"; payload: { fromIndex: number; toIndex: number } }
   // --- ACCIONES GENÉRICAS (Ya existían / Reutilizadas) ---
   | { type: "SET_ACTIVE_PIECE"; payload: { index: number | null } }
   | {

@@ -38,7 +38,8 @@ export interface PieceLayout {
   // 'CORNER_LEFT': Gira a la izquierda (Forma L)
   // 'CORNER_RIGHT': Gira a la derecha
   // 'NONE': Es la pieza base (0)
-  connectionType: "NONE" | "LINEAR" | "CORNER_LEFT" | "CORNER_RIGHT";
+  // 'CUSTOM': Pieza personalizada agregada por el usuario
+  connectionType: "NONE" | "LINEAR" | "CORNER_RIGHT" | "CORNER_LEFT" | "CUSTOM";
 
   // Tipo de Unión (Para el problema de "quién monta sobre quién")
   // 'OVERLAP': Esta pieza se "mete" en la esquina (Gana fondo)
