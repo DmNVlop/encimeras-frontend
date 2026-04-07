@@ -2,17 +2,19 @@ import React from "react";
 import { Box, Typography, Stack, Skeleton, Checkbox, useTheme, alpha } from "@mui/material";
 import CustomerItem from "./CustomerItem";
 import { type ICustomer } from "@/interfases/customer.interfase";
+import type { User } from "@/interfases/user.interfase";
 
 interface CustomerListProps {
   customers: ICustomer[];
   loading: boolean;
   selectedIds: Set<string>;
+  salesUsers: User[];
   onCustomerClick: (customer: ICustomer) => void;
   onSelect: (customer: ICustomer, selected: boolean) => void;
   onSelectAll: (selectAll: boolean, visibleOnly: boolean) => void;
 }
 
-const CustomerList: React.FC<CustomerListProps> = ({ customers, loading, selectedIds, onCustomerClick, onSelect, onSelectAll }) => {
+const CustomerList: React.FC<CustomerListProps> = ({ customers, loading, selectedIds, salesUsers, onCustomerClick, onSelect, onSelectAll }) => {
   const theme = useTheme();
 
   const handleActionClick = (e: React.MouseEvent, customer: ICustomer) => {
@@ -79,6 +81,9 @@ const CustomerList: React.FC<CustomerListProps> = ({ customers, loading, selecte
         <Typography variant="overline" sx={{ flex: 2, fontWeight: 800, opacity: 0.5 }}>
           CONTACTO
         </Typography>
+        <Typography variant="overline" sx={{ flex: 1.5, textAlign: "center", fontWeight: 800, opacity: 0.5 }}>
+          ASIGNADO
+        </Typography>
         <Box sx={{ width: 40 }} />
       </Box>
 
@@ -87,6 +92,7 @@ const CustomerList: React.FC<CustomerListProps> = ({ customers, loading, selecte
           key={customer._id}
           customer={customer}
           selected={selectedIds.has(customer._id || "")}
+          salesUsers={salesUsers}
           onClick={onCustomerClick}
           onSelect={onSelect}
           onActionClick={handleActionClick}

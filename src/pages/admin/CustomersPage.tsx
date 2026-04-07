@@ -286,6 +286,7 @@ const CustomersPage: React.FC = () => {
           customers={filteredCustomers}
           loading={loading}
           selectedIds={selectedIds}
+          salesUsers={salesUsers}
           onCustomerClick={(customer) => {
             const index = filteredCustomers.findIndex((c) => c._id === customer._id);
             handleRowClick(customer, index, { ctrlKey: false, metaKey: false, shiftKey: false } as React.MouseEvent);
