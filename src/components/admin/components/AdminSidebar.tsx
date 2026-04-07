@@ -34,6 +34,7 @@ const menuConfig: NavItem[] = [
       { text: "Usuarios", path: "/admin/users", allowedRoles: ["ADMIN"] },
       { text: "Clientes", path: "/admin/customers", allowedRoles: ["ADMIN", "SALES"] },
       { text: "Descuentos", path: "/admin/discount-rules", allowedRoles: ["ADMIN", "SALES"] },
+      { text: "Doc Config", path: "/admin/doc-config", allowedRoles: ["ADMIN", "SALES"] },
     ],
   },
   {
