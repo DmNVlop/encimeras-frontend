@@ -39,6 +39,8 @@ export interface PdfData {
   userName?: string;
   userRole?: string;
   logoStr?: string;
+  footerText?: string;
+  validityDays?: number;
 }
 
 /**
@@ -91,7 +93,13 @@ const resolveAppliedRules = (
  * Función pura que transforma el carrito en un modelo plano y seguro para PDF.
  * Separar esta lógica permite que sea unit-testeable sin depender de React.
  */
-export const mapCartToPdfModel = (cartOrOrder: any | null | undefined, user?: any, customer?: any): PdfData | null => {
+export const mapCartToPdfModel = (
+  cartOrOrder: any | null | undefined,
+  user?: any,
+  customer?: any,
+  footerText?: string,
+  validityDays?: number | null,
+): PdfData | null => {
   if (!cartOrOrder) return null;
 
   const isOrder = "header" in cartOrOrder;
@@ -187,6 +195,9 @@ export const mapCartToPdfModel = (cartOrOrder: any | null | undefined, user?: an
   const subtotalBruto =
     baseSubtotal || itemsArray.reduce((sum: number, item: any) => sum + (item.originalPoints || item.subtotalPoints || item.subtotal || 0), 0);
 
+  const daysToExpire = validityDays ?? 5;
+  const expirationDate = new Date(Date.now() + daysToExpire * 24 * 60 * 60 * 1000).toLocaleDateString("es-ES");
+
   return {
     orderId: isOrder ? cartOrOrder.header.orderNumber : cartOrOrder._id,
     date: isOrder
@@ -194,7 +205,7 @@ export const mapCartToPdfModel = (cartOrOrder: any | null | undefined, user?: an
       : cartOrOrder.createdAt
         ? new Date(cartOrOrder.createdAt).toLocaleDateString("es-ES")
         : new Date().toLocaleDateString("es-ES"),
-    expiration: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toLocaleDateString("es-ES"),
+    expiration: expirationDate,
     total: baseTotal ?? 0,
     subtotalBruto,
     totalDescuento: baseDiscount ?? 0,
@@ -211,12 +222,17 @@ export const mapCartToPdfModel = (cartOrOrder: any | null | undefined, user?: an
     userName: user?.name,
     userRole: user?.roles?.[0] || "Gestor",
     logoStr: "/logos/kuuk-logo.png", // Usualmente es mejor en base64 para pdf pero react-pdf acepta URLs absolutas/relativas del public folder
+    footerText: footerText || undefined,
+    validityDays: validityDays ?? undefined,
   };
 };
 
 /**
  * Custom Hook que memoriza el cálculo del PDF
  */
-export const usePdfData = (cartOrOrder: any | null | undefined, user?: any, customer?: any) => {
-  return useMemo(() => mapCartToPdfModel(cartOrOrder, user, customer), [cartOrOrder, user, customer]);
+export const usePdfData = (cartOrOrder: any | null | undefined, user?: any, customer?: any, footerText?: string, validityDays?: number | null) => {
+  return useMemo(
+    () => mapCartToPdfModel(cartOrOrder, user, customer, footerText, validityDays ?? undefined),
+    [cartOrOrder, user, customer, footerText, validityDays],
+  );
 };

@@ -421,7 +421,7 @@ export const CartPdfDocument: React.FC<CartPdfDocumentProps> = ({ data }) => {
             <View style={styles.totalsDivider} />
 
             <View style={styles.totalsRowFinal}>
-              <Text style={styles.totalsLabelFinal}>IMPORTE TOTAL</Text>
+              <Text style={styles.totalsLabelFinal}>TOTAL PUNTOS</Text>
               <Text style={styles.totalsValueFinal}>{data.total.toFixed(2)} pts</Text>
             </View>
           </View>
@@ -429,8 +429,8 @@ export const CartPdfDocument: React.FC<CartPdfDocumentProps> = ({ data }) => {
 
         {/* 5. NOTA LEGAL Y PAGINACIÓN */}
         <Text style={styles.footerNote} fixed>
-          Este documento es informativo y no constituye una factura legal. Los precios están expresados en puntos internos de la plataforma sujetos a las
-          condiciones de venta. Para su aprobación, póngase en contacto con su comercial o apruebe este borrador directamente en el portal online.
+          {data.footerText ||
+            "Este documento es informativo y no constituye una factura legal. Los precios están expresados en puntos internos de la plataforma sujetos a las condiciones de venta. Para su aprobación, póngase en contacto con su comercial o apruebe este borrador directamente en el portal online."}
         </Text>
         <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => `Página ${pageNumber} de ${totalPages}`} fixed />
       </Page>
