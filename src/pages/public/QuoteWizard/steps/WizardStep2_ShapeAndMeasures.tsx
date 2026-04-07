@@ -1,7 +1,6 @@
 import React from "react";
 import { Alert } from "@mui/material";
 
-// --- HOOKS Y COMPONENTES ---
 import { useWizardStep2 } from "./components/step2/useWizardStep2";
 import { ShapeSelectionView } from "./components/step2/ShapeSelectionView";
 import { MeasuresEditorView } from "./components/step2/MeasuresEditorView";
@@ -17,20 +16,25 @@ export const WizardStep2_ShapeAndMeasures: React.FC = () => {
     isChangeMaterialModalOpen,
     materialToChange,
     initialSelectionForChange,
+    isAddPieceModalOpen,
     handleSelectVariation,
     handleMeasureChange,
     handleOpenChangeMaterialModal,
     handleConfirmMaterialChange,
     handleResetShape,
     handleCloseModal,
+    handleOpenAddPieceModal,
+    handleCloseAddPieceModal,
+    handleAddPiece,
+    handleRemovePiece,
+    handleReorderPiece,
+    handleConnectionTypeChange,
   } = useWizardStep2();
 
-  // 1. Validar que el Step 1 esté completo
   if (!wizardTempMaterial) {
     return <Alert severity="warning">Por favor, vuelve al Paso 1 y selecciona un material base primero.</Alert>;
   }
 
-  // 2. Renderizado Condicional: VISTA A (Selección) o VISTA B (Medidas)
   return (
     <>
       {mainPieces.length === 0 ? (
@@ -44,16 +48,41 @@ export const WizardStep2_ShapeAndMeasures: React.FC = () => {
           handleResetShape={handleResetShape}
           handleOpenChangeMaterialModal={handleOpenChangeMaterialModal}
           handleMeasureChange={handleMeasureChange}
+          handleOpenAddPieceModal={handleOpenAddPieceModal}
+          handleRemovePiece={handleRemovePiece}
+          handleReorderPiece={handleReorderPiece}
+          handleConnectionTypeChange={handleConnectionTypeChange}
         />
       )}
 
-      {/* --- Modal para "Cambiar Material" --- */}
       <MaterialAttributeModal
         open={isChangeMaterialModalOpen}
         onClose={handleCloseModal}
         material={materialToChange}
         initialSelection={initialSelectionForChange}
         onConfirm={handleConfirmMaterialChange}
+      />
+
+      <MaterialAttributeModal
+        open={isAddPieceModalOpen}
+        onClose={handleCloseAddPieceModal}
+        material={null}
+        onConfirm={(payload) => {
+          handleAddPiece({
+            materialId: payload.materialId,
+            selectedAttributes: payload.selectedAttributes,
+            measurements: payload.measurements || { length_mm: 1200, width_mm: 600 },
+            connectionType: payload.connectionType || "LINEAR",
+          });
+        }}
+        showMaterialSelector={true}
+        materialsList={materialsList}
+        defaultMaterialId={wizardTempMaterial.materialId}
+        initialSelection={wizardTempMaterial.selectedAttributes}
+        showMeasurements={true}
+        showConnectionType={true}
+        modalTitle="Agregar Nueva Pieza"
+        confirmButtonText="Agregar Pieza"
       />
     </>
   );
