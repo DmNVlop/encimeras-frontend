@@ -45,6 +45,7 @@ export const BreakdownSection: React.FC<BreakdownSectionProps> = ({ calculationR
             materialImage={wizardTempMaterial?.materialImage}
             materialName={wizardTempMaterial?.materialName}
             originalPieceData={mainPieces[idx]}
+            pieceIndex={idx}
           />
         ))}
 

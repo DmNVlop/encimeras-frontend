@@ -2,15 +2,20 @@ import React from "react";
 import { Paper, Box, Typography, Avatar, Divider, Chip } from "@mui/material";
 import StraightenIcon from "@mui/icons-material/Straighten";
 import type { BreakdownPiece } from "@/interfases/price.interfase";
+import { ConnectionTypeIcon, connectionTypeLabels, type ConnectionType } from "@/pages/public/common/Icons/ConnectionTypeIcons";
 
 interface PieceBreakdownItemProps {
   piece: BreakdownPiece;
   materialImage?: string;
   materialName?: string;
   originalPieceData: any;
+  pieceIndex: number;
 }
 
-export const PieceBreakdownItem: React.FC<PieceBreakdownItemProps> = ({ piece, materialImage, materialName, originalPieceData }) => {
+export const PieceBreakdownItem: React.FC<PieceBreakdownItemProps> = ({ piece, materialImage, materialName, originalPieceData, pieceIndex }) => {
+  const connectionType = (originalPieceData?.layout?.connectionType as ConnectionType) || "NONE";
+  const isFirst = pieceIndex === 0;
+
   return (
     <Paper
       elevation={2}
@@ -38,9 +43,19 @@ export const PieceBreakdownItem: React.FC<PieceBreakdownItemProps> = ({ piece, m
           alignItems: "center",
         }}
       >
-        <Typography variant="subtitle1" fontWeight="bold">
-          {piece.pieceName}
-        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Typography variant="subtitle1" fontWeight="bold">
+            {piece.pieceName}
+          </Typography>
+          {!isFirst && (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, px: 1, py: 0.25, bgcolor: "grey.200", borderRadius: 1 }}>
+              <ConnectionTypeIcon type={connectionType} sx={{ fontSize: 18 }} />
+              <Typography variant="caption" color="text.secondary">
+                {connectionTypeLabels[connectionType]}
+              </Typography>
+            </Box>
+          )}
+        </Box>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
           {piece.discountAmount && piece.discountAmount > 0 ? (
             <>
