@@ -89,25 +89,35 @@ export const useWizardStep2 = () => {
 
   const handleConfirmMaterialChange = useCallback(
     (payload: MaterialConfirmationPayload) => {
-      if (editingPieceIndex === null) return;
+      const pieceIndex = payload.pieceIndex ?? editingPieceIndex;
+      if (pieceIndex === null || pieceIndex === undefined) return;
+
+      const currentPiece = mainPieces[pieceIndex];
+      if (!currentPiece) return;
 
       dispatch({
         type: "UPDATE_MAIN_PIECE",
         payload: {
-          pieceIndex: editingPieceIndex,
+          pieceIndex,
           data: {
             materialId: payload.materialId,
             selectedAttributes: payload.selectedAttributes,
+            layout: {
+              order: currentPiece.layout?.order ?? pieceIndex,
+              rotation: currentPiece.layout?.rotation ?? 0,
+              connectionType: payload.connectionType ?? currentPiece.layout?.connectionType ?? "LINEAR",
+            },
           },
         },
       });
 
       setIsChangeMaterialModalOpen(false);
+      setIsAddPieceModalOpen(false);
       setEditingPieceIndex(null);
       setMaterialToChange(null);
       setInitialSelectionForChange(undefined);
     },
-    [dispatch, editingPieceIndex],
+    [dispatch, editingPieceIndex, mainPieces],
   );
 
   const handleResetShape = useCallback(() => {
@@ -197,6 +207,7 @@ export const useWizardStep2 = () => {
     materialToChange,
     initialSelectionForChange,
     isAddPieceModalOpen,
+    editingPieceIndex,
     handleSelectVariation,
     handleMeasureChange,
     handleOpenChangeMaterialModal,

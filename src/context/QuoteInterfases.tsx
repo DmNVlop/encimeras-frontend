@@ -80,7 +80,10 @@ export interface MaterialConfirmationPayload {
   materialId: string;
   materialName: string;
   materialImage?: string;
-  selectedAttributes: SelectedAttributes; // Reutilizamos la interfaz existente
+  selectedAttributes: SelectedAttributes;
+  connectionType?: "LINEAR" | "CORNER_LEFT" | "CORNER_RIGHT" | "NONE";
+  measurements?: { length_mm: number; width_mm: number };
+  pieceIndex?: number;
 }
 
 /**

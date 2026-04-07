@@ -14,9 +14,8 @@ export const WizardStep2_ShapeAndMeasures: React.FC = () => {
     materialsList,
     loadingMaterials,
     isChangeMaterialModalOpen,
-    materialToChange,
-    initialSelectionForChange,
     isAddPieceModalOpen,
+    editingPieceIndex,
     handleSelectVariation,
     handleMeasureChange,
     handleOpenChangeMaterialModal,
@@ -34,6 +33,10 @@ export const WizardStep2_ShapeAndMeasures: React.FC = () => {
   if (!wizardTempMaterial) {
     return <Alert severity="warning">Por favor, vuelve al Paso 1 y selecciona un material base primero.</Alert>;
   }
+
+  const isModalOpen = isChangeMaterialModalOpen || isAddPieceModalOpen;
+  const currentPiece = isChangeMaterialModalOpen && editingPieceIndex !== null ? mainPieces[editingPieceIndex] : null;
+  const currentMaterial = currentPiece ? materialsList.find((m) => m._id === currentPiece.materialId) : null;
 
   return (
     <>
@@ -56,33 +59,32 @@ export const WizardStep2_ShapeAndMeasures: React.FC = () => {
       )}
 
       <MaterialAttributeModal
-        open={isChangeMaterialModalOpen}
-        onClose={handleCloseModal}
-        material={materialToChange}
-        initialSelection={initialSelectionForChange}
-        onConfirm={handleConfirmMaterialChange}
-      />
-
-      <MaterialAttributeModal
-        open={isAddPieceModalOpen}
-        onClose={handleCloseAddPieceModal}
-        material={null}
+        open={isModalOpen}
+        onClose={isChangeMaterialModalOpen ? handleCloseModal : handleCloseAddPieceModal}
+        material={currentMaterial || null}
+        initialSelection={currentPiece?.selectedAttributes}
         onConfirm={(payload) => {
-          handleAddPiece({
-            materialId: payload.materialId,
-            selectedAttributes: payload.selectedAttributes,
-            measurements: payload.measurements || { length_mm: 1200, width_mm: 600 },
-            connectionType: payload.connectionType || "LINEAR",
-          });
+          if (isChangeMaterialModalOpen && editingPieceIndex !== null) {
+            handleConfirmMaterialChange({
+              ...payload,
+              pieceIndex: editingPieceIndex,
+            });
+          } else {
+            handleAddPiece({
+              materialId: payload.materialId,
+              selectedAttributes: payload.selectedAttributes,
+              measurements: payload.measurements || { length_mm: 1200, width_mm: 600 },
+              connectionType: payload.connectionType || "LINEAR",
+            });
+          }
         }}
         showMaterialSelector={true}
         materialsList={materialsList}
-        defaultMaterialId={wizardTempMaterial.materialId}
-        initialSelection={wizardTempMaterial.selectedAttributes}
-        showMeasurements={true}
+        defaultMaterialId={wizardTempMaterial?.materialId}
+        showMeasurements={!isChangeMaterialModalOpen}
         showConnectionType={true}
-        modalTitle="Agregar Nueva Pieza"
-        confirmButtonText="Agregar Pieza"
+        modalTitle={isChangeMaterialModalOpen ? "Cambiar Material de Pieza" : "Agregar Nueva Pieza"}
+        confirmButtonText={isChangeMaterialModalOpen ? "Guardar" : "Agregar Pieza"}
       />
     </>
   );
