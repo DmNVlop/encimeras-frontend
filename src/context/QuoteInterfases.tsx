@@ -69,6 +69,11 @@ export interface MainPiece {
   // Elegir forma
   layout?: PieceLayout;
 
+  // Índice original de la pieza dentro del ShapeVariation seleccionado.
+  // Se asigna al crear las piezas iniciales y se mantiene intacto
+  // para que el preview visual siempre corresponda a su forma base.
+  originalShapeIndex?: number;
+
   // --- Accesorios Aplicados ---
   appliedAddons: AppliedAddon[]; // Lista de accesorios para ESTA pieza
 }

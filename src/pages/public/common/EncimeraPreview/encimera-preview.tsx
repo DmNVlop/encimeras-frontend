@@ -60,7 +60,7 @@ const EncimeraPreview: React.FC<ExtendedProps> = ({ config = null, highlightInde
             key={piece.id || index} // La key es esencial para React
             className={`encimera-pieza ${stateClass}`}
             style={pieceStyle}
-            data-id={piece.id} // Útil para debug
+            data-id={`p${index + 1}`} // Posición actual de la pieza
           />
         );
       })}

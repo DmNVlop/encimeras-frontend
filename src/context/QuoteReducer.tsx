@@ -94,6 +94,10 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
           newPiece.layout = piecesLayout[i];
         }
 
+        // Guardar índice original dentro del ShapeVariation
+        // para que el preview visual mantenga siempre su pieza activa
+        newPiece.originalShapeIndex = i;
+
         newPieces.push(newPiece);
       }
 
@@ -128,7 +132,7 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
       return {
         ...state,
         calculationResult: null,
-        selectedShapeId: "CUSTOM",
+        // selectedShapeId: "CUSTOM",
         mainPieces: state.mainPieces.map((piece, index) => {
           if (index === pieceIndex) {
             return { ...piece, measurements };
@@ -157,7 +161,7 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
       return {
         ...state,
         calculationResult: null,
-        selectedShapeId: "CUSTOM",
+        // selectedShapeId: "CUSTOM",
         mainPieces: updatedPieces,
       };
     }
@@ -188,7 +192,7 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
       return {
         ...state,
         calculationResult: null,
-        selectedShapeId: "CUSTOM",
+        //selectedShapeId: "CUSTOM",
         mainPieces: reorderedPieces,
         activePieceIndex:
           state.activePieceIndex !== null && state.activePieceIndex >= pieceIndex ? Math.max(0, state.activePieceIndex - 1) : state.activePieceIndex,
@@ -224,7 +228,7 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
       return {
         ...state,
         calculationResult: null,
-        selectedShapeId: "CUSTOM",
+        //selectedShapeId: "CUSTOM",
         mainPieces: reorderedPieces,
       };
     }

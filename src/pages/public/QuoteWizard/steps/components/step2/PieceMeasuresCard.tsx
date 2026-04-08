@@ -37,8 +37,11 @@ export const PieceMeasuresCard: React.FC<PieceMeasuresCardProps> = ({
   isLast,
 }) => {
   const currentConnectionType = piece.layout?.connectionType || "NONE";
-
   const connectionTypeOptions: ConnectionType[] = ["LINEAR", "CORNER_LEFT", "CORNER_RIGHT", "NONE"];
+
+  // Piezas originales (de la forma base) mantienen su originalShapeIndex → resaltan su pieza.
+  // Piezas nuevas (extra) no lo tienen → el preview muestra todo en inactivo.
+  const effectiveHighlightIndex = piece.originalShapeIndex !== undefined ? piece.originalShapeIndex : null;
 
   return (
     <Paper elevation={2} sx={{ p: 0, overflow: "hidden", height: "100%" }}>
@@ -149,10 +152,10 @@ export const PieceMeasuresCard: React.FC<PieceMeasuresCardProps> = ({
                   grid: currentShapeVariation.grid,
                   pieces: currentShapeVariation.pieces,
                 }}
-                highlightIndex={index}
+                highlightIndex={effectiveHighlightIndex}
               />
               <Typography variant="caption" align="center" display="block" sx={{ mt: 1, color: "text.secondary", fontWeight: "medium" }}>
-                Editando zona resaltada
+                {effectiveHighlightIndex !== null ? "Editando zona resaltada" : "Pieza adicional"}
               </Typography>
             </Box>
           ) : (

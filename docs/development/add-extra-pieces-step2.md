@@ -172,7 +172,7 @@ connectionType: "NONE" | "LINEAR" | "CORNER_RIGHT" | "CORNER_LEFT" | "CUSTOM";
 ## 9. Estado: ✅ Implementado
 
 **Fecha de creación**: 2026-04-07
-**Última actualización**: 2026-04-07
+**Última actualización**: 2026-04-08
 
 ---
 
@@ -188,3 +188,50 @@ connectionType: "NONE" | "LINEAR" | "CORNER_RIGHT" | "CORNER_LEFT" | "CUSTOM";
 - Actualizado `MeasuresEditorView.tsx` con botón "Agregar Pieza"
 - Actualizado `PieceMeasuresCard.tsx` con controles de reorder (↑/↓), eliminar y edición de connectionType
 - Actualizado `WizardStep2_ShapeAndMeasures.tsx` para integrar el modal de agregar pieza
+
+### 2026-04-08 - Sistema de Tracking de Piezas Originales
+
+**Cambios implementados:**
+
+1. **QuoteInterfases.tsx:72-75** - Nuevo campo en `MainPiece`:
+
+   ```typescript
+   originalShapeIndex?: number;
+   ```
+
+   Indica el índice de la pieza dentro de la forma base. Las piezas nuevas (extras) no lo tendrán → `undefined`.
+
+2. **QuoteReducer.tsx:97-99** - Asignación al crear piezas iniciales:
+
+   ```typescript
+   newPiece.originalShapeIndex = i;
+   ```
+
+   Las piezas nuevas creadas con `ADD_EXTRA_PIECE` NO reciben este campo (quedan `undefined`).
+
+3. **encimera-preview.tsx:63** - `data-id` dinámico:
+
+   ```typescript
+   data-id={`p${index + 1}`}
+   ```
+
+   Ahora refleja la posición actual de la pieza (`p1`, `p2`, `p3`...) en vez del ID estático del shape.
+
+4. **PieceMeasuresCard.tsx:42-44, 155, 158** - Lógica del preview:
+   ```typescript
+   const effectiveHighlightIndex = piece.originalShapeIndex !== undefined ? piece.originalShapeIndex : null;
+   ```
+
+   - **Pieza original** (tiene `originalShapeIndex`): resalta su pieza correspondiente en el preview, aunque se reorganice
+   - **Pieza nueva** (sin `originalShapeIndex`): muestra todo el preview en inactivo
+   - El caption ahora dice "Pieza adicional" para piezas extras
+
+**Comportamiento resultante:**
+
+| Escenario      | Pieza original (p1)    |
+| -------------- | ---------------------- |
+| Estado preview | p1 activa, p2 inactiva |
+| Al reorganizar | Mantiene su preview    |
+| data-id        | "p1","p2"              |
+
+Los `REMOVE_PIECE` y `UPDATE_PIECE_ORDER` usan spread `{...piece, ...}` que preserva `originalShapeIndex` intacto.
