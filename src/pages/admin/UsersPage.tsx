@@ -10,6 +10,7 @@ import AddIcon from "@mui/icons-material/Add";
 import type { User } from "@/interfases/user.interfase";
 import AdminPageTitle from "./components/AdminPageTitle";
 import UserModal from "./components/users/UserModal";
+import { ApiErrorFeedback } from "../public/common/ApiErrorFeedback";
 
 const UsersPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -18,14 +19,17 @@ const UsersPage: React.FC = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentUser, setCurrentUser] = useState<Partial<User>>({});
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
+  const [error, setError] = useState<any>(null);
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await get<User[]>("/users");
       setUsers(data);
-    } catch (error) {
-      console.error("Error loading users:", error);
+    } catch (err) {
+      console.error("Error loading users:", err);
+      setError(err);
     } finally {
       setLoading(false);
     }
@@ -48,8 +52,9 @@ const UsersPage: React.FC = () => {
       try {
         await remove("/users", [id]);
         loadUsers();
-      } catch (error) {
-        console.error("Error deleting user:", error);
+      } catch (err) {
+        console.error("Error deleting user:", err);
+        setError(err);
       }
     }
   };
@@ -61,17 +66,16 @@ const UsersPage: React.FC = () => {
       } else {
         await create("/users", data);
       }
+      setError(null);
       loadUsers();
       handleClose();
-    } catch (error) {
-      console.error("Error saving user:", error);
-      // Aquí podrías manejar errores específicos como 409 Conflict
-      if (typeof error === "object" && error !== null && "statusCode" in error) {
-        const backendError = error as any;
+    } catch (err) {
+      console.error("Error saving user:", err);
+      setError(err);
+      if (typeof err === "object" && err !== null && "statusCode" in err) {
+        const backendError = err as any;
         if (backendError.statusCode === 409) {
           alert("El nombre de usuario ya está en uso.");
-        } else {
-          alert(backendError.message || "Ocurrió un error al guardar.");
         }
       }
     }
@@ -88,10 +92,16 @@ const UsersPage: React.FC = () => {
       renderCell: (params) => (
         <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap", alignItems: "center", height: "100%" }}>
           {params.value?.map((role: string) => (
-            <Chip key={role} label={role} size="small" variant="outlined" color={role === "ADMIN" ? "primary" : "default"} />
+            <Chip key={role} label={role} size="small" variant="outlined" color={role === "ADMIN" ? "primary" : role === "OWNER" ? "secondary" : "default"} />
           ))}
         </Box>
       ),
+    },
+    {
+      field: "factoryId",
+      headerName: "Factory ID",
+      width: 180,
+      renderCell: (params) => <Chip label={params.value || "-"} size="small" variant="outlined" color={params.value ? "info" : "default"} />,
     },
     {
       field: "createdAt",
@@ -119,6 +129,8 @@ const UsersPage: React.FC = () => {
           Añadir Usuario
         </Button>
       </Box>
+
+      <ApiErrorFeedback error={error} title="Error en Gestión de Usuarios" onRetry={loadUsers} />
 
       <Box sx={{ height: "calc(100vh - 200px)", width: "100%" }}>
         <DataGrid

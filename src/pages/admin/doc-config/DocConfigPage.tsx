@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Box, Typography, Stack, Button, TextField, useTheme, alpha, Paper, CircularProgress, Alert, Snackbar } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import SaveIcon from "@mui/icons-material/Save";
 import AdminPageTitle from "../components/AdminPageTitle";
 import { documentSettingsService, type IDocumentSettings } from "@/services/document-settings.service";
@@ -11,8 +12,17 @@ const DEFAULT_FOOTER_TEXT =
 
 const DocConfigPage: React.FC = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const { user } = useAuth();
-  const isAdmin = user?.roles.includes("ADMIN");
+  const canEdit = user?.roles.includes("ADMIN");
+  const canView = user?.roles.includes("ADMIN") || user?.roles.includes("OWNER");
+
+  // Redirect if no access
+  useEffect(() => {
+    if (!canView) {
+      navigate("/admin/dashboard", { replace: true });
+    }
+  }, [canView, navigate]);
 
   const [settings, setSettings] = useState<IDocumentSettings | null>(null);
   const [loading, setLoading] = useState(true);
@@ -103,7 +113,7 @@ const DocConfigPage: React.FC = () => {
               type="number"
               value={validityDays}
               onChange={(e) => setValidityDays(Math.max(1, parseInt(e.target.value) || 1))}
-              disabled={!isAdmin}
+              disabled={!canEdit}
               inputProps={{ min: 1 }}
               helperText="Número de días que el presupuesto permanece válido desde su emisión"
               sx={{ width: 250 }}
@@ -124,12 +134,12 @@ const DocConfigPage: React.FC = () => {
               fullWidth
               value={footerText}
               onChange={(e) => setFooterText(e.target.value)}
-              disabled={!isAdmin}
+              disabled={!canEdit}
               placeholder="Escribe el texto informativo que aparecerá en el pie del PDF..."
             />
           </Box>
 
-          {isAdmin && (
+          {canEdit && (
             <Box sx={{ pt: 2 }}>
               <Button
                 variant="contained"
@@ -152,7 +162,7 @@ const DocConfigPage: React.FC = () => {
             </Box>
           )}
 
-          {!isAdmin && (
+          {!canEdit && (
             <Alert severity="info" sx={{ mt: 2 }}>
               Solo los usuarios con rol ADMIN pueden modificar esta configuración.
             </Alert>

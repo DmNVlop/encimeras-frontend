@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { DataGrid, type GridColDef, type GridRenderCellParams } from "@mui/x-data-grid";
-import { Box, Chip, Paper } from "@mui/material";
+import { Box, Chip, Paper, Typography, Button } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import AdminPageTitle from "./components/AdminPageTitle";
 
 import { get } from "@/services/api.service";
@@ -9,6 +10,9 @@ import { useSocket } from "../../context/SocketContext";
 import { OrderPreviewDrawer } from "./OrderPreviewDrawer";
 import { useSearchParams } from "react-router-dom";
 import { ordersApi } from "@/services/orders.service";
+import { ApiErrorFeedback } from "../public/common/ApiErrorFeedback";
+import { useAuth } from "@/hooks/useAuth";
+import { Role } from "@/interfases/user.interfase";
 
 // Definición de columnas basada en tu OrderHeader [cite: 82]
 const columns: GridColDef[] = [
@@ -35,6 +39,12 @@ const columns: GridColDef[] = [
 ];
 
 export const OrdersPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Protección: verificar rol
+  const hasAccess = user?.roles?.some((role) => role === Role.ADMIN || role === Role.SALES);
+
   // GESTIÓN DE URL (Deep Linking)
   const [searchParams, setSearchParams] = useSearchParams();
   const activeOrderId = searchParams.get("orderId"); // Leemos el ID de la URL
@@ -43,6 +53,14 @@ export const OrdersPage: React.FC = () => {
   // ESTADOS DE DATOS
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<any>(null);
+
+  // Verificar acceso al montar
+  useEffect(() => {
+    if (!hasAccess) {
+      navigate("/admin/dashboard", { replace: true });
+    }
+  }, [hasAccess, navigate]);
 
   // Estado para el detalle de la orden seleccionada
   const [selectedOrderFull, setSelectedOrderFull] = useState<any | null>(null);
@@ -57,6 +75,8 @@ export const OrdersPage: React.FC = () => {
   }, []);
 
   const fetchOrders = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const data: any[] = await get("/orders");
       // Aseguramos que cada fila tenga 'id' único para el DataGrid (usamos _id de Mongo)
@@ -67,8 +87,9 @@ export const OrdersPage: React.FC = () => {
         _original: order,
       }));
       setRows(mappedRows);
-    } catch (error) {
-      console.error("Error cargando órdenes", error);
+    } catch (err) {
+      console.error("Error cargando órdenes", err);
+      setError(err);
     } finally {
       setLoading(false);
     }
@@ -218,9 +239,27 @@ export const OrdersPage: React.FC = () => {
     }
   };
 
+  if (!hasAccess) {
+    return (
+      <Box sx={{ p: 4, textAlign: "center" }}>
+        <Typography variant="h5" color="error" gutterBottom>
+          Acceso Denegado
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          No tienes permisos para ver esta página. Contacta con un administrador.
+        </Typography>
+        <Button variant="contained" sx={{ mt: 3 }} onClick={() => navigate("/admin/dashboard")}>
+          Ir al Dashboard
+        </Button>
+      </Box>
+    );
+  }
+
   return (
     <Box>
       <AdminPageTitle mb={2}>Gestión de Órdenes</AdminPageTitle>
+
+      <ApiErrorFeedback error={error} title="Error al cargar órdenes" onRetry={fetchOrders} />
 
       <Paper sx={{ flexGrow: 1 }}>
         <DataGrid
