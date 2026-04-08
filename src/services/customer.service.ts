@@ -1,9 +1,11 @@
 import { get, create, update, remove, post } from "./api.service";
 import type { ICustomer, ICustomerCreate } from "@/interfases/customer.interfase";
 import type { User } from "@/interfases/user.interfase";
+import { config } from "@/config";
 
 const ENDPOINT = "/customers";
 const USERS_ENDPOINT = "/users";
+const API_BASE = config.api.baseURL;
 
 export const getCustomers = (): Promise<ICustomer[]> => {
   return get<ICustomer[]>(ENDPOINT);
@@ -42,7 +44,7 @@ export const batchAssignSales = (customerIds: string[], salesUserIds: string[]):
 };
 
 const patch = <T>(url: string, data: any): Promise<T> => {
-  return fetch(url, {
+  return fetch(`${API_BASE}${url}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
