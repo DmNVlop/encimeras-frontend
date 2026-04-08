@@ -386,11 +386,13 @@ const CustomersPage: React.FC = () => {
         onClose={() => setAssignDialogOpen(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: 4,
-            background: alpha(theme.palette.background.paper, 0.95),
-            backdropFilter: "blur(20px)",
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: 4,
+              background: alpha(theme.palette.background.paper, 0.95),
+              backdropFilter: "blur(20px)",
+            },
           },
         }}
       >
@@ -449,11 +451,13 @@ const CustomersPage: React.FC = () => {
         onClose={() => setDeleteDialogOpen(false)}
         maxWidth="xs"
         fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: 4,
-            background: alpha(theme.palette.background.paper, 0.95),
-            backdropFilter: "blur(20px)",
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: 4,
+              background: alpha(theme.palette.background.paper, 0.95),
+              backdropFilter: "blur(20px)",
+            },
           },
         }}
       >

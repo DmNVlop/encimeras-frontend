@@ -289,7 +289,7 @@ export const WizardStep5_Summary: React.FC<WizardStep5_SummaryProps> = ({ onRese
       )}
 
       {/* --- MODAL DEL VISOR 3D --- */}
-      <Dialog open={open3D} onClose={() => setOpen3D(false)} maxWidth="lg" fullWidth PaperProps={{ sx: { height: "80vh" } }}>
+      <Dialog open={open3D} onClose={() => setOpen3D(false)} maxWidth="lg" fullWidth slotProps={{ paper: { sx: { height: "80vh" } } }}>
         <DialogTitle sx={{ m: 0, p: 2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Typography variant="h6">Previsualización 3D</Typography>
           <IconButton aria-label="close" onClick={() => setOpen3D(false)} sx={{ color: (theme) => theme.palette.grey[500] }}>

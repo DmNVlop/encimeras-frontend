@@ -159,13 +159,15 @@ export const WizardHeader: React.FC<WizardHeaderProps> = ({ activeStep, steps, i
                 vertical: "top",
                 horizontal: "right",
               }}
-              PaperProps={{
-                sx: {
-                  mt: 1.5,
-                  borderRadius: 3,
-                  boxShadow: "0px 10px 40px rgba(0,0,0,0.1)",
-                  border: "1px solid",
-                  borderColor: "divider",
+              slotProps={{
+                paper: {
+                  sx: {
+                    mt: 1.5,
+                    borderRadius: 3,
+                    boxShadow: "0px 10px 40px rgba(0,0,0,0.1)",
+                    border: "1px solid",
+                    borderColor: "divider",
+                  },
                 },
               }}
             >

@@ -105,11 +105,13 @@ const CustomerDrawer: React.FC<CustomerDrawerProps> = ({ customer, open, onClose
       sx={{
         zIndex: (theme) => theme.zIndex.modal,
       }}
-      PaperProps={{
-        sx: {
-          width: { xs: "100%", sm: 550, md: 700 },
-          borderRadius: { xs: 0, sm: "24px 0 0 24px" },
-          overflow: "hidden",
+      slotProps={{
+        paper: {
+          sx: {
+            width: { xs: "100%", sm: 550, md: 700 },
+            borderRadius: { xs: 0, sm: "24px 0 0 24px" },
+            overflow: "hidden",
+          },
         },
       }}
     >
