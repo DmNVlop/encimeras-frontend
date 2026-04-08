@@ -116,6 +116,13 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
         // solo quiere cambiar la forma pero no el material base.
       };
 
+    case "SET_MAIN_PIECES":
+      return {
+        ...state,
+        mainPieces: action.payload,
+        calculationResult: null,
+      };
+
     case "UPDATE_PIECE_MEASUREMENTS": {
       const { pieceIndex, measurements } = action.payload;
       return {

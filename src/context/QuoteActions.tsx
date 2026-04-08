@@ -23,6 +23,10 @@ export type QuoteAction =
   | { type: "SET_SHAPE_VARIATION_AND_CREATE_PIECES"; payload: ShapeVariationPayload }
   | { type: "RESET_SHAPE" }
   | {
+      type: "SET_MAIN_PIECES"; // Para restaurar piezas al cancelar selección de forma
+      payload: MainPiece[];
+    }
+  | {
       type: "UPDATE_PIECE_MEASUREMENTS"; // Step 2 (Medidas)
       payload: {
         pieceIndex: number;

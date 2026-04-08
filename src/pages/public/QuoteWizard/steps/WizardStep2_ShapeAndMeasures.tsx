@@ -21,6 +21,7 @@ export const WizardStep2_ShapeAndMeasures: React.FC = () => {
     handleOpenChangeMaterialModal,
     handleConfirmMaterialChange,
     handleResetShape,
+    handleCancelShapeSelection,
     handleCloseModal,
     handleOpenAddPieceModal,
     handleCloseAddPieceModal,
@@ -28,6 +29,7 @@ export const WizardStep2_ShapeAndMeasures: React.FC = () => {
     handleRemovePiece,
     handleReorderPiece,
     handleConnectionTypeChange,
+    isShapeSelectionPending,
   } = useWizardStep2();
 
   if (!wizardTempMaterial) {
@@ -40,8 +42,8 @@ export const WizardStep2_ShapeAndMeasures: React.FC = () => {
 
   return (
     <>
-      {mainPieces.length === 0 ? (
-        <ShapeSelectionView onSelectVariation={handleSelectVariation} />
+      {mainPieces.length === 0 || isShapeSelectionPending ? (
+        <ShapeSelectionView onSelectVariation={handleSelectVariation} onCancel={handleCancelShapeSelection} />
       ) : (
         <MeasuresEditorView
           mainPieces={mainPieces}

@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Box, Typography, Grid } from "@mui/material";
+import { Box, Typography, Grid, Button } from "@mui/material";
 import { Step2Header } from "./Step2Header";
 import { ShapeCard } from "./ShapeCard";
 import { shapeVariations } from "@/pages/public/common/shapes-step2";
@@ -7,9 +7,10 @@ import type { ShapeVariation } from "@/interfases/shape-variation.interfase";
 
 interface ShapeSelectionViewProps {
   onSelectVariation: (variation: ShapeVariation) => void;
+  onCancel?: () => void;
 }
 
-export const ShapeSelectionView: React.FC<ShapeSelectionViewProps> = ({ onSelectVariation }) => {
+export const ShapeSelectionView: React.FC<ShapeSelectionViewProps> = ({ onSelectVariation, onCancel }) => {
   // Grupos de variaciones
   const groupedVariations = useMemo(() => {
     return shapeVariations.reduce(
@@ -26,7 +27,14 @@ export const ShapeSelectionView: React.FC<ShapeSelectionViewProps> = ({ onSelect
 
   return (
     <Box sx={{ pb: 4 }}>
-      <Step2Header title="Elige la forma principal" subtitle="Qué forma tendrá tu encimera." />
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+        <Step2Header title="Elige la forma principal" subtitle="Qué forma tendrá tu encimera." />
+        {onCancel && (
+          <Button variant="text" size="small" onClick={onCancel}>
+            Volver atrás
+          </Button>
+        )}
+      </Box>
 
       {Object.entries(groupedVariations).map(([groupName, variationsInGroup]) => (
         <Box key={groupName} sx={{ mb: 4 }}>

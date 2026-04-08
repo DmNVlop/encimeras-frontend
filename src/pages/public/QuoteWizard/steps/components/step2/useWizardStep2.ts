@@ -3,6 +3,7 @@ import { useQuoteDispatch, useQuoteState } from "@/context/QuoteContext";
 import { get } from "@/services/api.service";
 import type { Material } from "@/interfases/materials.interfase";
 import type { ShapeVariation, SelectionState } from "@/interfases/shape-variation.interfase";
+import type { MainPiece } from "@/context/QuoteInterfases";
 import { shapeVariations } from "@/pages/public/common/shapes-step2";
 import type { MaterialConfirmationPayload, SelectedAttributes } from "@/context/QuoteInterfases";
 import { type ConnectionType } from "@/pages/public/common/Icons/ConnectionTypeIcons";
@@ -18,6 +19,8 @@ export const useWizardStep2 = () => {
   const [materialToChange, setMaterialToChange] = useState<Material | null>(null);
   const [initialSelectionForChange, setInitialSelectionForChange] = useState<SelectionState | undefined>(undefined);
   const [isAddPieceModalOpen, setIsAddPieceModalOpen] = useState(false);
+  const [backupMainPieces, setBackupMainPieces] = useState<MainPiece[] | null>(null);
+  const [isShapeSelectionPending, setIsShapeSelectionPending] = useState(false);
 
   // Carga inicial de materiales
   useEffect(() => {
@@ -121,8 +124,22 @@ export const useWizardStep2 = () => {
   );
 
   const handleResetShape = useCallback(() => {
-    dispatch({ type: "RESET_SHAPE" });
-  }, [dispatch]);
+    // Backup current pieces instead of immediately resetting
+    setBackupMainPieces(mainPieces);
+    setIsShapeSelectionPending(true);
+  }, [dispatch, mainPieces]);
+
+  const handleCancelShapeSelection = useCallback(() => {
+    // Restore backed up pieces if available
+    if (backupMainPieces !== null) {
+      dispatch({
+        type: "SET_MAIN_PIECES",
+        payload: backupMainPieces,
+      });
+    }
+    setBackupMainPieces(null);
+    setIsShapeSelectionPending(false);
+  }, [backupMainPieces, dispatch]);
 
   const handleCloseModal = useCallback(() => {
     setIsChangeMaterialModalOpen(false);
@@ -213,6 +230,7 @@ export const useWizardStep2 = () => {
     handleOpenChangeMaterialModal,
     handleConfirmMaterialChange,
     handleResetShape,
+    handleCancelShapeSelection,
     handleCloseModal,
     handleOpenAddPieceModal,
     handleCloseAddPieceModal,
@@ -220,5 +238,7 @@ export const useWizardStep2 = () => {
     handleRemovePiece,
     handleReorderPiece,
     handleConnectionTypeChange,
+    backupMainPieces,
+    isShapeSelectionPending,
   };
 };
