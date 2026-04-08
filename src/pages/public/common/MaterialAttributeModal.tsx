@@ -119,8 +119,15 @@ export const MaterialAttributeModal: React.FC<MaterialAttributeModalProps> = ({
       setConnectionType(defaultConnectionType);
 
       if (showMaterialSelector && materialsList.length > 0) {
-        const defaultMat = materialsList.find((m) => m._id === defaultMaterialId) || materialsList[0];
-        setSelectedMaterial(defaultMat);
+        // Priorizar el material inicial (material actual de la pieza) si existe
+        let materialToSelect = initialMaterial;
+
+        // Si no hay material inicial, usar el defaultMaterialId o el primer material
+        if (!materialToSelect) {
+          materialToSelect = materialsList.find((m) => m._id === defaultMaterialId) || materialsList[0];
+        }
+
+        setSelectedMaterial(materialToSelect);
       }
 
       setIsFirstOpen(false);
