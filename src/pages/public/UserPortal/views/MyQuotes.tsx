@@ -285,7 +285,7 @@ function OrderCard({ order }: { order: Order }) {
 
             <Box sx={{ textAlign: { xs: "left", sm: "right" } }}>
               <Typography variant="h6" fontWeight="800" color="primary.main">
-                {header.totalPoints ? header.totalPoints + " pts" : "—"}
+                {header.totalPoints ? header.totalPoints + " " : "—"}
               </Typography>
               <Typography variant="caption" display="block" color="text.secondary">
                 Total Estimado

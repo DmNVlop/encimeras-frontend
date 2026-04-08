@@ -399,7 +399,7 @@ export default function Cart() {
                                 DESCUENTO ÍTEM
                               </Typography>
                               <Typography variant="body2" color="text.secondary" sx={{ textDecoration: "line-through" }}>
-                                Base: {(item.originalPoints || item.subtotalPoints + item.discountAmount)?.toLocaleString()} pts
+                                Base: {(item.originalPoints || item.subtotalPoints + item.discountAmount)?.toLocaleString()}
                               </Typography>
                             </Box>
 
@@ -409,13 +409,13 @@ export default function Cart() {
                                 {(item.appliedRules || item.appliedDiscounts)!.map((discount, i) => (
                                   <Typography key={i} variant="caption" color="success.main" display="block" fontWeight="medium">
                                     ✓ {discount.ruleName}: -
-                                    {discount.discountAmount?.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} pts
+                                    {discount.discountAmount?.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                                   </Typography>
                                 ))}
                                 {(item.appliedRules || item.appliedDiscounts)!.length > 1 && (
                                   <Box sx={{ borderTop: "1px dashed", borderColor: alpha(theme.palette.success.main, 0.3), mt: 0.5, pt: 0.5 }}>
                                     <Typography variant="caption" color="success.main" fontWeight="bold">
-                                      Total ítem: -{item.discountAmount?.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} pts
+                                      Total ítem: -{item.discountAmount?.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                                     </Typography>
                                   </Box>
                                 )}
@@ -423,8 +423,8 @@ export default function Cart() {
                             ) : (
                               // Fallback si no hay array de reglas
                               <Typography variant="caption" color="success.main" display="block" fontWeight="medium">
-                                ✓ Descuento aplicado: -{item.discountAmount?.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}{" "}
-                                pts
+                                ✓ Descuento aplicado: -
+                                {item.discountAmount?.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}{" "}
                               </Typography>
                             )}
 
@@ -433,13 +433,13 @@ export default function Cart() {
                                 Subtotal Neto:
                               </Typography>
                               <Typography variant="h6" color="primary.main" fontWeight="bold" sx={{ lineHeight: 1 }}>
-                                {item.subtotalPoints?.toLocaleString()} pts
+                                {item.subtotalPoints?.toLocaleString()}
                               </Typography>
                             </Box>
                           </Box>
                         ) : (
                           <Typography variant="h6" color="primary.main" fontWeight="bold" sx={{ mt: 1 }}>
-                            {(item.originalPoints || item.subtotalPoints)?.toLocaleString()} pts
+                            {(item.originalPoints || item.subtotalPoints)?.toLocaleString()}
                           </Typography>
                         )}
                       </Box>
@@ -479,7 +479,7 @@ export default function Cart() {
               <>
                 <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                   <Typography color="text.secondary">Subtotal bruto:</Typography>
-                  <Typography fontWeight="medium">{totalOriginalPoints.toLocaleString()} pts</Typography>
+                  <Typography fontWeight="medium">{totalOriginalPoints.toLocaleString()} </Typography>
                 </Box>
 
                 {/* Ahorro en Ítems (si existe) */}
@@ -489,7 +489,7 @@ export default function Cart() {
                       Ahorro en ítems:
                     </Typography>
                     <Typography color="success.main" variant="body2" fontWeight="medium">
-                      - {totalItemDiscounts.toLocaleString()} pts
+                      - {totalItemDiscounts.toLocaleString()}
                     </Typography>
                   </Box>
                 )}
@@ -502,7 +502,7 @@ export default function Cart() {
                         Descuentos globales:
                       </Typography>
                       <Typography color="success.main" variant="body2" fontWeight="medium">
-                        - {totalGlobalDiscounts.toLocaleString(undefined, { maximumFractionDigits: 2 })} pts
+                        - {totalGlobalDiscounts.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                       </Typography>
                     </Box>
 
@@ -515,7 +515,7 @@ export default function Cart() {
                               • {rule.ruleName}
                             </Typography>
                             <Typography variant="caption" color="success.main">
-                              -{rule.discountAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })} pts
+                              -{rule.discountAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                             </Typography>
                           </Box>
                         ))}
@@ -531,7 +531,7 @@ export default function Cart() {
                     Ahorro total:
                   </Typography>
                   <Typography color="success.main" fontWeight="bold">
-                    - {cart.totalDiscount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} pts
+                    - {cart.totalDiscount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                   </Typography>
                 </Box>
               </>
@@ -542,7 +542,7 @@ export default function Cart() {
                 Total:
               </Typography>
               <Typography variant="h5" color="primary.main" fontWeight="bold">
-                {totalPoints.toLocaleString()} pts
+                {totalPoints.toLocaleString()}
               </Typography>
             </Box>
 

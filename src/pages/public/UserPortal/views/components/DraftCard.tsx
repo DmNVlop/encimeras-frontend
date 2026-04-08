@@ -202,14 +202,14 @@ export default function DraftCard({ draft, onDelete }: DraftCardProps) {
               <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <Typography variant="body2" color="text.secondary" sx={{ textDecoration: "line-through" }}>
-                    {draft.originalPoints?.toLocaleString()} pts
+                    {draft.originalPoints?.toLocaleString()}
                   </Typography>
                   <Typography variant="h6" color="primary.main" fontWeight="bold">
-                    {draft.currentPricePoints?.toLocaleString()} pts
+                    {draft.currentPricePoints?.toLocaleString()}
                   </Typography>
                 </Box>
                 <Chip
-                  label={`¡Ahorras ${draft.discountAmount.toLocaleString()} pts!`}
+                  label={`¡Ahorras ${draft.discountAmount.toLocaleString()} !`}
                   size="small"
                   color="success"
                   sx={{ fontWeight: "bold", alignSelf: "flex-start", height: 24, fontSize: "0.75rem" }}
@@ -217,7 +217,7 @@ export default function DraftCard({ draft, onDelete }: DraftCardProps) {
               </Box>
             ) : (
               <Typography variant="h6" color="primary.main" fontWeight="bold">
-                {draft.currentPricePoints?.toLocaleString()} pts
+                {draft.currentPricePoints?.toLocaleString()}
               </Typography>
             )}
           </Box>

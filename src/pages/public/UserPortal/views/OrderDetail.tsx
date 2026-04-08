@@ -249,7 +249,7 @@ function LineItemAccordion({ item, index }: { item: OrderLineItem; index: number
             {mainPieces.length} pieza{mainPieces.length !== 1 ? "s" : ""}
           </Typography>
           <Typography variant="subtitle1" fontWeight={700} color="primary.main">
-            {(item.subtotalPoints ?? 0).toFixed(2)} pts
+            {(item.subtotalPoints ?? 0).toFixed(2)}
           </Typography>
         </Stack>
       </AccordionSummary>
@@ -266,10 +266,10 @@ function LineItemAccordion({ item, index }: { item: OrderLineItem; index: number
         {item.discountAmount > 0 && (
           <Box sx={{ mt: 1.5, textAlign: "right" }}>
             <Typography variant="caption" color="text.secondary">
-              Precio original: <s>{(item.originalPoints ?? 0).toFixed(2)} pts</s>
+              Precio original: <s>{(item.originalPoints ?? 0).toFixed(2)} </s>
             </Typography>
             <Typography variant="caption" color="success.main" fontWeight={600} sx={{ ml: 1.5 }}>
-              Descuento: -{item.discountAmount.toFixed(2)} pts
+              Descuento: -{item.discountAmount.toFixed(2)}
             </Typography>
           </Box>
         )}
@@ -307,7 +307,7 @@ function TotalsPanel({ order, customer, user }: { order: Order; customer: ICusto
               Subtotal bruto
             </Typography>
             <Typography variant="body2" fontWeight={600}>
-              {(header.totalOriginalPoints ?? 0).toFixed(2)} pts
+              {(header.totalOriginalPoints ?? 0).toFixed(2)}
             </Typography>
           </Box>
 
@@ -323,7 +323,7 @@ function TotalsPanel({ order, customer, user }: { order: Order; customer: ICusto
                     • {rule.ruleName}
                   </Typography>
                   <Typography variant="caption" color="success.main" fontWeight={600}>
-                    -{rule.discountAmount.toFixed(2)} pts
+                    -{rule.discountAmount.toFixed(2)}
                   </Typography>
                 </Box>
               ))}
@@ -336,7 +336,7 @@ function TotalsPanel({ order, customer, user }: { order: Order; customer: ICusto
                 Ahorro total
               </Typography>
               <Typography variant="body2" color="success.main" fontWeight={700}>
-                -{(header.totalDiscount ?? 0).toFixed(2)} pts
+                -{(header.totalDiscount ?? 0).toFixed(2)}
               </Typography>
             </Box>
           )}
@@ -348,7 +348,7 @@ function TotalsPanel({ order, customer, user }: { order: Order; customer: ICusto
               Total Final
             </Typography>
             <Typography variant="h6" fontWeight={800} color="primary.main">
-              {(header.totalPoints ?? 0).toFixed(2)} pts
+              {(header.totalPoints ?? 0).toFixed(2)}
             </Typography>
           </Box>
         </Stack>

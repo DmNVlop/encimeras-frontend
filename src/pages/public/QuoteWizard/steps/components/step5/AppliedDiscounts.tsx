@@ -34,7 +34,7 @@ export const AppliedDiscounts: React.FC<AppliedDiscountsProps> = ({ appliedRules
               {rule.ruleName}
             </Typography>
             <Typography variant="body2" color="success.main" fontWeight="bold">
-              -{rule.discountAmount.toFixed(2)} Pts
+              -{rule.discountAmount.toFixed(2)}
             </Typography>
           </Box>
         ))}

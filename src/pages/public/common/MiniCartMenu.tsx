@@ -134,7 +134,7 @@ export const MiniCartMenu: React.FC<MiniCartMenuProps> = ({ onClose }) => {
                   {item.hydratedContext?.materials?.[0]?.name || item.uiState?.wizardTempMaterial?.materialName || "Configuración"}
                 </Typography>
                 <Typography variant="body2" color="primary.main" fontWeight="bold">
-                  {item.subtotalPoints.toLocaleString()} pts
+                  {item.subtotalPoints.toLocaleString()}
                 </Typography>
               </Box>
 
@@ -179,7 +179,7 @@ export const MiniCartMenu: React.FC<MiniCartMenuProps> = ({ onClose }) => {
             Total estimado:
           </Typography>
           <Typography variant="subtitle1" fontWeight="bold" color="primary.main">
-            {totalPoints.toLocaleString()} pts
+            {totalPoints.toLocaleString()}
           </Typography>
         </Box>
         <Box sx={{ display: "flex", gap: 1 }}>

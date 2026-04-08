@@ -326,7 +326,7 @@ export const CartPdfDocument: React.FC<CartPdfDocumentProps> = ({ data }) => {
               <Text style={styles.itemTitle}>{item.name}</Text>
               <View style={{ flexDirection: "row", alignItems: "baseline" }}>
                 <Text style={styles.itemSubtotalLabel}>Suma Estancia:</Text>
-                <Text style={styles.itemSubtotal}>{item.subtotal.toFixed(2)} pts</Text>
+                <Text style={styles.itemSubtotal}>{item.subtotal.toFixed(2)} </Text>
               </View>
             </View>
 
@@ -394,7 +394,7 @@ export const CartPdfDocument: React.FC<CartPdfDocumentProps> = ({ data }) => {
           <View style={styles.totalsBox}>
             <View style={styles.totalsRow}>
               <Text style={styles.totalsLabel}>Subtotal Bruto</Text>
-              <Text style={styles.totalsValue}>{data.subtotalBruto.toFixed(2)} pts</Text>
+              <Text style={styles.totalsValue}>{data.subtotalBruto.toFixed(2)} </Text>
             </View>
 
             {/* Si hay reglas globales de descuento las mostramos desglosadas */}
@@ -404,7 +404,7 @@ export const CartPdfDocument: React.FC<CartPdfDocumentProps> = ({ data }) => {
                 {data.appliedGlobalRules.map((rule, index) => (
                   <View key={index} style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 3, paddingLeft: 6 }}>
                     <Text style={{ fontSize: 9, color: "#16a34a" }}>• {rule.ruleName}</Text>
-                    <Text style={{ fontSize: 9, color: "#16a34a", fontWeight: "bold" }}>- {rule.discountAmount.toFixed(2)} pts</Text>
+                    <Text style={{ fontSize: 9, color: "#16a34a", fontWeight: "bold" }}>- {rule.discountAmount.toFixed(2)} </Text>
                   </View>
                 ))}
               </View>
@@ -413,7 +413,7 @@ export const CartPdfDocument: React.FC<CartPdfDocumentProps> = ({ data }) => {
               data.totalDescuento > 0 && (
                 <View style={styles.totalsRowHighlight}>
                   <Text style={styles.totalsLabelHighlight}>Descuentos Aplicados</Text>
-                  <Text style={styles.totalsValueHighlight}>- {data.totalDescuento.toFixed(2)} pts</Text>
+                  <Text style={styles.totalsValueHighlight}>- {data.totalDescuento.toFixed(2)} </Text>
                 </View>
               )
             )}
@@ -422,7 +422,7 @@ export const CartPdfDocument: React.FC<CartPdfDocumentProps> = ({ data }) => {
 
             <View style={styles.totalsRowFinal}>
               <Text style={styles.totalsLabelFinal}>TOTAL PUNTOS</Text>
-              <Text style={styles.totalsValueFinal}>{data.total.toFixed(2)} pts</Text>
+              <Text style={styles.totalsValueFinal}>{data.total.toFixed(2)} </Text>
             </View>
           </View>
         </View>

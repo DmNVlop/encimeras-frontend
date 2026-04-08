@@ -9,7 +9,7 @@ Actualmente, existe una desalineación de estructuras de datos entre el Frontend
 1. **Motor de Cálculo Estricto:** El endpoint de cálculo de presupuestos (`/quotes/calculate`) exige una estructura de datos muy estricta y orientada al negocio (ej: `length_mm`, `width_mm`, `appliedAddons`, `materialId`).
 2. **Evolución del Frontend (Wizard):** El frontend, para poder dibujar la interfaz del presupuestador paso a paso, maneja un estado mucho más complejo e hidratado (ej: `measurements.length_mm`, formas tridimensionales completas, objetos anidados temporalmente).
 3. **El Conflicto en Borradores/Carrito:** Cuando se desarrolló la función de guardar borradores o enviar ítems al carrito, el objetivo principal fue "guardar la sesión del usuario para poder restaurarla tal cual". Por simplicidad, se optó por guardar el **Estado Crudo de React (UI State)** directamente en la base de datos dentro del campo `configuration`.
-4. **La Falla:** Cuando el Carrito evolucionó para requerir un **re-cálculo de seguridad** en el backend antes del checkout, intentó pasarle ese estado crudo de React al Motor de Cálculo. El motor, esperando la estructura estricta de negocio, falló silenciosamente o devolvió precios de 0 pts al no encontrar las propiedades en la raíz del objeto.
+4. **La Falla:** Cuando el Carrito evolucionó para requerir un **re-cálculo de seguridad** en el backend antes del checkout, intentó pasarle ese estado crudo de React al Motor de Cálculo. El motor, esperando la estructura estricta de negocio, falló silenciosamente o devolvió precios de 0 puntos al no encontrar las propiedades en la raíz del objeto.
 
 ---
 

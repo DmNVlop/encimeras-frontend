@@ -87,7 +87,7 @@ export const OrderPreviewDrawer: React.FC<any> = ({ open, onClose, order, onAppr
             <Typography variant="body2" color="text.secondary">
               Subtotal bruto:
             </Typography>
-            <Typography variant="body2">{(header.totalOriginalPoints || header.totalPoints)?.toLocaleString()} pts</Typography>
+            <Typography variant="body2">{(header.totalOriginalPoints || header.totalPoints)?.toLocaleString()} </Typography>
           </Box>
           {header.totalDiscount > 0 && (
             <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
@@ -95,7 +95,7 @@ export const OrderPreviewDrawer: React.FC<any> = ({ open, onClose, order, onAppr
                 Descuento aplicado:
               </Typography>
               <Typography variant="body2" color="success.main" fontWeight="bold">
-                - {header.totalDiscount?.toLocaleString()} pts
+                - {header.totalDiscount?.toLocaleString()}
               </Typography>
             </Box>
           )}
@@ -104,7 +104,7 @@ export const OrderPreviewDrawer: React.FC<any> = ({ open, onClose, order, onAppr
               Total final:
             </Typography>
             <Typography variant="body1" fontWeight="bold" color="primary.main">
-              {header.totalPoints?.toLocaleString()} pts
+              {header.totalPoints?.toLocaleString()}
             </Typography>
           </Box>
         </Paper>
