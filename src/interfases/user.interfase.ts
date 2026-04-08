@@ -1,5 +1,6 @@
 export const Role = {
   ADMIN: "ADMIN", // Superusuario
+  OWNER: "OWNER", // Propietario de fábrica
   USER: "USER", // Cliente final
   SALES: "SALES", // Comercial / Vendedor
   WORKER: "WORKER", // Operario de fábrica
@@ -15,6 +16,7 @@ export interface User {
   email?: string; // Email de contacto
   phone?: string; // Teléfono
   roles: Role[]; // Array de roles
+  factoryId?: string; // ID de fábrica (requerido para roles OWNER)
   createdAt: string;
   updatedAt: string;
   password?: string; // Opcional para creación/edición
