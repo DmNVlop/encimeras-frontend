@@ -52,9 +52,12 @@ const LoginPage: React.FC = () => {
     if (isAuthenticated && user) {
       const userRoles = user.roles || [];
 
-      // Logic for hierarchy redirection
-      if (userRoles.includes(UserRole.ADMIN) || userRoles.includes(UserRole.SALES)) {
+      if (userRoles.includes(UserRole.ADMIN)) {
         navigate("/admin/orders", { replace: true });
+      } else if (userRoles.includes(UserRole.OWNER)) {
+        navigate("/admin/users", { replace: true });
+      } else if (userRoles.includes(UserRole.SALES) || userRoles.includes(UserRole.USER)) {
+        navigate("/my-quotes", { replace: true });
       } else if (userRoles.includes(UserRole.WORKER)) {
         navigate("/factory/queue", { replace: true });
       } else {
