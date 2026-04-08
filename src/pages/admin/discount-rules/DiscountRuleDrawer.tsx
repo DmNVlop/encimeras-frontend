@@ -32,6 +32,7 @@ import { get } from "@/services/api.service";
 import type { Material } from "@/interfases/materials.interfase";
 import type { ICustomer } from "@/interfases/customer.interfase";
 import Autocomplete from "@mui/material/Autocomplete";
+import { ApiErrorFeedback } from "../../public/common/ApiErrorFeedback";
 
 interface DiscountRuleDrawerProps {
   rule: IDiscountRule | null;
@@ -46,6 +47,7 @@ const DiscountRuleDrawer: React.FC<DiscountRuleDrawerProps> = ({ rule, open, onC
   const [editing, setEditing] = useState(isNew);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<Partial<IDiscountRule>>({});
+  const [error, setError] = useState<any>(null);
 
   // Data for selectors
   const [allMaterials, setAllMaterials] = useState<Material[]>([]);
@@ -110,6 +112,7 @@ const DiscountRuleDrawer: React.FC<DiscountRuleDrawerProps> = ({ rule, open, onC
 
   const handleSave = async () => {
     setLoading(true);
+    setError(null);
     try {
       if (isNew) {
         await createDiscountRule(formData as any);
@@ -118,8 +121,9 @@ const DiscountRuleDrawer: React.FC<DiscountRuleDrawerProps> = ({ rule, open, onC
       }
       onRefresh();
       onClose();
-    } catch (error) {
-      console.error("Error saving rule:", error);
+    } catch (err) {
+      console.error("Error saving rule:", err);
+      setError(err);
     } finally {
       setLoading(false);
     }
@@ -129,12 +133,14 @@ const DiscountRuleDrawer: React.FC<DiscountRuleDrawerProps> = ({ rule, open, onC
     if (!rule?._id) return;
     if (window.confirm("¿Estás seguro de que deseas desactivar esta regla?")) {
       setLoading(true);
+      setError(null);
       try {
         await deleteDiscountRule(rule._id);
         onRefresh();
         onClose();
-      } catch (error) {
-        console.error("Error deleting rule:", error);
+      } catch (err) {
+        console.error("Error deleting rule:", err);
+        setError(err);
       } finally {
         setLoading(false);
       }
@@ -181,6 +187,8 @@ const DiscountRuleDrawer: React.FC<DiscountRuleDrawerProps> = ({ rule, open, onC
             <Chip label={formData.isActive ? "Activa" : "Pausada"} color={formData.isActive ? "success" : "default"} size="small" sx={{ fontWeight: 700 }} />
           )}
         </Stack>
+
+        {error && <ApiErrorFeedback error={error} title="Error al guardar regla" />}
 
         <Stack direction="row" spacing={1}>
           {!isNew && !editing && (

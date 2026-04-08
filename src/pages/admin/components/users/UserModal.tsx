@@ -14,8 +14,10 @@ import {
   ListItemText,
   OutlinedInput,
   FormHelperText,
+  Alert,
 } from "@mui/material";
 import { Role, type User } from "@/interfases/user.interfase";
+import { useAuth } from "@/context/AuthProvider";
 
 const modalStyle = {
   position: "absolute" as "absolute",
@@ -38,9 +40,14 @@ interface UserModalProps {
 }
 
 const UserModal: React.FC<UserModalProps> = ({ open, onClose, onSubmit, user, isEditMode }) => {
+  const { user: currentUser } = useAuth();
   const [formData, setFormData] = useState<Partial<User>>({});
   const [password, setPassword] = useState("");
   const [roles, setRoles] = useState<Role[]>([]);
+
+  const isOwner = currentUser?.roles.includes("OWNER");
+  const availableRoles = isOwner ? [Role.SALES, Role.USER] : Object.values(Role);
+  const autoFactoryId = currentUser?.factoryId;
 
   useEffect(() => {
     if (open) {
@@ -49,12 +56,12 @@ const UserModal: React.FC<UserModalProps> = ({ open, onClose, onSubmit, user, is
         setRoles(user.roles || [Role.USER]);
         setPassword(""); // No enviamos contraseña de vuelta
       } else {
-        setFormData({ username: "", name: "", email: "", phone: "" });
+        setFormData({ username: "", name: "", email: "", phone: "", factoryId: autoFactoryId });
         setRoles([Role.USER]);
         setPassword("");
       }
     }
-  }, [open, isEditMode, user]);
+  }, [open, isEditMode, user, autoFactoryId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -79,11 +86,15 @@ const UserModal: React.FC<UserModalProps> = ({ open, onClose, onSubmit, user, is
       submissionData.password = password;
     }
 
+    if (autoFactoryId) {
+      submissionData.factoryId = autoFactoryId;
+    }
+
     await onSubmit(submissionData);
     onClose();
   };
 
-  const allRoles = Object.values(Role);
+  const allRoles = availableRoles;
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -122,6 +133,12 @@ const UserModal: React.FC<UserModalProps> = ({ open, onClose, onSubmit, user, is
         <TextField margin="normal" fullWidth label="Email" name="email" type="email" value={formData.email || ""} onChange={handleChange} />
 
         <TextField margin="normal" fullWidth label="Teléfono" name="phone" value={formData.phone || ""} onChange={handleChange} />
+
+        {isOwner && !isEditMode && (
+          <Alert severity="info" sx={{ mt: 1, mb: 1 }}>
+            Los usuarios creados heredarán automáticamente el factoryId de tu cuenta.
+          </Alert>
+        )}
 
         <FormControl fullWidth margin="normal" required>
           <InputLabel id="roles-label">Roles</InputLabel>
