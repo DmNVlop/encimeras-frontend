@@ -18,7 +18,7 @@ import {
   Tooltip,
   IconButton,
 } from "@mui/material";
-import { DataGrid, type GridColDef, GridActionsCellItem } from "@mui/x-data-grid";
+import { DataGrid, type GridColDef, GridActionsCellItem, type GridRowId, type GridRowSelectionModel } from "@mui/x-data-grid";
 import { esES } from "@mui/x-data-grid/locales";
 
 import EditIcon from "@mui/icons-material/Edit";
@@ -42,7 +42,8 @@ import { getUsers, getManagedUsers, deleteUser, batchDeleteUsers, createUser, up
 
 const UsersPage: React.FC = () => {
   const { user: currentAuthUser } = useAuth();
-  const [users, setUsers] = useState<User[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]); // Complete list of all users
+  const [users, setUsers] = useState<User[]>([]); // Users after initial filtering
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -57,7 +58,10 @@ const UsersPage: React.FC = () => {
   const [managedOnlyFilter, setManagedOnlyFilter] = useState(false);
 
   // Selección múltiple
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectionModel, setSelectionModel] = useState<GridRowSelectionModel>({
+    type: "include",
+    ids: new Set<GridRowId>(),
+  });
 
   // Modales
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
@@ -87,8 +91,16 @@ const UsersPage: React.FC = () => {
         data = await getUsers({ role: roleFilter !== "ALL" ? roleFilter : undefined });
       }
 
-      setUsers(data);
-      setFilteredUsers(data); // Inicialmente mostrar todos
+      // Filtrar usuarios que no tengan _id para evitar errores en DataGrid
+      const validUsers = data.filter((user) => !!user._id);
+      const invalidUsers = data.filter((user) => !user._id);
+      if (invalidUsers.length > 0) {
+        console.warn(`${invalidUsers.length} usuarios sin _id recibidos:`, invalidUsers);
+      }
+      // Always update allUsers with the complete list
+      setAllUsers(validUsers);
+      setUsers(validUsers);
+      setFilteredUsers(validUsers); // Inicialmente mostrar todos
     } catch (err) {
       console.error("Error loading users:", err);
       setError(err);
@@ -104,20 +116,22 @@ const UsersPage: React.FC = () => {
   // Filtrado local (búsqueda)
   useEffect(() => {
     const term = search.toLowerCase();
-    const filtered = users.filter((user) => {
-      const matchesSearch =
-        user.username.toLowerCase().includes(term) ||
-        (user.name && user.name.toLowerCase().includes(term)) ||
-        (user.email && user.email.toLowerCase().includes(term));
+    const filtered = users
+      .filter((user) => !!user._id) // Filtrar usuarios sin _id para evitar errores
+      .filter((user) => {
+        const matchesSearch =
+          user.username.toLowerCase().includes(term) ||
+          (user.name && user.name.toLowerCase().includes(term)) ||
+          (user.email && user.email.toLowerCase().includes(term));
 
-      // Filtro por rol (ya se aplica en loadUsers, pero mantenemos por si hay cambio de filtro)
-      const matchesRole = roleFilter === "ALL" || user.roles.includes(roleFilter as Role);
+        // Filtro por rol (ya se aplica en loadUsers, pero mantenemos por si hay cambio de filtro)
+        const matchesRole = roleFilter === "ALL" || user.roles.includes(roleFilter as Role);
 
-      // Si OWNER y managedOnlyFilter activo, filtrar solo sus SALES
-      const matchesManaged = !managedOnlyFilter || (user.ownerId === currentAuthUser?.id && user.roles.includes(Role.SALES));
+        // Si OWNER y managedOnlyFilter activo, filtrar solo sus SALES
+        const matchesManaged = !managedOnlyFilter || (user.ownerId === currentAuthUser?.id && user.roles.includes(Role.SALES));
 
-      return matchesSearch && matchesRole && matchesManaged;
-    });
+        return matchesSearch && matchesRole && matchesManaged;
+      });
 
     setFilteredUsers(filtered);
   }, [search, users, roleFilter, managedOnlyFilter, currentAuthUser]);
@@ -145,13 +159,14 @@ const UsersPage: React.FC = () => {
   };
 
   const handleBatchDelete = async () => {
-    if (window.confirm(`¿Estás seguro de que quieres eliminar ${selectedIds.size} usuario(s)?`)) {
+    const selectedCount = selectionModel.ids.size;
+    if (window.confirm(`¿Estás seguro de que quieres eliminar ${selectedCount} usuario(s)?`)) {
       try {
-        await batchDeleteUsers(Array.from(selectedIds));
-        setSelectedIds(new Set());
+        await batchDeleteUsers(Array.from(selectionModel.ids) as string[]);
+        setSelectionModel({ type: "include", ids: new Set<GridRowId>() });
         loadUsers();
         setDeleteDialogOpen(false);
-        setSnackbar({ open: true, message: `${selectedIds.size} usuario(s) eliminados exitosamente`, severity: "success" });
+        setSnackbar({ open: true, message: `${selectedCount} usuario(s) eliminados exitosamente`, severity: "success" });
       } catch (err) {
         console.error("Error deleting users:", err);
         setSnackbar({ open: true, message: "Error al eliminar usuarios", severity: "error" });
@@ -217,7 +232,7 @@ const UsersPage: React.FC = () => {
       renderCell: (params) => {
         if (!params.value) return <Chip label="N/A" size="small" />;
 
-        const owner = users.find((u) => u._id === params.value);
+        const owner = allUsers.find((u) => u._id === params.value);
         return <Chip label={owner?.name || owner?.username || "Unknown"} size="small" variant="outlined" color="secondary" icon={<PersonIcon />} />;
       },
     },
@@ -226,7 +241,7 @@ const UsersPage: React.FC = () => {
       headerName: "Creado por",
       width: 180,
       renderCell: (params) => {
-        const creator = users.find((u) => u._id === params.value);
+        const creator = allUsers.find((u) => u._id === params.value);
         return creator ? creator.name || creator.username : "-";
       },
     },
@@ -248,8 +263,8 @@ const UsersPage: React.FC = () => {
       width: 60,
       renderCell: (params) => {
         const user = params.row as User;
-        const owner = users.find((u) => u._id === user.ownerId);
-        const creator = users.find((u) => u._id === user.createdBy);
+        const owner = allUsers.find((u) => u._id === user.ownerId);
+        const creator = allUsers.find((u) => u._id === user.createdBy);
 
         return (
           <Tooltip
@@ -289,7 +304,7 @@ const UsersPage: React.FC = () => {
     },
   ];
 
-  const selectedUsersList = users.filter((u) => selectedIds.has(u._id));
+  const selectedUsersList = users.filter((u) => selectionModel.ids.has(u._id));
 
   return (
     <Box>
@@ -336,10 +351,10 @@ const UsersPage: React.FC = () => {
       </Box>
 
       {/* Barra de acciones masivas */}
-      {selectedIds.size > 0 && (
+      {selectionModel.ids.size > 0 && (
         <Paper sx={{ mb: 2, p: 2, bgcolor: "primary.light", borderRadius: 1 }}>
           <Typography variant="body2" sx={{ mb: 1 }}>
-            {selectedIds.size} usuario(s) seleccionado(s)
+            {selectionModel.ids.size} usuario(s) seleccionado(s)
           </Typography>
           <Stack direction="row" spacing={2}>
             {isAdmin && (
@@ -355,7 +370,7 @@ const UsersPage: React.FC = () => {
             <Button variant="outlined" color="error" startIcon={<DeleteIcon />} onClick={handleBatchDelete}>
               Eliminar Seleccionados
             </Button>
-            <Button variant="text" onClick={() => setSelectedIds(new Set())}>
+            <Button variant="text" onClick={() => setSelectionModel({ type: "include", ids: new Set<GridRowId>() })}>
               Limpiar Selección
             </Button>
           </Stack>
@@ -367,17 +382,15 @@ const UsersPage: React.FC = () => {
         <DataGrid
           rows={filteredUsers}
           columns={columns}
-          getRowId={(row) => row._id}
+          getRowId={(row) => row._id || `temp-${Math.random()}`}
           loading={loading}
           localeText={esES.components.MuiDataGrid.defaultProps.localeText}
           paginationModel={paginationModel}
           onPaginationModelChange={setPaginationModel}
           pageSizeOptions={[10, 25, 50]}
           checkboxSelection
-          onRowSelectionModelChange={(newSelection) => {
-            setSelectedIds(new Set(newSelection as any as string[]));
-          }}
-          rowSelectionModel={Array.from(selectedIds) as any}
+          onRowSelectionModelChange={setSelectionModel}
+          rowSelectionModel={selectionModel}
         />
       </Box>
 
@@ -387,11 +400,11 @@ const UsersPage: React.FC = () => {
       <TransferOwnerDialog
         open={transferDialogOpen}
         onClose={() => setTransferDialogOpen(false)}
-        userIds={Array.from(selectedIds)}
-        users={users}
+        userIds={Array.from(selectionModel.ids) as string[]}
+        users={allUsers}
         onTransferComplete={() => {
           loadUsers();
-          setSelectedIds(new Set());
+          setSelectionModel({ type: "include", ids: new Set<GridRowId>() });
           setSnackbar({ open: true, message: "Usuarios transferidos exitosamente", severity: "success" });
         }}
       />
@@ -401,8 +414,8 @@ const UsersPage: React.FC = () => {
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleBatchDelete}
         title="Confirmar Eliminación Masiva"
-        message={`¿Estás seguro de que quieres eliminar ${selectedIds.size} usuario(s)? Esta acción no se puede deshacer.`}
-        count={selectedIds.size}
+        message={`¿Estás seguro de que quieres eliminar ${selectionModel.ids.size} usuario(s)? Esta acción no se puede deshacer.`}
+        count={selectionModel.ids.size}
       />
 
       {/* Snackbar para feedback */}
