@@ -147,9 +147,9 @@ export const remove = (endpoint: string, ids: string[], config?: AxiosRequestCon
     return apiClient.delete(`${endpoint}/${ids[0]}`, config).then((res) => res.data);
   }
 
-  // Borrado múltiple: DELETE /api/recurso (Body: { ids: [...] })
+  // Borrado múltiple: DELETE /api/recurso (Body: { customerIds: [...] })
   // Nota: Axios requiere que el body en DELETE vaya dentro de la propiedad `data`.
-  return apiClient.delete(endpoint, { ...config, data: { ids } }).then((res) => res.data);
+  return apiClient.delete(endpoint, { ...config, data: { customerIds: ids } }).then((res) => res.data);
 };
 
 // Exportamos la instancia por si se requiere acceso directo avanzado
