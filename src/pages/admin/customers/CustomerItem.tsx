@@ -21,7 +21,7 @@ const CustomerItem: React.FC<CustomerItemProps> = ({ customer, selected, salesUs
   const theme = useTheme();
   const isCompany = customer.type === CustomerType.COMPANY;
 
-  const assignedUsers = salesUsers.filter((u) => customer.allowedSalesUserIds?.includes(u._id));
+  const assignedUsers = salesUsers.filter((u) => customer.assignedUserIds?.includes(u._id));
 
   const handleCheckboxClick = (e: React.MouseEvent) => {
     e.stopPropagation();
