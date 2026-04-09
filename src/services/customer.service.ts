@@ -15,6 +15,10 @@ export const getSalesUsers = (): Promise<User[]> => {
   return get<User[]>(`${USERS_ENDPOINT}?role=SALES`);
 };
 
+export const getPlatformUsers = (): Promise<User[]> => {
+  return get<User[]>(USERS_ENDPOINT);
+};
+
 export const getCustomerById = (id: string): Promise<ICustomer> => {
   return get<ICustomer>(`${ENDPOINT}/${id}`);
 };

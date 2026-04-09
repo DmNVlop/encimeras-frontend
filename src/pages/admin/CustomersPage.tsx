@@ -37,6 +37,7 @@ import CustomerDrawer from "./customers/CustomerDrawer";
 import { type ICustomer } from "@/interfases/customer.interfase";
 import type { User } from "@/interfases/user.interfase";
 import { getCustomers, getSalesUsers, batchDeleteCustomers, batchAssignSales } from "@/services/customer.service";
+import { GlobalSettingsService } from "@/services/global-settings.service";
 
 const CustomersPage: React.FC = () => {
   const theme = useTheme();
@@ -60,6 +61,7 @@ const CustomersPage: React.FC = () => {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedSalesUsers, setSelectedSalesUsers] = useState<string[]>([]);
+  const [multiSalesEnabled, setMultiSalesEnabled] = useState<boolean>(true);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "success" | "error" }>({
     open: false,
     message: "",
@@ -69,9 +71,14 @@ const CustomersPage: React.FC = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [customersData, salesData] = await Promise.all([getCustomers(), getSalesUsers()]);
+      const [customersData, salesData, multiSalesEnabled] = await Promise.all([
+        getCustomers(),
+        getSalesUsers(),
+        GlobalSettingsService.getMultiSalesPerCustomer(),
+      ]);
       setCustomers(customersData);
       setSalesUsers(salesData);
+      setMultiSalesEnabled(multiSalesEnabled);
     } catch (error) {
       console.error("Error loading customers:", error);
     } finally {
@@ -163,6 +170,25 @@ const CustomersPage: React.FC = () => {
   // Batch actions
   const handleBatchAssign = async () => {
     try {
+      // Validación frontend antes de enviar
+      if (!multiSalesEnabled && selectedSalesUsers.length > 1) {
+        setSnackbar({
+          open: true,
+          message: "Multi-sales está deshabilitado. Solo puedes asignar 1 usuario sales.",
+          severity: "error",
+        });
+        return;
+      }
+
+      if (selectedSalesUsers.length === 0) {
+        setSnackbar({
+          open: true,
+          message: "Debes seleccionar al menos un usuario sales.",
+          severity: "error",
+        });
+        return;
+      }
+
       const customerIds = Array.from(selectedIds);
       await batchAssignSales(customerIds, selectedSalesUsers);
       setSnackbar({ open: true, message: "Usuarios asignados correctamente", severity: "success" });
@@ -170,8 +196,16 @@ const CustomersPage: React.FC = () => {
       setSelectedSalesUsers([]);
       setSelectedIds(new Set());
       fetchData();
-    } catch (error) {
-      setSnackbar({ open: true, message: "Error al asignar usuarios", severity: "error" });
+    } catch (error: any) {
+      let errorMessage = "Error al asignar usuarios";
+      if (error.response?.status === 404) {
+        errorMessage = "Sales users no encontrados o sin rol SALES";
+      } else if (error.response?.status === 403) {
+        errorMessage = "Multi-sales deshabilitado y se enviaron más de 1 usuario";
+      } else if (error.response?.status === 400) {
+        errorMessage = "No se encontraron clientes activos para asignar";
+      }
+      setSnackbar({ open: true, message: errorMessage, severity: "error" });
     }
   };
 
@@ -183,8 +217,14 @@ const CustomersPage: React.FC = () => {
       setDeleteDialogOpen(false);
       setSelectedIds(new Set());
       fetchData();
-    } catch (error) {
-      setSnackbar({ open: true, message: "Error al eliminar clientes", severity: "error" });
+    } catch (error: any) {
+      let errorMessage = "Error al eliminar clientes";
+      if (error.response?.status === 404) {
+        errorMessage = "No se encontraron clientes activos para eliminar";
+      } else if (error.response?.status === 403) {
+        errorMessage = "No tienes permisos para eliminar estos clientes";
+      }
+      setSnackbar({ open: true, message: errorMessage, severity: "error" });
     }
   };
 
@@ -400,6 +440,13 @@ const CustomersPage: React.FC = () => {
         <DialogContent>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
             Selecciona los usuarios sales que quieres asignar a los {selectedCount} clientes seleccionados.
+            {!multiSalesEnabled && (
+              <Alert severity="warning" sx={{ mt: 2, borderRadius: 2 }}>
+                <Typography variant="caption" fontWeight={700}>
+                  ⚠️ Multi-sales deshabilitado: Solo puedes asignar 1 usuario sales por cliente
+                </Typography>
+              </Alert>
+            )}
           </Typography>
           <FormControl fullWidth>
             <InputLabel>Usuarios Sales</InputLabel>
