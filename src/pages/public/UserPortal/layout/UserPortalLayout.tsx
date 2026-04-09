@@ -27,7 +27,7 @@ import {
   Drafts as DraftsIcon,
   Person as PersonIcon,
   Logout as LogoutIcon,
-  ChevronLeft as ChevronLeftIcon,
+  MenuOpen as MenuOpenIcon,
   AdminPanelSettings as AdminPanelSettingsIcon,
   ShoppingCart as ShoppingCartIcon,
 } from "@mui/icons-material";
@@ -38,12 +38,13 @@ import { Role } from "@/interfases/user.interfase";
 import { MiniCartMenu } from "@/pages/public/common/MiniCartMenu";
 
 const drawerWidth = 240;
+const closedDrawerWidth = 72;
 const logo = "/logos/kuuk-logo.png";
 
 const menuItems = [
   { text: "Resumen", icon: <DashboardIcon />, path: "/dashboard" },
   { text: "Carrito", icon: <ShoppingCartIcon />, path: "/cart" },
-  { text: "Mis Pedidos", icon: <DescriptionIcon />, path: "/my-quotes" },
+  { text: "Mis Presupuestos", icon: <DescriptionIcon />, path: "/my-quotes" },
   { text: "Borradores", icon: <DraftsIcon />, path: "/drafts" },
   { text: "Mi Perfil", icon: <PersonIcon />, path: "/user-profile" },
 ];
@@ -57,10 +58,14 @@ export default function UserPortalLayout() {
   const { logout, user } = useAuth();
   const { cart } = useCart();
   const isAdminOrSales = user?.roles?.some((role) => role === Role.ADMIN || role === Role.SALES);
+  const isOwner = user?.roles?.some((role) => role === Role.OWNER);
   const cartItemsCount = cart?.items?.length || 0;
 
   const sidebarItems = [
     ...(isAdminOrSales ? [{ text: "Panel Admin", icon: <AdminPanelSettingsIcon sx={{ color: theme.palette.primary.main }} />, path: "/admin/orders" }] : []),
+    ...(isOwner && !isAdminOrSales
+      ? [{ text: "Panel Admin", icon: <AdminPanelSettingsIcon sx={{ color: theme.palette.primary.main }} />, path: "/admin/dashboard" }]
+      : []),
     ...menuItems,
   ];
 
@@ -109,8 +114,8 @@ export default function UserPortalLayout() {
         }}
       >
         <Toolbar>
-          <IconButton color="inherit" aria-label="open drawer" edge="start" onClick={handleDrawerToggle} sx={{ mr: 2, display: { md: "none" } }}>
-            <MenuIcon />
+          <IconButton color="inherit" aria-label="toggle drawer" edge="start" onClick={handleDrawerToggle} sx={{ mr: 2 }}>
+            {open ? <MenuOpenIcon /> : <MenuIcon />}
           </IconButton>
 
           <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center", gap: 2 }}>
@@ -163,13 +168,15 @@ export default function UserPortalLayout() {
               }}
               open={Boolean(cartAnchorEl)}
               onClose={handleCartMenuClose}
-              PaperProps={{
-                sx: {
-                  mt: 1.5,
-                  borderRadius: 3,
-                  boxShadow: "0px 10px 40px rgba(0,0,0,0.1)",
-                  border: "1px solid",
-                  borderColor: "divider",
+              slotProps={{
+                paper: {
+                  sx: {
+                    mt: 1.5,
+                    borderRadius: 3,
+                    boxShadow: "0px 10px 40px rgba(0,0,0,0.1)",
+                    border: "1px solid",
+                    borderColor: "divider",
+                  },
                 },
               }}
             >
@@ -224,6 +231,20 @@ export default function UserPortalLayout() {
                   Panel Admin
                 </MenuItem>
               )}
+              {isOwner && !isAdminOrSales && (
+                <MenuItem
+                  onClick={() => {
+                    handleClose();
+                    navigate("/admin/dashboard");
+                  }}
+                  sx={{ color: "primary.main", fontWeight: "bold" }}
+                >
+                  <ListItemIcon>
+                    <AdminPanelSettingsIcon fontSize="small" color="primary" />
+                  </ListItemIcon>
+                  Panel Admin
+                </MenuItem>
+              )}
               <Divider />
               <MenuItem onClick={handleLogout}>
                 <ListItemIcon>
@@ -238,18 +259,31 @@ export default function UserPortalLayout() {
 
       {/* Drawer */}
       <Drawer
-        variant={isMobile ? "temporary" : "persistent"}
+        variant={isMobile ? "temporary" : "permanent"}
         open={open}
         onClose={isMobile ? handleDrawerToggle : undefined}
         sx={{
-          width: drawerWidth,
+          width: open ? drawerWidth : closedDrawerWidth,
           flexShrink: 0,
+          whiteSpace: "nowrap",
+          boxSizing: "border-box",
+          transition: (theme) =>
+            theme.transitions.create("width", {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.enteringScreen,
+            }),
           [`& .MuiDrawer-paper`]: {
-            width: drawerWidth,
+            width: open ? drawerWidth : closedDrawerWidth,
+            transition: (theme) =>
+              theme.transitions.create("width", {
+                easing: theme.transitions.easing.sharp,
+                duration: theme.transitions.duration.enteringScreen,
+              }),
+            overflowX: "hidden",
             boxSizing: "border-box",
             borderRight: "1px solid",
             borderColor: "divider",
-            bgcolor: "#0f172a", // Dark sidebar background from image
+            bgcolor: "#0f172a",
             color: "white",
           },
         }}
@@ -266,7 +300,7 @@ export default function UserPortalLayout() {
                     minHeight: 48,
                     justifyContent: open ? "initial" : "center",
                     px: 2.5,
-                    mx: 1,
+                    mx: open ? 1 : 0.5,
                     borderRadius: 1,
                     "&.Mui-selected": {
                       bgcolor: "primary.main",
@@ -289,24 +323,36 @@ export default function UserPortalLayout() {
                   >
                     {item.icon}
                   </ListItemIcon>
-                  <ListItemText primary={item.text} sx={{ opacity: open ? 1 : 0 }} />
+                  <ListItemText
+                    primary={item.text}
+                    sx={{
+                      opacity: open ? 1 : 0,
+                      display: open ? "block" : "none",
+                    }}
+                  />
                 </ListItemButton>
               </ListItem>
             ))}
           </List>
         </Box>
-        {/* Toggle Button for Desktop */}
-        {!isMobile && (
-          <Box sx={{ mt: "auto", p: 1, display: "flex", justifyContent: "flex-end" }}>
-            <IconButton onClick={handleDrawerToggle} sx={{ color: "white" }}>
-              <ChevronLeftIcon />
-            </IconButton>
-          </Box>
-        )}
       </Drawer>
 
       {/* Main Content */}
-      <Box component="main" sx={{ flexGrow: 1, p: 3, width: "100%", bgcolor: "#f8fafc", minHeight: "100vh" }}>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          width: "100%",
+          bgcolor: "#f8fafc",
+          minHeight: "100vh",
+          transition: (theme) =>
+            theme.transitions.create(["margin", "width"], {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.leavingScreen,
+            }),
+        }}
+      >
         <Toolbar /> {/* Spacer for AppBar */}
         <Outlet />
       </Box>

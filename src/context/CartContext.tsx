@@ -14,7 +14,7 @@ interface CartContextType {
   updateCartItem: (cartItemId: string, payload: AddToCartPayload) => Promise<void>;
   removeFromCart: (cartItemId: string) => Promise<void>;
   refreshCart: () => Promise<void>;
-  checkout: () => Promise<CheckoutResponse>;
+  checkout: (orderName: string) => Promise<CheckoutResponse>;
   saveAsDrafts: () => Promise<void>;
   clearCart: () => Promise<void>;
   clearLastOrder: () => void; // Nuevo
@@ -113,10 +113,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const checkout = async () => {
+  const checkout = async (orderName: string) => {
     try {
       setIsProcessingCheckout(true);
-      const response = await cartApi.checkout();
+      const response = await cartApi.checkout(orderName);
       return response;
     } catch (error) {
       setIsProcessingCheckout(false);

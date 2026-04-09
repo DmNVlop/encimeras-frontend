@@ -249,7 +249,7 @@ function LineItemAccordion({ item, index }: { item: OrderLineItem; index: number
             {mainPieces.length} pieza{mainPieces.length !== 1 ? "s" : ""}
           </Typography>
           <Typography variant="subtitle1" fontWeight={700} color="primary.main">
-            {(item.subtotalPoints ?? 0).toFixed(2)} pts
+            {(item.subtotalPoints ?? 0).toFixed(2)}
           </Typography>
         </Stack>
       </AccordionSummary>
@@ -266,10 +266,10 @@ function LineItemAccordion({ item, index }: { item: OrderLineItem; index: number
         {item.discountAmount > 0 && (
           <Box sx={{ mt: 1.5, textAlign: "right" }}>
             <Typography variant="caption" color="text.secondary">
-              Precio original: <s>{(item.originalPoints ?? 0).toFixed(2)} pts</s>
+              Precio original: <s>{(item.originalPoints ?? 0).toFixed(2)} </s>
             </Typography>
             <Typography variant="caption" color="success.main" fontWeight={600} sx={{ ml: 1.5 }}>
-              Descuento: -{item.discountAmount.toFixed(2)} pts
+              Descuento: -{item.discountAmount.toFixed(2)}
             </Typography>
           </Box>
         )}
@@ -307,7 +307,7 @@ function TotalsPanel({ order, customer, user }: { order: Order; customer: ICusto
               Subtotal bruto
             </Typography>
             <Typography variant="body2" fontWeight={600}>
-              {(header.totalOriginalPoints ?? 0).toFixed(2)} pts
+              {(header.totalOriginalPoints ?? 0).toFixed(2)}
             </Typography>
           </Box>
 
@@ -323,7 +323,7 @@ function TotalsPanel({ order, customer, user }: { order: Order; customer: ICusto
                     • {rule.ruleName}
                   </Typography>
                   <Typography variant="caption" color="success.main" fontWeight={600}>
-                    -{rule.discountAmount.toFixed(2)} pts
+                    -{rule.discountAmount.toFixed(2)}
                   </Typography>
                 </Box>
               ))}
@@ -336,7 +336,7 @@ function TotalsPanel({ order, customer, user }: { order: Order; customer: ICusto
                 Ahorro total
               </Typography>
               <Typography variant="body2" color="success.main" fontWeight={700}>
-                -{(header.totalDiscount ?? 0).toFixed(2)} pts
+                -{(header.totalDiscount ?? 0).toFixed(2)}
               </Typography>
             </Box>
           )}
@@ -348,7 +348,7 @@ function TotalsPanel({ order, customer, user }: { order: Order; customer: ICusto
               Total Final
             </Typography>
             <Typography variant="h6" fontWeight={800} color="primary.main">
-              {(header.totalPoints ?? 0).toFixed(2)} pts
+              {(header.totalPoints ?? 0).toFixed(2)}
             </Typography>
           </Box>
         </Stack>
@@ -424,7 +424,7 @@ export default function OrderDetail() {
           {error || "No se encontró la orden solicitada."}
         </Alert>
         <Button startIcon={<ArrowBackIcon />} onClick={() => navigate("/my-quotes")}>
-          Volver a Mis Pedidos
+          Volver a Mis Presupuestos
         </Button>
       </Container>
     );
@@ -447,13 +447,13 @@ export default function OrderDetail() {
           <ArrowBackIcon fontSize="small" />
         </IconButton>
         <Typography variant="body2" color="text.secondary">
-          Mis Pedidos
+          Mis Presupuestos
         </Typography>
         <Typography variant="body2" color="text.disabled">
           /
         </Typography>
         <Typography variant="body2" color="text.primary" fontWeight={600}>
-          {header.orderNumber}
+          {header.orderName}
         </Typography>
       </Stack>
 
@@ -461,10 +461,10 @@ export default function OrderDetail() {
       <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ xs: "start", sm: "center" }} mb={3} gap={2}>
         <Box>
           <Typography variant="h4" fontWeight={800} gutterBottom>
-            {header.orderNumber}
+            {header.orderName}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            {customerDisplayName}
+            {header.orderNumber} — {customerDisplayName}
           </Typography>
         </Box>
         <Chip icon={statusCfg.icon} label={statusCfg.label} color={statusCfg.color} sx={{ fontWeight: 700, fontSize: "0.9rem", px: 1, py: 2 }} />
@@ -511,10 +511,10 @@ export default function OrderDetail() {
                   <Stack direction="row" alignItems="center" spacing={1} mb={1.5}>
                     <ReceiptIcon sx={{ color: "primary.main", fontSize: 20 }} />
                     <Typography variant="subtitle2" fontWeight={700} textTransform="uppercase" color="text.secondary" letterSpacing={0.5}>
-                      Detalles del Pedido
+                      Detalles del Presupuesto
                     </Typography>
                   </Stack>
-                  <InfoRow label="Nº Pedido" value={header.orderNumber} />
+                  <InfoRow label="Nº Presupuesto" value={header.orderNumber} />
                   <InfoRow label="Fecha" value={formatDate(header.orderDate)} />
                   <InfoRow label="Entrega" value={formatDate(header.deliveryDate)} />
                   <InfoRow label="Creado por" value={user?.name} />

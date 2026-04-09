@@ -25,7 +25,7 @@ const steps = ["Material", "Forma y Medidas", "Trabajos y Ensamblaje", "Compleme
 
 const logo = "/logos/kuuk-logo.png";
 
-const WizardContent: React.FC<{ activeStep: number }> = ({ activeStep }) => {
+const WizardContent: React.FC<{ activeStep: number; onReset?: () => void }> = ({ activeStep, onReset }) => {
   switch (activeStep) {
     case 0:
       return <WizardStep1_Materials />;
@@ -36,7 +36,7 @@ const WizardContent: React.FC<{ activeStep: number }> = ({ activeStep }) => {
     case 3:
       return <WizardStep4_Complements />;
     case 4:
-      return <WizardStep5_Summary />;
+      return <WizardStep5_Summary onReset={onReset} />;
     default:
       return <Typography>Paso desconocido</Typography>;
   }
@@ -325,7 +325,7 @@ const WizardStepperContent: React.FC = () => {
               </Button>
             </Box>
           ) : (
-            <WizardContent activeStep={activeStep} />
+            <WizardContent activeStep={activeStep} onReset={handleReset} />
           )}
         </Box>
 

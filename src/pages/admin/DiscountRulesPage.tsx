@@ -7,11 +7,13 @@ import DiscountRuleItem from "./discount-rules/DiscountRuleItem";
 import DiscountRuleDrawer from "./discount-rules/DiscountRuleDrawer";
 import type { IDiscountRule } from "@/interfases/discount-rule.interfase";
 import { getDiscountRules } from "@/services/discount-rule.service";
+import { ApiErrorFeedback } from "../public/common/ApiErrorFeedback";
 
 const DiscountRulesPage: React.FC = () => {
   const theme = useTheme();
   const [rules, setRules] = useState<IDiscountRule[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<any>(null);
 
   // Drawer state
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -20,11 +22,13 @@ const DiscountRulesPage: React.FC = () => {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await getDiscountRules();
       setRules(data);
-    } catch (error) {
-      console.error("Error loading rules:", error);
+    } catch (err) {
+      console.error("Error loading rules:", err);
+      setError(err);
     } finally {
       setLoading(false);
     }
@@ -54,6 +58,8 @@ const DiscountRulesPage: React.FC = () => {
 
   return (
     <Box sx={{ pb: 8 }}>
+      <ApiErrorFeedback error={error} title="Error al cargar reglas de descuento" onRetry={fetchData} />
+
       {/* Header Section */}
       <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ xs: "stretch", sm: "flex-end" }} sx={{ mb: 5 }} spacing={3}>
         <Box>

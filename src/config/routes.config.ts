@@ -18,6 +18,7 @@ const OrdersPage = lazy(() => import("@/pages/admin/OrdersTable"));
 const UsersPage = lazy(() => import("@/pages/admin/UsersPage"));
 const CustomersPage = lazy(() => import("@/pages/admin/CustomersPage"));
 const DiscountRulesPage = lazy(() => import("@/pages/admin/DiscountRulesPage"));
+const DocConfigPage = lazy(() => import("@/pages/admin/doc-config/DocConfigPage"));
 const FactoryPosPage = lazy(() => import("@/pages/worker/FactoryPosPage"));
 
 // USER PORTAL
@@ -42,35 +43,36 @@ export const appRoutes: AppRouteConfig[] = [
     path: "/quote",
     component: NewQuoteWizardPage,
     // Array vacío o null significa "Público"
-    allowedRoles: [UserRole.ADMIN, UserRole.SALES, UserRole.USER],
+    allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.SALES, UserRole.USER],
   },
 
   // 3. USER PORTAL (Client)
   {
     path: "/",
     component: UserPortalLayout,
-    allowedRoles: [UserRole.USER, UserRole.ADMIN, UserRole.SALES],
+    allowedRoles: [UserRole.USER, UserRole.ADMIN, UserRole.OWNER, UserRole.SALES],
     children: [
-      { path: "dashboard", component: UserDashboard, allowedRoles: [UserRole.USER, UserRole.SALES, UserRole.ADMIN] },
-      { path: "my-quotes", component: UserQuotes, allowedRoles: [UserRole.USER, UserRole.SALES, UserRole.ADMIN] },
-      { path: "my-quotes/:orderId", component: OrderDetail, allowedRoles: [UserRole.USER, UserRole.SALES, UserRole.ADMIN] },
-      { path: "cart", component: CartView, allowedRoles: [UserRole.USER, UserRole.SALES, UserRole.ADMIN] },
-      { path: "drafts", component: UserDrafts, allowedRoles: [UserRole.USER, UserRole.SALES, UserRole.ADMIN] },
-      { path: "user-profile", component: UserProfile, allowedRoles: [UserRole.USER, UserRole.SALES, UserRole.ADMIN] },
+      { path: "dashboard", component: UserDashboard, allowedRoles: [UserRole.USER, UserRole.OWNER, UserRole.SALES, UserRole.ADMIN] },
+      { path: "my-quotes", component: UserQuotes, allowedRoles: [UserRole.USER, UserRole.OWNER, UserRole.SALES, UserRole.ADMIN] },
+      { path: "my-quotes/:orderId", component: OrderDetail, allowedRoles: [UserRole.USER, UserRole.OWNER, UserRole.SALES, UserRole.ADMIN] },
+      { path: "cart", component: CartView, allowedRoles: [UserRole.USER, UserRole.OWNER, UserRole.SALES, UserRole.ADMIN] },
+      { path: "drafts", component: UserDrafts, allowedRoles: [UserRole.USER, UserRole.OWNER, UserRole.SALES, UserRole.ADMIN] },
+      { path: "user-profile", component: UserProfile, allowedRoles: [UserRole.USER, UserRole.OWNER, UserRole.SALES, UserRole.ADMIN] },
     ],
   },
 
-  // 4. PANEL DE ADMIN (ADMIN & SALES)
+  // 4. PANEL DE ADMIN (ADMIN & OWNER & SALES)
   {
     path: "/admin",
     component: AdminLayout,
-    allowedRoles: [UserRole.ADMIN, UserRole.SALES],
+    allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.SALES],
     children: [
       { path: "dashboard", component: DashboardPage, allowedRoles: [UserRole.ADMIN] },
-      { path: "orders", component: OrdersPage, allowedRoles: [UserRole.ADMIN, UserRole.SALES] },
-      { path: "users", component: UsersPage, allowedRoles: [UserRole.ADMIN] },
-      { path: "customers", component: CustomersPage, allowedRoles: [UserRole.ADMIN, UserRole.SALES] },
-      { path: "discount-rules", component: DiscountRulesPage, allowedRoles: [UserRole.ADMIN, UserRole.SALES] },
+      { path: "orders", component: OrdersPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.SALES] },
+      { path: "users", component: UsersPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER] },
+      { path: "customers", component: CustomersPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.SALES] },
+      { path: "discount-rules", component: DiscountRulesPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.SALES] },
+      { path: "doc-config", component: DocConfigPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER] },
       { path: "materials", component: MaterialsPage, allowedRoles: [UserRole.ADMIN] },
       { path: "rule-sets", component: MeasurementRuleSetPage, allowedRoles: [UserRole.ADMIN] },
       { path: "addons", component: AddonsPage, allowedRoles: [UserRole.ADMIN] },

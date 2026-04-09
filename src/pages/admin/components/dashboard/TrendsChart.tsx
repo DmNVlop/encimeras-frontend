@@ -65,7 +65,7 @@ export const TrendsChart: React.FC<TrendsChartProps> = ({ data, loading }) => {
               },
               {
                 data: data.map((d) => d.points),
-                label: "Valor (Pts)",
+                label: "Valor (Puntos)",
                 yAxisId: "points-axis",
                 curve: "catmullRom",
                 color: theme.palette.secondary.main,

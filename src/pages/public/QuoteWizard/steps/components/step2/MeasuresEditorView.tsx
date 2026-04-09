@@ -1,10 +1,12 @@
 import React from "react";
 import { Box, Button, Grid, CircularProgress } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
 import { Step2Header } from "./Step2Header";
 import { PieceMeasuresCard } from "./PieceMeasuresCard";
 import type { MainPiece } from "@/context/QuoteInterfases";
 import type { Material } from "@/interfases/materials.interfase";
 import type { ShapeVariation } from "@/interfases/shape-variation.interfase";
+import { type ConnectionType } from "@/pages/public/common/Icons/ConnectionTypeIcons";
 
 interface MeasuresEditorViewProps {
   mainPieces: MainPiece[];
@@ -14,6 +16,10 @@ interface MeasuresEditorViewProps {
   handleResetShape: () => void;
   handleOpenChangeMaterialModal: (index: number) => void;
   handleMeasureChange: (pieceIndex: number, field: "length_mm" | "width_mm", value: string) => void;
+  handleOpenAddPieceModal: () => void;
+  handleRemovePiece: (index: number) => void;
+  handleReorderPiece: (fromIndex: number, toIndex: number) => void;
+  handleConnectionTypeChange: (pieceIndex: number, connectionType: ConnectionType) => void;
 }
 
 export const MeasuresEditorView: React.FC<MeasuresEditorViewProps> = ({
@@ -24,6 +30,10 @@ export const MeasuresEditorView: React.FC<MeasuresEditorViewProps> = ({
   handleResetShape,
   handleOpenChangeMaterialModal,
   handleMeasureChange,
+  handleOpenAddPieceModal,
+  handleRemovePiece,
+  handleReorderPiece,
+  handleConnectionTypeChange,
 }) => {
   if (loadingMaterials) {
     return (
@@ -44,9 +54,14 @@ export const MeasuresEditorView: React.FC<MeasuresEditorViewProps> = ({
         }}
       >
         <Step2Header title="Define las medidas de cada pieza" subtitle="Medidas finales que tendrá cada pieza de tu encimera." />
-        <Button variant="outlined" size="small" onClick={handleResetShape} sx={{ mt: 1 }}>
-          Cambiar Forma Principal
-        </Button>
+        <Box sx={{ display: "flex", gap: 1 }}>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenAddPieceModal} sx={{ mt: 1 }}>
+            Agregar Pieza
+          </Button>
+          <Button variant="outlined" size="small" onClick={handleResetShape} sx={{ mt: 1 }}>
+            Cambiar Forma Principal
+          </Button>
+        </Box>
       </Box>
 
       <Grid container spacing={3}>
@@ -62,6 +77,11 @@ export const MeasuresEditorView: React.FC<MeasuresEditorViewProps> = ({
                 currentShapeVariation={currentShapeVariation}
                 handleOpenChangeMaterialModal={handleOpenChangeMaterialModal}
                 handleMeasureChange={handleMeasureChange}
+                handleRemovePiece={handleRemovePiece}
+                handleReorderPiece={handleReorderPiece}
+                handleConnectionTypeChange={handleConnectionTypeChange}
+                isFirst={index === 0}
+                isLast={index === mainPieces.length - 1}
               />
             </Grid>
           );

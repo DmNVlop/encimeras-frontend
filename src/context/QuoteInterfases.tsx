@@ -38,7 +38,8 @@ export interface PieceLayout {
   // 'CORNER_LEFT': Gira a la izquierda (Forma L)
   // 'CORNER_RIGHT': Gira a la derecha
   // 'NONE': Es la pieza base (0)
-  connectionType: "NONE" | "LINEAR" | "CORNER_LEFT" | "CORNER_RIGHT";
+  // 'CUSTOM': Pieza personalizada agregada por el usuario
+  connectionType: "NONE" | "LINEAR" | "CORNER_RIGHT" | "CORNER_LEFT" | "CUSTOM";
 
   // Tipo de Unión (Para el problema de "quién monta sobre quién")
   // 'OVERLAP': Esta pieza se "mete" en la esquina (Gana fondo)
@@ -68,6 +69,11 @@ export interface MainPiece {
   // Elegir forma
   layout?: PieceLayout;
 
+  // Índice original de la pieza dentro del ShapeVariation seleccionado.
+  // Se asigna al crear las piezas iniciales y se mantiene intacto
+  // para que el preview visual siempre corresponda a su forma base.
+  originalShapeIndex?: number;
+
   // --- Accesorios Aplicados ---
   appliedAddons: AppliedAddon[]; // Lista de accesorios para ESTA pieza
 }
@@ -79,7 +85,10 @@ export interface MaterialConfirmationPayload {
   materialId: string;
   materialName: string;
   materialImage?: string;
-  selectedAttributes: SelectedAttributes; // Reutilizamos la interfaz existente
+  selectedAttributes: SelectedAttributes;
+  connectionType?: "LINEAR" | "CORNER_LEFT" | "CORNER_RIGHT" | "NONE";
+  measurements?: { length_mm: number; width_mm: number };
+  pieceIndex?: number;
 }
 
 /**

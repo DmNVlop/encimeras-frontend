@@ -2,15 +2,20 @@ import React from "react";
 import { Paper, Box, Typography, Avatar, Divider, Chip } from "@mui/material";
 import StraightenIcon from "@mui/icons-material/Straighten";
 import type { BreakdownPiece } from "@/interfases/price.interfase";
+import { ConnectionTypeIcon, connectionTypeLabels, type ConnectionType } from "@/pages/public/common/Icons/ConnectionTypeIcons";
 
 interface PieceBreakdownItemProps {
   piece: BreakdownPiece;
   materialImage?: string;
   materialName?: string;
   originalPieceData: any;
+  pieceIndex: number;
 }
 
-export const PieceBreakdownItem: React.FC<PieceBreakdownItemProps> = ({ piece, materialImage, materialName, originalPieceData }) => {
+export const PieceBreakdownItem: React.FC<PieceBreakdownItemProps> = ({ piece, materialImage, materialName, originalPieceData, pieceIndex }) => {
+  const connectionType = (originalPieceData?.layout?.connectionType as ConnectionType) || "NONE";
+  const isFirst = pieceIndex === 0;
+
   return (
     <Paper
       elevation={2}
@@ -38,20 +43,30 @@ export const PieceBreakdownItem: React.FC<PieceBreakdownItemProps> = ({ piece, m
           alignItems: "center",
         }}
       >
-        <Typography variant="subtitle1" fontWeight="bold">
-          {piece.pieceName}
-        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Typography variant="subtitle1" fontWeight="bold">
+            {piece.pieceName}
+          </Typography>
+          {!isFirst && (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, px: 1, py: 0.25, bgcolor: "grey.200", borderRadius: 1 }}>
+              <ConnectionTypeIcon type={connectionType} sx={{ fontSize: 18 }} />
+              <Typography variant="caption" color="text.secondary">
+                {connectionTypeLabels[connectionType]}
+              </Typography>
+            </Box>
+          )}
+        </Box>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
           {piece.discountAmount && piece.discountAmount > 0 ? (
             <>
               <Typography variant="body2" sx={{ textDecoration: "line-through", opacity: 0.5 }}>
-                {piece.subtotalPoints.toFixed(2)} Pts
+                {piece.subtotalPoints.toFixed(2)}
               </Typography>
               <Typography variant="h6" color="success.main" fontWeight="bold">
-                {piece.finalPricePoints.toFixed(2)} Pts
+                {piece.finalPricePoints.toFixed(2)}
               </Typography>
               <Chip
-                label={`¡Ahorras ${piece.discountAmount.toFixed(2)} pts!`}
+                label={`¡Ahorras ${piece.discountAmount.toFixed(2)} !`}
                 size="small"
                 color="success"
                 sx={{ fontWeight: "bold", height: 24, fontSize: "0.75rem" }}
@@ -59,7 +74,7 @@ export const PieceBreakdownItem: React.FC<PieceBreakdownItemProps> = ({ piece, m
             </>
           ) : (
             <Typography variant="h6" color="primary.main" fontWeight="bold">
-              {piece.subtotalPoints.toFixed(2)} Pts
+              {piece.subtotalPoints.toFixed(2)}
             </Typography>
           )}
         </Box>
@@ -128,9 +143,7 @@ export const PieceBreakdownItem: React.FC<PieceBreakdownItemProps> = ({ piece, m
               <Box sx={{ textAlign: "right" }}>
                 <Typography variant="h6" fontWeight="800" color="primary.main">
                   {piece.basePricePoints.toFixed(2)}
-                  <Typography component="span" variant="caption" sx={{ ml: 0.5, fontWeight: "bold" }}>
-                    Pts
-                  </Typography>
+                  <Typography component="span" variant="caption" sx={{ ml: 0.5, fontWeight: "bold" }}></Typography>
                 </Typography>
               </Box>
             </Box>
@@ -211,7 +224,7 @@ export const PieceBreakdownItem: React.FC<PieceBreakdownItemProps> = ({ piece, m
             </Box>
 
             <Typography variant="body2" fontWeight="bold">
-              {addon.pricePoints > 0 ? `+ ${addon.pricePoints.toFixed(2)} Pts` : "Incluido"}
+              {addon.pricePoints > 0 ? `+ ${addon.pricePoints.toFixed(2)} ` : "Incluido"}
             </Typography>
           </Box>
         ))}

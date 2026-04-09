@@ -1,10 +1,28 @@
 import { get, create, update, remove, post } from "./api.service";
 import type { ICustomer, ICustomerCreate } from "@/interfases/customer.interfase";
+import type { User } from "@/interfases/user.interfase";
+import { config } from "@/config";
 
 const ENDPOINT = "/customers";
+const USERS_ENDPOINT = "/users";
+const API_BASE = config.api.baseURL;
 
 export const getCustomers = (): Promise<ICustomer[]> => {
   return get<ICustomer[]>(ENDPOINT);
+};
+
+export const getSalesUsers = (): Promise<User[]> => {
+  return get<User[]>(`${USERS_ENDPOINT}?role=SALES`).catch((error) => {
+    // Si es 403, el usuario no tiene permisos - retornar array vacío
+    if (error?.originalError?.response?.status === 403) {
+      return [];
+    }
+    throw error; // Re-lanzar otros errores
+  });
+};
+
+export const getPlatformUsers = (): Promise<User[]> => {
+  return get<User[]>(USERS_ENDPOINT);
 };
 
 export const getCustomerById = (id: string): Promise<ICustomer> => {
@@ -25,4 +43,23 @@ export const deleteCustomer = (id: string): Promise<any> => {
 
 export const linkCustomerToUser = (customerId: string, userId: string): Promise<any> => {
   return post(`${ENDPOINT}/${customerId}/link/${userId}`, {});
+};
+
+export const batchDeleteCustomers = (customerIds: string[]): Promise<any> => {
+  return remove(`${ENDPOINT}/batch`, customerIds);
+};
+
+export const batchAssignSales = (customerIds: string[], salesUserIds: string[]): Promise<any> => {
+  return patch(`${ENDPOINT}/batch/assign-sales`, { customerIds, salesUserIds });
+};
+
+const patch = <T>(url: string, data: any): Promise<T> => {
+  return fetch(`${API_BASE}${url}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  }).then((res) => {
+    if (!res.ok) throw new Error("Request failed");
+    return res.json() as Promise<T>;
+  });
 };

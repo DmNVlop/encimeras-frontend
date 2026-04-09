@@ -31,6 +31,7 @@ import {
 import { useCart } from "@/context/CartContext";
 import { useCartLoadAction } from "@/hooks/useCartLoadAction";
 import { CartLoadConflictDialog } from "@/components/cart/CartLoadConflictDialog";
+import { DraftNamingDialog } from "@/pages/public/QuoteWizard/components/DraftNamingDialog";
 import { CustomerSelection } from "@/pages/public/QuoteWizard/steps/components/step5/CustomerSelection";
 import type { ICustomer } from "@/interfases/customer.interfase";
 import { get } from "@/services/api.service";
@@ -58,6 +59,7 @@ export default function Cart() {
   } = useCart();
   const { initiateLoad, isDialogOpen, closeDialog, handleConflictAction, isProcessing } = useCartLoadAction();
   const [showRescuePolling, setShowRescuePolling] = useState(false);
+  const [showNamingDialog, setShowNamingDialog] = useState(false);
 
   // Estados para el cliente
   const [customers, setCustomers] = useState<ICustomer[]>([]);
@@ -134,15 +136,19 @@ export default function Cart() {
       const orderNumber = lastCreatedOrder.orderNumber;
       clearLastOrder();
       // Podríamos navegar a una página de éxito específica o al dashboard con un mensaje
-      navigate("/dashboard", { state: { message: `¡Pedido ${orderNumber} creado con éxito!` } });
+      navigate("/my-quotes", { state: { message: `¡Presupuesto ${orderNumber} creado con éxito!` } });
     }
   }, [lastCreatedOrder, navigate, clearLastOrder]);
 
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
+    setShowNamingDialog(true);
+  };
+
+  const handleConfirmCheckout = async (orderName: string) => {
     try {
+      setShowNamingDialog(false);
       setShowRescuePolling(false);
-      await checkout();
-      // Timeout de rescate: 45 segundos
+      await checkout(orderName);
       setTimeout(() => setShowRescuePolling(true), 45000);
     } catch (error) {
       console.error("Error initiating checkout:", error);
@@ -207,7 +213,7 @@ export default function Cart() {
             Mi Carrito
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Gestiona tus presupuestos agrupados antes de confirmar el pedido final.
+            Gestiona tus presupuestos agrupados antes de confirmar finalmente.
           </Typography>
         </Box>
         <Button
@@ -393,7 +399,7 @@ export default function Cart() {
                                 DESCUENTO ÍTEM
                               </Typography>
                               <Typography variant="body2" color="text.secondary" sx={{ textDecoration: "line-through" }}>
-                                Base: {(item.originalPoints || item.subtotalPoints + item.discountAmount)?.toLocaleString()} pts
+                                Base: {(item.originalPoints || item.subtotalPoints + item.discountAmount)?.toLocaleString()}
                               </Typography>
                             </Box>
 
@@ -403,13 +409,13 @@ export default function Cart() {
                                 {(item.appliedRules || item.appliedDiscounts)!.map((discount, i) => (
                                   <Typography key={i} variant="caption" color="success.main" display="block" fontWeight="medium">
                                     ✓ {discount.ruleName}: -
-                                    {discount.discountAmount?.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} pts
+                                    {discount.discountAmount?.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                                   </Typography>
                                 ))}
                                 {(item.appliedRules || item.appliedDiscounts)!.length > 1 && (
                                   <Box sx={{ borderTop: "1px dashed", borderColor: alpha(theme.palette.success.main, 0.3), mt: 0.5, pt: 0.5 }}>
                                     <Typography variant="caption" color="success.main" fontWeight="bold">
-                                      Total ítem: -{item.discountAmount?.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} pts
+                                      Total ítem: -{item.discountAmount?.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                                     </Typography>
                                   </Box>
                                 )}
@@ -417,8 +423,8 @@ export default function Cart() {
                             ) : (
                               // Fallback si no hay array de reglas
                               <Typography variant="caption" color="success.main" display="block" fontWeight="medium">
-                                ✓ Descuento aplicado: -{item.discountAmount?.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}{" "}
-                                pts
+                                ✓ Descuento aplicado: -
+                                {item.discountAmount?.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}{" "}
                               </Typography>
                             )}
 
@@ -427,13 +433,13 @@ export default function Cart() {
                                 Subtotal Neto:
                               </Typography>
                               <Typography variant="h6" color="primary.main" fontWeight="bold" sx={{ lineHeight: 1 }}>
-                                {item.subtotalPoints?.toLocaleString()} pts
+                                {item.subtotalPoints?.toLocaleString()}
                               </Typography>
                             </Box>
                           </Box>
                         ) : (
                           <Typography variant="h6" color="primary.main" fontWeight="bold" sx={{ mt: 1 }}>
-                            {(item.originalPoints || item.subtotalPoints)?.toLocaleString()} pts
+                            {(item.originalPoints || item.subtotalPoints)?.toLocaleString()}
                           </Typography>
                         )}
                       </Box>
@@ -460,7 +466,7 @@ export default function Cart() {
             sx={{ p: 3, borderRadius: 4, border: "1px solid", borderColor: "primary.light", bgcolor: alpha(theme.palette.primary.main, 0.02) }}
           >
             <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Resumen del Pedido
+              Resumen del Presupuesto
             </Typography>
             <Divider sx={{ my: 2 }} />
 
@@ -473,7 +479,7 @@ export default function Cart() {
               <>
                 <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                   <Typography color="text.secondary">Subtotal bruto:</Typography>
-                  <Typography fontWeight="medium">{totalOriginalPoints.toLocaleString()} pts</Typography>
+                  <Typography fontWeight="medium">{totalOriginalPoints.toLocaleString()} </Typography>
                 </Box>
 
                 {/* Ahorro en Ítems (si existe) */}
@@ -483,7 +489,7 @@ export default function Cart() {
                       Ahorro en ítems:
                     </Typography>
                     <Typography color="success.main" variant="body2" fontWeight="medium">
-                      - {totalItemDiscounts.toLocaleString()} pts
+                      - {totalItemDiscounts.toLocaleString()}
                     </Typography>
                   </Box>
                 )}
@@ -496,7 +502,7 @@ export default function Cart() {
                         Descuentos globales:
                       </Typography>
                       <Typography color="success.main" variant="body2" fontWeight="medium">
-                        - {totalGlobalDiscounts.toLocaleString(undefined, { maximumFractionDigits: 2 })} pts
+                        - {totalGlobalDiscounts.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                       </Typography>
                     </Box>
 
@@ -509,7 +515,7 @@ export default function Cart() {
                               • {rule.ruleName}
                             </Typography>
                             <Typography variant="caption" color="success.main">
-                              -{rule.discountAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })} pts
+                              -{rule.discountAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                             </Typography>
                           </Box>
                         ))}
@@ -525,7 +531,7 @@ export default function Cart() {
                     Ahorro total:
                   </Typography>
                   <Typography color="success.main" fontWeight="bold">
-                    - {cart.totalDiscount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} pts
+                    - {cart.totalDiscount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                   </Typography>
                 </Box>
               </>
@@ -536,7 +542,7 @@ export default function Cart() {
                 Total:
               </Typography>
               <Typography variant="h5" color="primary.main" fontWeight="bold">
-                {totalPoints.toLocaleString()} pts
+                {totalPoints.toLocaleString()}
               </Typography>
             </Box>
 
@@ -550,7 +556,7 @@ export default function Cart() {
                 disabled={isProcessingCheckout || isDirty || isAssigning}
                 sx={{ py: 1.5, borderRadius: 2, fontWeight: "bold", fontSize: "1.1rem" }}
               >
-                {isDirty ? "Recalcule para finalizar" : "Finalizar Pedido"}
+                {isDirty ? "Recalcule para finalizar" : "Finalizar Presupuesto"}
               </Button>
 
               <Button variant="outlined" fullWidth startIcon={<SaveIcon />} onClick={saveAsDrafts} disabled={isProcessingCheckout} sx={{ borderRadius: 2 }}>
@@ -603,7 +609,7 @@ export default function Cart() {
         </Box>
         <Box>
           <Typography variant="h4" fontWeight="bold" gutterBottom>
-            Procesando su pedido
+            Procesando su presupuesto
           </Typography>
           <Typography variant="h6" sx={{ opacity: 0.8, maxWidth: 600, mb: 4 }}>
             Estamos generando los planos técnicos y la documentación oficial. Este proceso puede tardar unos segundos. Por favor, no cierre la ventana.
@@ -634,6 +640,16 @@ export default function Cart() {
 
       {/* DIÁLOGO DE CONFLICTO */}
       <CartLoadConflictDialog open={isDialogOpen} onClose={closeDialog} onAction={handleConflictAction} isProcessing={isProcessing} />
+
+      {/* DIÁLOGO DE NOMBRADO DE ORDEN */}
+      <DraftNamingDialog
+        open={showNamingDialog}
+        onClose={() => setShowNamingDialog(false)}
+        onConfirm={handleConfirmCheckout}
+        isSaving={isProcessingCheckout}
+        title="Finalizar Presupuesto"
+        subtitle="Asigna un nombre a este presupuesto para identificarlo fácilmente."
+      />
     </Box>
   );
 }

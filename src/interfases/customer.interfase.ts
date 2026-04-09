@@ -40,6 +40,8 @@ export interface ICustomer {
   taxProfile?: number;
   contact: ICustomerContact;
   address: ICustomerAddress;
+  allowedSalesUserIds?: string[];
+  createdBy?: string;
   createdAt?: string;
   updatedAt?: string;
 }

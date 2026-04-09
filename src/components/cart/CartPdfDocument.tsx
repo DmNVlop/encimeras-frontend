@@ -319,6 +319,44 @@ export const CartPdfDocument: React.FC<CartPdfDocumentProps> = ({ data }) => {
           </View>
         </View>
 
+        {/* 4. BLOQUE DE TOTALES FINALES (wrap=false para protegerlo) */}
+        <View style={styles.totalsContainer} wrap={false}>
+          <View style={styles.totalsBox}>
+            <View style={styles.totalsRow}>
+              <Text style={styles.totalsLabel}>Subtotal Bruto</Text>
+              <Text style={styles.totalsValue}>{data.subtotalBruto.toFixed(2)} </Text>
+            </View>
+
+            {/* Si hay reglas globales de descuento las mostramos desglosadas */}
+            {data.appliedGlobalRules && data.appliedGlobalRules.length > 0 ? (
+              <View style={{ marginBottom: 6 }}>
+                <Text style={{ fontSize: 9, color: "#16a34a", fontWeight: "bold", marginBottom: 4 }}>Descuentos Aplicados:</Text>
+                {data.appliedGlobalRules.map((rule, index) => (
+                  <View key={index} style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 3, paddingLeft: 6 }}>
+                    <Text style={{ fontSize: 9, color: "#16a34a" }}>• {rule.ruleName}</Text>
+                    <Text style={{ fontSize: 9, color: "#16a34a", fontWeight: "bold" }}>- {rule.discountAmount.toFixed(2)} </Text>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              /* Sin desglose por regla: mostrar solo el total de descuento */
+              data.totalDescuento > 0 && (
+                <View style={styles.totalsRowHighlight}>
+                  <Text style={styles.totalsLabelHighlight}>Descuentos Aplicados</Text>
+                  <Text style={styles.totalsValueHighlight}>- {data.totalDescuento.toFixed(2)} </Text>
+                </View>
+              )
+            )}
+
+            <View style={styles.totalsDivider} />
+
+            <View style={styles.totalsRowFinal}>
+              <Text style={styles.totalsLabelFinal}>TOTAL PUNTOS</Text>
+              <Text style={styles.totalsValueFinal}>{data.total.toFixed(2)} </Text>
+            </View>
+          </View>
+        </View>
+
         {/* 3. LISTADO DE ESTANCIAS */}
         {data.items.map((item) => (
           <View key={item.cartItemId} style={styles.itemContainer}>
@@ -326,7 +364,7 @@ export const CartPdfDocument: React.FC<CartPdfDocumentProps> = ({ data }) => {
               <Text style={styles.itemTitle}>{item.name}</Text>
               <View style={{ flexDirection: "row", alignItems: "baseline" }}>
                 <Text style={styles.itemSubtotalLabel}>Suma Estancia:</Text>
-                <Text style={styles.itemSubtotal}>{item.subtotal.toFixed(2)} pts</Text>
+                <Text style={styles.itemSubtotal}>{item.subtotal.toFixed(2)} </Text>
               </View>
             </View>
 
@@ -389,48 +427,10 @@ export const CartPdfDocument: React.FC<CartPdfDocumentProps> = ({ data }) => {
           </View>
         ))}
 
-        {/* 4. BLOQUE DE TOTALES FINALES (wrap=false para protegerlo) */}
-        <View style={styles.totalsContainer} wrap={false}>
-          <View style={styles.totalsBox}>
-            <View style={styles.totalsRow}>
-              <Text style={styles.totalsLabel}>Subtotal Bruto</Text>
-              <Text style={styles.totalsValue}>{data.subtotalBruto.toFixed(2)} pts</Text>
-            </View>
-
-            {/* Si hay reglas globales de descuento las mostramos desglosadas */}
-            {data.appliedGlobalRules && data.appliedGlobalRules.length > 0 ? (
-              <View style={{ marginBottom: 6 }}>
-                <Text style={{ fontSize: 9, color: "#16a34a", fontWeight: "bold", marginBottom: 4 }}>Descuentos Aplicados:</Text>
-                {data.appliedGlobalRules.map((rule, index) => (
-                  <View key={index} style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 3, paddingLeft: 6 }}>
-                    <Text style={{ fontSize: 9, color: "#16a34a" }}>• {rule.ruleName}</Text>
-                    <Text style={{ fontSize: 9, color: "#16a34a", fontWeight: "bold" }}>- {rule.discountAmount.toFixed(2)} pts</Text>
-                  </View>
-                ))}
-              </View>
-            ) : (
-              /* Sin desglose por regla: mostrar solo el total de descuento */
-              data.totalDescuento > 0 && (
-                <View style={styles.totalsRowHighlight}>
-                  <Text style={styles.totalsLabelHighlight}>Descuentos Aplicados</Text>
-                  <Text style={styles.totalsValueHighlight}>- {data.totalDescuento.toFixed(2)} pts</Text>
-                </View>
-              )
-            )}
-
-            <View style={styles.totalsDivider} />
-
-            <View style={styles.totalsRowFinal}>
-              <Text style={styles.totalsLabelFinal}>IMPORTE TOTAL</Text>
-              <Text style={styles.totalsValueFinal}>{data.total.toFixed(2)} pts</Text>
-            </View>
-          </View>
-        </View>
-
         {/* 5. NOTA LEGAL Y PAGINACIÓN */}
         <Text style={styles.footerNote} fixed>
-          Este documento es informativo y no constituye una factura legal. Los precios están expresados en puntos internos de la plataforma sujetos a las
-          condiciones de venta. Para su aprobación, póngase en contacto con su comercial o apruebe este borrador directamente en el portal online.
+          {data.footerText ||
+            "Este documento es informativo y no constituye una factura legal. Los precios están expresados en puntos internos de la plataforma sujetos a las condiciones de venta. Para su aprobación, póngase en contacto con su comercial o apruebe este borrador directamente en el portal online."}
         </Text>
         <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => `Página ${pageNumber} de ${totalPages}`} fixed />
       </Page>

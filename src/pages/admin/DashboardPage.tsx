@@ -83,7 +83,7 @@ const DashboardPage: React.FC = () => {
             loading={loading}
             color={theme.palette.primary.main}
             subtitle="Volumen total de documentos"
-            info="Cantidad acumulada de presupuestos creados, incluyendo tanto borradores activos como pedidos ya confirmados."
+            info="Cantidad acumulada de presupuestos creados, incluyendo tanto borradores activos como presupuestos ya confirmados."
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4 }}>
@@ -94,7 +94,7 @@ const DashboardPage: React.FC = () => {
             loading={loading}
             color={theme.palette.secondary.main}
             subtitle="Potencial de negocio"
-            info="Valor total acumulado del negocio. Suma el precio de los pedidos vendidos y el valor de las cotizaciones en curso."
+            info="Valor total acumulado del negocio. Suma el precio de los presupuestos vendidos y el valor de las cotizaciones en curso."
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4 }}>

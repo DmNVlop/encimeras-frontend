@@ -3,8 +3,10 @@ import { useQuoteDispatch, useQuoteState } from "@/context/QuoteContext";
 import { get } from "@/services/api.service";
 import type { Material } from "@/interfases/materials.interfase";
 import type { ShapeVariation, SelectionState } from "@/interfases/shape-variation.interfase";
+import type { MainPiece } from "@/context/QuoteInterfases";
 import { shapeVariations } from "@/pages/public/common/shapes-step2";
-import type { MaterialConfirmationPayload } from "@/context/QuoteInterfases";
+import type { MaterialConfirmationPayload, SelectedAttributes } from "@/context/QuoteInterfases";
+import { type ConnectionType } from "@/pages/public/common/Icons/ConnectionTypeIcons";
 
 export const useWizardStep2 = () => {
   const { wizardTempMaterial, mainPieces, selectedShapeId } = useQuoteState();
@@ -16,6 +18,9 @@ export const useWizardStep2 = () => {
   const [isChangeMaterialModalOpen, setIsChangeMaterialModalOpen] = useState(false);
   const [materialToChange, setMaterialToChange] = useState<Material | null>(null);
   const [initialSelectionForChange, setInitialSelectionForChange] = useState<SelectionState | undefined>(undefined);
+  const [isAddPieceModalOpen, setIsAddPieceModalOpen] = useState(false);
+  const [backupMainPieces, setBackupMainPieces] = useState<MainPiece[] | null>(null);
+  const [isShapeSelectionPending, setIsShapeSelectionPending] = useState(false);
 
   // Carga inicial de materiales
   useEffect(() => {
@@ -87,30 +92,54 @@ export const useWizardStep2 = () => {
 
   const handleConfirmMaterialChange = useCallback(
     (payload: MaterialConfirmationPayload) => {
-      if (editingPieceIndex === null) return;
+      const pieceIndex = payload.pieceIndex ?? editingPieceIndex;
+      if (pieceIndex === null || pieceIndex === undefined) return;
+
+      const currentPiece = mainPieces[pieceIndex];
+      if (!currentPiece) return;
 
       dispatch({
         type: "UPDATE_MAIN_PIECE",
         payload: {
-          pieceIndex: editingPieceIndex,
+          pieceIndex,
           data: {
             materialId: payload.materialId,
             selectedAttributes: payload.selectedAttributes,
+            layout: {
+              order: currentPiece.layout?.order ?? pieceIndex,
+              rotation: currentPiece.layout?.rotation ?? 0,
+              connectionType: payload.connectionType ?? currentPiece.layout?.connectionType ?? "LINEAR",
+            },
           },
         },
       });
 
       setIsChangeMaterialModalOpen(false);
+      setIsAddPieceModalOpen(false);
       setEditingPieceIndex(null);
       setMaterialToChange(null);
       setInitialSelectionForChange(undefined);
     },
-    [dispatch, editingPieceIndex],
+    [dispatch, editingPieceIndex, mainPieces],
   );
 
   const handleResetShape = useCallback(() => {
-    dispatch({ type: "RESET_SHAPE" });
-  }, [dispatch]);
+    // Backup current pieces instead of immediately resetting
+    setBackupMainPieces(mainPieces);
+    setIsShapeSelectionPending(true);
+  }, [dispatch, mainPieces]);
+
+  const handleCancelShapeSelection = useCallback(() => {
+    // Restore backed up pieces if available
+    if (backupMainPieces !== null) {
+      dispatch({
+        type: "SET_MAIN_PIECES",
+        payload: backupMainPieces,
+      });
+    }
+    setBackupMainPieces(null);
+    setIsShapeSelectionPending(false);
+  }, [backupMainPieces, dispatch]);
 
   const handleCloseModal = useCallback(() => {
     setIsChangeMaterialModalOpen(false);
@@ -118,6 +147,71 @@ export const useWizardStep2 = () => {
     setMaterialToChange(null);
     setInitialSelectionForChange(undefined);
   }, []);
+
+  const handleOpenAddPieceModal = useCallback(() => {
+    setIsAddPieceModalOpen(true);
+  }, []);
+
+  const handleCloseAddPieceModal = useCallback(() => {
+    setIsAddPieceModalOpen(false);
+  }, []);
+
+  const handleAddPiece = useCallback(
+    (payload: {
+      materialId: string;
+      selectedAttributes: SelectedAttributes;
+      measurements: { length_mm: number; width_mm: number };
+      connectionType: ConnectionType;
+    }) => {
+      dispatch({
+        type: "ADD_EXTRA_PIECE",
+        payload,
+      });
+      setIsAddPieceModalOpen(false);
+    },
+    [dispatch],
+  );
+
+  const handleRemovePiece = useCallback(
+    (pieceIndex: number) => {
+      dispatch({
+        type: "REMOVE_PIECE",
+        payload: { pieceIndex },
+      });
+    },
+    [dispatch],
+  );
+
+  const handleReorderPiece = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      dispatch({
+        type: "UPDATE_PIECE_ORDER",
+        payload: { fromIndex, toIndex },
+      });
+    },
+    [dispatch],
+  );
+
+  const handleConnectionTypeChange = useCallback(
+    (pieceIndex: number, connectionType: ConnectionType) => {
+      const currentPiece = mainPieces[pieceIndex];
+      if (!currentPiece.layout) return;
+
+      dispatch({
+        type: "UPDATE_MAIN_PIECE",
+        payload: {
+          pieceIndex,
+          data: {
+            layout: {
+              ...currentPiece.layout,
+              connectionType,
+            },
+          },
+        },
+      });
+    },
+    [dispatch, mainPieces],
+  );
 
   return {
     wizardTempMaterial,
@@ -129,11 +223,22 @@ export const useWizardStep2 = () => {
     isChangeMaterialModalOpen,
     materialToChange,
     initialSelectionForChange,
+    isAddPieceModalOpen,
+    editingPieceIndex,
     handleSelectVariation,
     handleMeasureChange,
     handleOpenChangeMaterialModal,
     handleConfirmMaterialChange,
     handleResetShape,
+    handleCancelShapeSelection,
     handleCloseModal,
+    handleOpenAddPieceModal,
+    handleCloseAddPieceModal,
+    handleAddPiece,
+    handleRemovePiece,
+    handleReorderPiece,
+    handleConnectionTypeChange,
+    backupMainPieces,
+    isShapeSelectionPending,
   };
 };

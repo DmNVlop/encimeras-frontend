@@ -21,19 +21,20 @@ interface NavItem {
 
 const menuConfig: NavItem[] = [
   { text: "Dashboard", icon: <DashboardIcon />, path: "/admin/dashboard", type: "item", allowedRoles: ["ADMIN"] },
-  { text: "Presupuestador", icon: <CalculateIcon />, path: "/dashboard", type: "item", allowedRoles: ["ADMIN", "SALES"] },
+  { text: "Presupuestador", icon: <CalculateIcon />, path: "/dashboard", type: "item", allowedRoles: ["ADMIN", "OWNER", "SALES"] },
   { text: "Ordenes", icon: <ShoppingBagIcon />, path: "/admin/orders", type: "item", allowedRoles: ["ADMIN", "SALES"] },
   { text: "divider", type: "divider" },
-  { text: "ADMINISTRACIÓN", type: "subheader", allowedRoles: ["ADMIN", "SALES"] },
+  { text: "ADMINISTRACIÓN", type: "subheader", allowedRoles: ["ADMIN", "OWNER", "SALES"] },
   {
     text: "Configuración",
     icon: <SettingsIcon />,
     type: "item",
-    allowedRoles: ["ADMIN", "SALES"],
+    allowedRoles: ["ADMIN", "OWNER", "SALES"],
     children: [
-      { text: "Usuarios", path: "/admin/users", allowedRoles: ["ADMIN"] },
-      { text: "Clientes", path: "/admin/customers", allowedRoles: ["ADMIN", "SALES"] },
-      { text: "Descuentos", path: "/admin/discount-rules", allowedRoles: ["ADMIN", "SALES"] },
+      { text: "Usuarios", path: "/admin/users", allowedRoles: ["ADMIN", "OWNER"] },
+      { text: "Clientes", path: "/admin/customers", allowedRoles: ["ADMIN", "OWNER", "SALES"] },
+      { text: "Descuentos", path: "/admin/discount-rules", allowedRoles: ["ADMIN", "OWNER", "SALES"] },
+      { text: "Doc Config", path: "/admin/doc-config", allowedRoles: ["ADMIN", "OWNER"] },
     ],
   },
   {

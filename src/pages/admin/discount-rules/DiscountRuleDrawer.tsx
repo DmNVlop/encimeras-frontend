@@ -32,6 +32,7 @@ import { get } from "@/services/api.service";
 import type { Material } from "@/interfases/materials.interfase";
 import type { ICustomer } from "@/interfases/customer.interfase";
 import Autocomplete from "@mui/material/Autocomplete";
+import { ApiErrorFeedback } from "../../public/common/ApiErrorFeedback";
 
 interface DiscountRuleDrawerProps {
   rule: IDiscountRule | null;
@@ -46,6 +47,7 @@ const DiscountRuleDrawer: React.FC<DiscountRuleDrawerProps> = ({ rule, open, onC
   const [editing, setEditing] = useState(isNew);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<Partial<IDiscountRule>>({});
+  const [error, setError] = useState<any>(null);
 
   // Data for selectors
   const [allMaterials, setAllMaterials] = useState<Material[]>([]);
@@ -110,6 +112,7 @@ const DiscountRuleDrawer: React.FC<DiscountRuleDrawerProps> = ({ rule, open, onC
 
   const handleSave = async () => {
     setLoading(true);
+    setError(null);
     try {
       if (isNew) {
         await createDiscountRule(formData as any);
@@ -118,8 +121,9 @@ const DiscountRuleDrawer: React.FC<DiscountRuleDrawerProps> = ({ rule, open, onC
       }
       onRefresh();
       onClose();
-    } catch (error) {
-      console.error("Error saving rule:", error);
+    } catch (err) {
+      console.error("Error saving rule:", err);
+      setError(err);
     } finally {
       setLoading(false);
     }
@@ -129,12 +133,14 @@ const DiscountRuleDrawer: React.FC<DiscountRuleDrawerProps> = ({ rule, open, onC
     if (!rule?._id) return;
     if (window.confirm("¿Estás seguro de que deseas desactivar esta regla?")) {
       setLoading(true);
+      setError(null);
       try {
         await deleteDiscountRule(rule._id);
         onRefresh();
         onClose();
-      } catch (error) {
-        console.error("Error deleting rule:", error);
+      } catch (err) {
+        console.error("Error deleting rule:", err);
+        setError(err);
       } finally {
         setLoading(false);
       }
@@ -149,11 +155,13 @@ const DiscountRuleDrawer: React.FC<DiscountRuleDrawerProps> = ({ rule, open, onC
       sx={{
         zIndex: (theme) => theme.zIndex.modal,
       }}
-      PaperProps={{
-        sx: {
-          width: { xs: "100%", sm: 550, md: 700 },
-          borderRadius: { xs: 0, sm: "24px 0 0 24px" },
-          overflow: "hidden",
+      slotProps={{
+        paper: {
+          sx: {
+            width: { xs: "100%", sm: 550, md: 700 },
+            borderRadius: { xs: 0, sm: "24px 0 0 24px" },
+            overflow: "hidden",
+          },
         },
       }}
     >
@@ -179,6 +187,8 @@ const DiscountRuleDrawer: React.FC<DiscountRuleDrawerProps> = ({ rule, open, onC
             <Chip label={formData.isActive ? "Activa" : "Pausada"} color={formData.isActive ? "success" : "default"} size="small" sx={{ fontWeight: 700 }} />
           )}
         </Stack>
+
+        {error && <ApiErrorFeedback error={error} title="Error al guardar regla" />}
 
         <Stack direction="row" spacing={1}>
           {!isNew && !editing && (
@@ -271,7 +281,7 @@ const DiscountRuleDrawer: React.FC<DiscountRuleDrawerProps> = ({ rule, open, onC
                   size="small"
                   sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
                 >
-                  <MenuItem value={DiscountScope.GLOBAL_TOTAL}>Total del Pedido</MenuItem>
+                  <MenuItem value={DiscountScope.GLOBAL_TOTAL}>Total del Presupuesto</MenuItem>
                   <MenuItem value={DiscountScope.SPECIFIC_MATERIALS}>Materiales Específicos</MenuItem>
                   <MenuItem value={DiscountScope.MATERIAL_CATEGORIES}>Categorías de Material</MenuItem>
                 </TextField>
@@ -407,7 +417,7 @@ const DiscountRuleDrawer: React.FC<DiscountRuleDrawerProps> = ({ rule, open, onC
                 <TextField
                   fullWidth
                   type="number"
-                  label="Importe Mínimo Pedido (€)"
+                  label="Importe Mínimo Presupuesto (€)"
                   value={formData.conditions?.minOrderValue || 0}
                   onChange={(e) => handleConditionChange("minOrderValue", Number(e.target.value))}
                   disabled={!editing || loading}

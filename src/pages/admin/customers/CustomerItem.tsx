@@ -1,32 +1,47 @@
 import React from "react";
-import { Box, Typography, Stack, Chip, IconButton, useTheme, alpha, Paper } from "@mui/material";
+import { Box, Typography, Stack, Chip, IconButton, useTheme, alpha, Paper, Checkbox, Avatar } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import BusinessIcon from "@mui/icons-material/Business";
 import PersonIcon from "@mui/icons-material/Person";
 import EmailIcon from "@mui/icons-material/Email";
 import PhoneIcon from "@mui/icons-material/Phone";
 import { type ICustomer, CustomerType } from "@/interfases/customer.interfase";
+import type { User } from "@/interfases/user.interfase";
 
 interface CustomerItemProps {
   customer: ICustomer;
+  selected: boolean;
+  salesUsers: User[];
   onClick: (customer: ICustomer) => void;
+  onSelect: (customer: ICustomer, selected: boolean) => void;
   onActionClick: (e: React.MouseEvent, customer: ICustomer) => void;
 }
 
-const CustomerItem: React.FC<CustomerItemProps> = ({ customer, onClick, onActionClick }) => {
+const CustomerItem: React.FC<CustomerItemProps> = ({ customer, selected, salesUsers, onClick, onSelect, onActionClick }) => {
   const theme = useTheme();
   const isCompany = customer.type === CustomerType.COMPANY;
+
+  const assignedUsers = salesUsers.filter((u) => customer.allowedSalesUserIds?.includes(u._id));
+
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onSelect(customer, !selected);
+  };
+
+  const handleRowClick = () => {
+    onClick(customer);
+  };
 
   return (
     <Paper
       elevation={0}
-      onClick={() => onClick(customer)}
+      onClick={handleRowClick}
       sx={{
         p: 2.5,
         mb: 1.5,
         borderRadius: 4,
-        border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
-        background: alpha(theme.palette.background.paper, 0.5),
+        border: `1px solid ${selected ? alpha(theme.palette.primary.main, 0.5) : alpha(theme.palette.divider, 0.08)}`,
+        background: selected ? alpha(theme.palette.primary.main, 0.04) : alpha(theme.palette.background.paper, 0.5),
         backdropFilter: "blur(10px)",
         transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
         cursor: "pointer",
@@ -40,6 +55,21 @@ const CustomerItem: React.FC<CustomerItemProps> = ({ customer, onClick, onAction
         },
       }}
     >
+      <Box sx={{ display: "flex", alignItems: "center", mr: 2 }}>
+        <Checkbox
+          checked={selected}
+          onClick={handleCheckboxClick}
+          sx={{
+            color: alpha(theme.palette.text.secondary, 0.3),
+            "&.Mui-checked": {
+              color: theme.palette.primary.main,
+            },
+            "&:hover": {
+              backgroundColor: alpha(theme.palette.primary.main, 0.08),
+            },
+          }}
+        />
+      </Box>
       <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center" }}>
         {/* Info Column */}
         <Box sx={{ flex: 2 }}>
@@ -88,6 +118,45 @@ const CustomerItem: React.FC<CustomerItemProps> = ({ customer, onClick, onAction
               </Box>
             )}
           </Stack>
+        </Box>
+
+        {/* Assigned Sales Column */}
+        <Box sx={{ flex: 1.5, display: "flex", justifyContent: "center", gap: 0.5, flexWrap: "wrap" }}>
+          {assignedUsers.length > 0 ? (
+            assignedUsers.slice(0, 3).map((user) => (
+              <Avatar
+                key={user._id}
+                sx={{
+                  width: 28,
+                  height: 28,
+                  fontSize: "0.7rem",
+                  fontWeight: 700,
+                  backgroundColor: alpha(theme.palette.warning.main, 0.15),
+                  color: theme.palette.warning.dark,
+                  border: `1px solid ${alpha(theme.palette.warning.main, 0.3)}`,
+                }}
+              >
+                {(user.name || user.username).charAt(0).toUpperCase()}
+              </Avatar>
+            ))
+          ) : (
+            <Typography variant="caption" sx={{ color: "text.secondary", opacity: 0.4, fontStyle: "italic" }}>
+              Sin asignar
+            </Typography>
+          )}
+          {assignedUsers.length > 3 && (
+            <Chip
+              label={`+${assignedUsers.length - 3}`}
+              size="small"
+              sx={{
+                height: 20,
+                fontSize: "0.65rem",
+                fontWeight: 700,
+                backgroundColor: alpha(theme.palette.warning.main, 0.1),
+                color: theme.palette.warning.dark,
+              }}
+            />
+          )}
         </Box>
 
         {/* Actions */}

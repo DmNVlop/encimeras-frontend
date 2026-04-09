@@ -1,9 +1,13 @@
 import React from "react";
-import { Box, Typography, Paper, Grid, Button, TextField } from "@mui/material";
+import { Box, Typography, Paper, Grid, Button, TextField, Select, MenuItem, FormControl, InputLabel, IconButton } from "@mui/material";
 import EncimeraPreview from "@/pages/public/common/EncimeraPreview/encimera-preview";
 import { selectOnFocus } from "@/utils/form.utils";
 import type { MainPiece } from "@/context/QuoteInterfases";
 import type { ShapeVariation } from "@/interfases/shape-variation.interfase";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { ConnectionTypeIcon, connectionTypeLabels, type ConnectionType } from "@/pages/public/common/Icons/ConnectionTypeIcons";
 
 interface PieceMeasuresCardProps {
   index: number;
@@ -12,6 +16,11 @@ interface PieceMeasuresCardProps {
   currentShapeVariation: ShapeVariation | undefined;
   handleOpenChangeMaterialModal: (index: number) => void;
   handleMeasureChange: (pieceIndex: number, field: "length_mm" | "width_mm", value: string) => void;
+  handleRemovePiece: (index: number) => void;
+  handleReorderPiece: (fromIndex: number, toIndex: number) => void;
+  handleConnectionTypeChange: (pieceIndex: number, connectionType: ConnectionType) => void;
+  isFirst: boolean;
+  isLast: boolean;
 }
 
 export const PieceMeasuresCard: React.FC<PieceMeasuresCardProps> = ({
@@ -21,17 +30,40 @@ export const PieceMeasuresCard: React.FC<PieceMeasuresCardProps> = ({
   currentShapeVariation,
   handleOpenChangeMaterialModal,
   handleMeasureChange,
+  handleRemovePiece,
+  handleReorderPiece,
+  handleConnectionTypeChange,
+  isFirst,
+  isLast,
 }) => {
+  const currentConnectionType = piece.layout?.connectionType || "NONE";
+  const connectionTypeOptions: ConnectionType[] = ["LINEAR", "CORNER_LEFT", "CORNER_RIGHT", "NONE"];
+
+  // Piezas originales (de la forma base) mantienen su originalShapeIndex → resaltan su pieza.
+  // Piezas nuevas (extra) no lo tienen → el preview muestra todo en inactivo.
+  const effectiveHighlightIndex = piece.originalShapeIndex !== undefined ? piece.originalShapeIndex : null;
+
   return (
     <Paper elevation={2} sx={{ p: 0, overflow: "hidden", height: "100%" }}>
       <Grid container sx={{ height: "100%" }}>
-        {/* COLUMNA IZQUIERDA: Inputs y Datos */}
         <Grid size={{ xs: 12, md: 8 }} sx={{ p: 3 }}>
-          <Typography variant="h6" component="div" gutterBottom sx={{ fontWeight: "bold" }}>
-            Pieza {index + 1}
-          </Typography>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+            <Typography variant="h6" component="div" sx={{ fontWeight: "bold" }}>
+              Pieza {index + 1}
+            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <IconButton size="small" onClick={() => handleReorderPiece(index, index - 1)} disabled={isFirst} title="Subir">
+                <ArrowUpwardIcon fontSize="small" />
+              </IconButton>
+              <IconButton size="small" onClick={() => handleReorderPiece(index, index + 1)} disabled={isLast} title="Bajar">
+                <ArrowDownwardIcon fontSize="small" />
+              </IconButton>
+              <IconButton size="small" onClick={() => handleRemovePiece(index)} color="error" title="Eliminar">
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          </Box>
 
-          {/* Info del material con botón de cambiar */}
           <Box
             sx={{
               mb: 2,
@@ -49,7 +81,6 @@ export const PieceMeasuresCard: React.FC<PieceMeasuresCardProps> = ({
             </Button>
           </Box>
 
-          {/* Inputs de Medidas */}
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
@@ -76,9 +107,30 @@ export const PieceMeasuresCard: React.FC<PieceMeasuresCardProps> = ({
               />
             </Grid>
           </Grid>
+
+          {!isFirst && (
+            <Box sx={{ mt: 2 }}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Conexión con pieza anterior</InputLabel>
+                <Select
+                  value={currentConnectionType}
+                  label="Conexión con pieza anterior"
+                  onChange={(e) => handleConnectionTypeChange(index, e.target.value as ConnectionType)}
+                >
+                  {connectionTypeOptions.map((ct) => (
+                    <MenuItem key={ct} value={ct}>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                        <ConnectionTypeIcon type={ct} sx={{ fontSize: 24 }} />
+                        <span>{connectionTypeLabels[ct]}</span>
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+          )}
         </Grid>
 
-        {/* COLUMNA DERECHA: Visualización Contextual */}
         <Grid
           size={{ xs: 12, md: 4 }}
           sx={{
@@ -100,10 +152,10 @@ export const PieceMeasuresCard: React.FC<PieceMeasuresCardProps> = ({
                   grid: currentShapeVariation.grid,
                   pieces: currentShapeVariation.pieces,
                 }}
-                highlightIndex={index}
+                highlightIndex={effectiveHighlightIndex}
               />
               <Typography variant="caption" align="center" display="block" sx={{ mt: 1, color: "text.secondary", fontWeight: "medium" }}>
-                Editando zona resaltada
+                {effectiveHighlightIndex !== null ? "Editando zona resaltada" : "Pieza adicional"}
               </Typography>
             </Box>
           ) : (

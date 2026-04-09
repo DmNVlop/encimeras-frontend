@@ -34,7 +34,11 @@ import { DraftNamingDialog } from "../components/DraftNamingDialog";
 // --- MAPPERS ---
 import { mapStateToCoreDto, mapStateToUiState } from "@/utils/coreMapper";
 
-export const WizardStep5_Summary: React.FC = () => {
+interface WizardStep5_SummaryProps {
+  onReset?: () => void;
+}
+
+export const WizardStep5_Summary: React.FC<WizardStep5_SummaryProps> = ({ onReset }) => {
   const { user } = useAuth();
 
   const {
@@ -170,10 +174,14 @@ export const WizardStep5_Summary: React.FC = () => {
 
         setSaveMessage({ type: "success", text: "Borrador guardado correctamente." });
       }
+      // Reset después de mostrar feedback
+      setOpenSaveModal(false);
+      setTimeout(() => {
+        onReset?.();
+      }, 1500);
     } catch (err) {
       console.error("Save Draft Error:", err);
       setSaveMessage({ type: "error", text: "No se pudo guardar el borrador." });
-    } finally {
       setIsSavingDraft(false);
     }
   };
@@ -199,10 +207,14 @@ export const WizardStep5_Summary: React.FC = () => {
         await addToCart(payload);
         setSaveMessage({ type: "success", text: "Añadido al carrito correctamente." });
       }
+      // Reset después de mostrar feedback
+      setOpenCartModal(false);
+      setTimeout(() => {
+        onReset?.();
+      }, 1500);
     } catch (err: any) {
       console.error("Add to Cart Error:", err);
       setSaveMessage({ type: "error", text: "No se pudo añadir al carrito." });
-    } finally {
       setIsAddingToCart(false);
     }
   };
@@ -277,7 +289,7 @@ export const WizardStep5_Summary: React.FC = () => {
       )}
 
       {/* --- MODAL DEL VISOR 3D --- */}
-      <Dialog open={open3D} onClose={() => setOpen3D(false)} maxWidth="lg" fullWidth PaperProps={{ sx: { height: "80vh" } }}>
+      <Dialog open={open3D} onClose={() => setOpen3D(false)} maxWidth="lg" fullWidth slotProps={{ paper: { sx: { height: "80vh" } } }}>
         <DialogTitle sx={{ m: 0, p: 2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Typography variant="h6">Previsualización 3D</Typography>
           <IconButton aria-label="close" onClick={() => setOpen3D(false)} sx={{ color: (theme) => theme.palette.grey[500] }}>

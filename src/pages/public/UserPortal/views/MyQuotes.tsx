@@ -117,9 +117,10 @@ export default function MyQuotes() {
   const filteredOrders = orders.filter((order) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
+    const orderName = order.header.orderName.toLowerCase();
     const orderNum = order.header.orderNumber.toLowerCase();
     const customer = order.header.customerId.toLowerCase();
-    return orderNum.includes(query) || customer.includes(query);
+    return orderName.includes(query) || orderNum.includes(query) || customer.includes(query);
   });
 
   return (
@@ -127,7 +128,7 @@ export default function MyQuotes() {
       {/* HEADER */}
       <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ xs: "start", sm: "center" }} spacing={2} mb={4}>
         <Typography variant="h4" fontWeight="bold" sx={{ color: "text.primary" }}>
-          Mis Pedidos
+          Mis Presupuestos
         </Typography>
         <Button
           variant="contained"
@@ -174,7 +175,7 @@ export default function MyQuotes() {
           <Box sx={{ p: 2, width: { xs: "100%", md: 300 } }}>
             <TextField
               fullWidth
-              placeholder="Buscar pedido..."
+              placeholder="Buscar presupuesto..."
               size="small"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -200,7 +201,7 @@ export default function MyQuotes() {
         <Box sx={{ textAlign: "center", py: 8, color: "text.secondary" }}>
           <ReceiptLong sx={{ fontSize: 60, mb: 2, opacity: 0.5 }} />
           <Typography variant="h6" gutterBottom>
-            No se encontraron pedidos
+            No se encontraron presupuestos
           </Typography>
           <Typography variant="body2">Intenta cambiar los filtros o crea un nuevo presupuesto.</Typography>
         </Box>
@@ -226,8 +227,9 @@ function OrderCard({ order }: { order: Order }) {
   // We don't have this field in OrderHeader explicitly, so we use customerId or a fallback.
   // In a real app, customerId might need to be resolved to a name or the order might have a 'projectReference'.
   // Using customerId for now as per schema.
-  const title = `Pedido ${header.orderNumber}`;
-  const subtitle = header.customerId || "Cliente Desconocido";
+  const title = header.orderName;
+  const subtitle = `${header.orderNumber}`;
+  // const subtitle = `${header.orderNumber} • ${header.customerId || "Cliente Desconocido"}`;
 
   return (
     <Card
@@ -283,7 +285,7 @@ function OrderCard({ order }: { order: Order }) {
 
             <Box sx={{ textAlign: { xs: "left", sm: "right" } }}>
               <Typography variant="h6" fontWeight="800" color="primary.main">
-                {header.totalPoints ? header.totalPoints + " pts" : "—"}
+                {header.totalPoints ? header.totalPoints + " " : "—"}
               </Typography>
               <Typography variant="caption" display="block" color="text.secondary">
                 Total Estimado

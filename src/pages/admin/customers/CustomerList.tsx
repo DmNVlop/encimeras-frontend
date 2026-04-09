@@ -1,20 +1,29 @@
 import React from "react";
-import { Box, Typography, Stack, Skeleton } from "@mui/material";
+import { Box, Typography, Stack, Skeleton, Checkbox, useTheme, alpha } from "@mui/material";
 import CustomerItem from "./CustomerItem";
 import { type ICustomer } from "@/interfases/customer.interfase";
+import type { User } from "@/interfases/user.interfase";
 
 interface CustomerListProps {
   customers: ICustomer[];
   loading: boolean;
+  selectedIds: Set<string>;
+  salesUsers: User[];
   onCustomerClick: (customer: ICustomer) => void;
+  onSelect: (customer: ICustomer, selected: boolean) => void;
+  onSelectAll: (selectAll: boolean, visibleOnly: boolean) => void;
 }
 
-const CustomerList: React.FC<CustomerListProps> = ({ customers, loading, onCustomerClick }) => {
+const CustomerList: React.FC<CustomerListProps> = ({ customers, loading, selectedIds, salesUsers, onCustomerClick, onSelect, onSelectAll }) => {
+  const theme = useTheme();
+
   const handleActionClick = (e: React.MouseEvent, customer: ICustomer) => {
     e.stopPropagation();
-    // For now, same as click, or open a menu
     onCustomerClick(customer);
   };
+
+  const allVisibleSelected = customers.length > 0 && customers.every((c) => selectedIds.has(c._id || ""));
+  const someSelected = customers.some((c) => selectedIds.has(c._id || ""));
 
   if (loading) {
     return (
@@ -38,22 +47,56 @@ const CustomerList: React.FC<CustomerListProps> = ({ customers, loading, onCusto
 
   return (
     <Box sx={{ mt: 2 }}>
-      {/* List Header Labels (Optional but good for desktop) */}
-      <Box sx={{ px: 2.5, mb: 1, display: { xs: "none", md: "flex" }, alignItems: "center", opacity: 0.5 }}>
-        <Typography variant="overline" sx={{ flex: 2, fontWeight: 800 }}>
+      {/* List Header with Selection */}
+      <Box
+        sx={{
+          px: 2.5,
+          py: 1.5,
+          mb: 1,
+          display: "flex",
+          alignItems: "center",
+          borderRadius: 3,
+          backgroundColor: alpha(theme.palette.background.paper, 0.5),
+          border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+        }}
+      >
+        <Checkbox
+          indeterminate={someSelected && !allVisibleSelected}
+          checked={allVisibleSelected}
+          onChange={(e) => onSelectAll(e.target.checked, true)}
+          sx={{
+            mr: 1,
+            color: alpha(theme.palette.text.secondary, 0.3),
+            "&.Mui-checked": {
+              color: theme.palette.primary.main,
+            },
+          }}
+        />
+        <Typography variant="overline" sx={{ flex: 2, fontWeight: 800, opacity: 0.5 }}>
           CLIENTE
         </Typography>
-        <Typography variant="overline" sx={{ flex: 1, textAlign: "center", fontWeight: 800 }}>
+        <Typography variant="overline" sx={{ flex: 1, textAlign: "center", fontWeight: 800, opacity: 0.5 }}>
           TIPO
         </Typography>
-        <Typography variant="overline" sx={{ flex: 2, fontWeight: 800 }}>
+        <Typography variant="overline" sx={{ flex: 2, fontWeight: 800, opacity: 0.5 }}>
           CONTACTO
+        </Typography>
+        <Typography variant="overline" sx={{ flex: 1.5, textAlign: "center", fontWeight: 800, opacity: 0.5 }}>
+          ASIGNADO
         </Typography>
         <Box sx={{ width: 40 }} />
       </Box>
 
       {customers.map((customer) => (
-        <CustomerItem key={customer._id} customer={customer} onClick={onCustomerClick} onActionClick={handleActionClick} />
+        <CustomerItem
+          key={customer._id}
+          customer={customer}
+          selected={selectedIds.has(customer._id || "")}
+          salesUsers={salesUsers}
+          onClick={onCustomerClick}
+          onSelect={onSelect}
+          onActionClick={handleActionClick}
+        />
       ))}
     </Box>
   );

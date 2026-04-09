@@ -5,8 +5,8 @@ import { PDFDownloadLink } from "@react-pdf/renderer";
 import { CartPdfDocument } from "./CartPdfDocument";
 import { usePdfData } from "../../utils/pdfAdapter";
 import type { Cart } from "../../interfases/cart.interfase";
-
 import type { ICustomer } from "../../interfases/customer.interfase";
+import { documentSettingsService, type IDocumentSettings } from "@/services/document-settings.service";
 
 interface DownloadPdfButtonProps {
   cart: Cart;
@@ -15,9 +15,29 @@ interface DownloadPdfButtonProps {
   disabled?: boolean;
 }
 
+const DEFAULT_FOOTER_TEXT =
+  "Este documento es informativo y no constituye una factura legal. Los precios están expresados en puntos internos de la plataforma sujetos a las condiciones de venta. Para su aprobación, póngase en contacto con su comercial o apruebe este borrador directamente en el portal online.";
+
 const DownloadPdfButton: React.FC<DownloadPdfButtonProps> = ({ cart, user, customer, disabled }) => {
   const [isClient, setIsClient] = useState(false);
-  const pdfData = usePdfData(cart, user, customer);
+  const [docSettings, setDocSettings] = useState<IDocumentSettings | null>(null);
+
+  useEffect(() => {
+    setIsClient(true);
+    documentSettingsService
+      .getSettings()
+      .then((settings) => {
+        setDocSettings(settings);
+      })
+      .catch(() => {
+        // Silenciar error - usar valores por defecto
+      });
+  }, []);
+
+  const footerText = docSettings?.footerText || DEFAULT_FOOTER_TEXT;
+  const validityDays = docSettings?.validityDays ?? null;
+
+  const pdfData = usePdfData(cart, user, customer, footerText, validityDays);
 
   // Evita errores de hidratación en SSR y asegura que estamos en el navegador
   useEffect(() => {

@@ -3,7 +3,7 @@
 ## El Problema Actual
 
 Hasta ahora, el frontend enviaba al carrito (y a los borradores) un objeto `configuration` con el estado puramente visual del wizard (ej. usando `length` o `width` en lugar de `length_mm` y `width_mm`, y `addons` en lugar de `appliedAddons`).
-El problema es que cuando el backend intentaba **recalcular/validar el precio por seguridad** usando `QuotesService.calculate`, este motor estricto no encontraba las variables necesarias y producía precios de 0 pts.
+El problema es que cuando el backend intentaba **recalcular/validar el precio por seguridad** usando `QuotesService.calculate`, este motor estricto no encontraba las variables necesarias y producía precios de 0 puntos.
 
 ## La Solución Arquitectónica
 

@@ -17,7 +17,7 @@ export const FinalTotals: React.FC<FinalTotalsProps> = ({ totalPoints, totalDisc
             Subtotal Bruto
           </Typography>
           <Typography variant="body1" sx={{ fontWeight: 600 }}>
-            {totalPoints.toFixed(2)} Pts
+            {totalPoints.toFixed(2)}
           </Typography>
         </Box>
         {totalDiscount > 0 && (
@@ -26,7 +26,7 @@ export const FinalTotals: React.FC<FinalTotalsProps> = ({ totalPoints, totalDisc
               Total Descuentos
             </Typography>
             <Typography variant="body1" sx={{ color: "success.main", fontWeight: 600 }}>
-              -{totalDiscount.toFixed(2)} Pts
+              -{totalDiscount.toFixed(2)}
             </Typography>
           </Box>
         )}
@@ -59,9 +59,7 @@ export const FinalTotals: React.FC<FinalTotalsProps> = ({ totalPoints, totalDisc
         <Box sx={{ textAlign: "right" }}>
           <Typography variant="h3" fontWeight="900" sx={{ lineHeight: 1 }}>
             {finalTotalPoints.toFixed(2)}
-            <Typography component="span" variant="h6" sx={{ ml: 1, opacity: 0.8, fontWeight: "bold" }}>
-              Pts
-            </Typography>
+            <Typography component="span" variant="h6" sx={{ ml: 1, opacity: 0.8, fontWeight: "bold" }}></Typography>
           </Typography>
         </Box>
       </Paper>

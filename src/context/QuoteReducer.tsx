@@ -94,6 +94,10 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
           newPiece.layout = piecesLayout[i];
         }
 
+        // Guardar índice original dentro del ShapeVariation
+        // para que el preview visual mantenga siempre su pieza activa
+        newPiece.originalShapeIndex = i;
+
         newPieces.push(newPiece);
       }
 
@@ -116,17 +120,116 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
         // solo quiere cambiar la forma pero no el material base.
       };
 
+    case "SET_MAIN_PIECES":
+      return {
+        ...state,
+        mainPieces: action.payload,
+        calculationResult: null,
+      };
+
     case "UPDATE_PIECE_MEASUREMENTS": {
       const { pieceIndex, measurements } = action.payload;
       return {
         ...state,
         calculationResult: null,
+        // selectedShapeId: "CUSTOM",
         mainPieces: state.mainPieces.map((piece, index) => {
           if (index === pieceIndex) {
             return { ...piece, measurements };
           }
           return piece;
         }),
+      };
+    }
+
+    // --- Gestión de Piezas Extra (Agregar/Eliminar/Reordenar) ---
+    case "ADD_EXTRA_PIECE": {
+      const { materialId, selectedAttributes, measurements, connectionType } = action.payload;
+      const newPiece: MainPiece = {
+        id: `extra-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        materialId,
+        selectedAttributes,
+        measurements,
+        layout: {
+          order: state.mainPieces.length,
+          rotation: 0,
+          connectionType: connectionType || "LINEAR",
+        },
+        appliedAddons: [],
+      };
+      const updatedPieces = [...state.mainPieces, newPiece];
+      return {
+        ...state,
+        calculationResult: null,
+        // selectedShapeId: "CUSTOM",
+        mainPieces: updatedPieces,
+      };
+    }
+
+    case "REMOVE_PIECE": {
+      const { pieceIndex } = action.payload;
+      if (pieceIndex < 0 || pieceIndex >= state.mainPieces.length) {
+        return state;
+      }
+      const newPieces = state.mainPieces.filter((_, index) => index !== pieceIndex);
+      const reorderedPieces = newPieces.map((piece, index) => {
+        const currentLayout = piece.layout;
+        const isFirst = index === 0;
+
+        const rawConnectionType = currentLayout?.connectionType;
+        const normalizedConnectionType: "NONE" | "LINEAR" | "CORNER_LEFT" | "CORNER_RIGHT" =
+          isFirst || rawConnectionType === "CUSTOM" || rawConnectionType === undefined ? "NONE" : rawConnectionType;
+
+        return {
+          ...piece,
+          layout: {
+            order: index,
+            rotation: currentLayout?.rotation ?? 0,
+            connectionType: normalizedConnectionType,
+          },
+        };
+      });
+      return {
+        ...state,
+        calculationResult: null,
+        //selectedShapeId: "CUSTOM",
+        mainPieces: reorderedPieces,
+        activePieceIndex:
+          state.activePieceIndex !== null && state.activePieceIndex >= pieceIndex ? Math.max(0, state.activePieceIndex - 1) : state.activePieceIndex,
+      };
+    }
+
+    case "UPDATE_PIECE_ORDER": {
+      const { fromIndex, toIndex } = action.payload;
+      if (fromIndex === toIndex) return state;
+      if (fromIndex < 0 || fromIndex >= state.mainPieces.length || toIndex < 0 || toIndex >= state.mainPieces.length) {
+        return state;
+      }
+      const newPieces = [...state.mainPieces];
+      const [movedPiece] = newPieces.splice(fromIndex, 1);
+      newPieces.splice(toIndex, 0, movedPiece);
+      const reorderedPieces = newPieces.map((piece, index) => {
+        const currentLayout = piece.layout;
+        const isFirst = index === 0;
+
+        const rawConnectionType = currentLayout?.connectionType;
+        const normalizedConnectionType: "NONE" | "LINEAR" | "CORNER_LEFT" | "CORNER_RIGHT" =
+          isFirst || rawConnectionType === "CUSTOM" || rawConnectionType === undefined ? "NONE" : rawConnectionType;
+
+        return {
+          ...piece,
+          layout: {
+            order: index,
+            rotation: currentLayout?.rotation ?? 0,
+            connectionType: normalizedConnectionType,
+          },
+        };
+      });
+      return {
+        ...state,
+        calculationResult: null,
+        //selectedShapeId: "CUSTOM",
+        mainPieces: reorderedPieces,
       };
     }
 
