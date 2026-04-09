@@ -17,6 +17,8 @@ export interface User {
   phone?: string; // Teléfono
   roles: Role[]; // Array de roles
   factoryId?: string; // ID de fábrica (requerido para roles OWNER)
+  ownerId?: string; // ⭐ NUEVO: Referencia al OWNER que gestiona este usuario
+  createdBy?: string; // ⭐ NUEVO: ID del usuario que creó este registro
   createdAt: string;
   updatedAt: string;
   password?: string; // Opcional para creación/edición
