@@ -12,10 +12,9 @@ export class GlobalSettingsService {
     try {
       return await get<IGlobalSettings>(this.BASE_URL);
     } catch (error) {
-      console.warn("Error fetching global settings, using defaults", error);
-      // Retornar valores por defecto si el endpoint no existe
+      // Silenciosamente usar defaults si el endpoint no existe
       return {
-        multiSalesPerCustomer: true, // Por defecto permitir múltiples sales
+        multiSalesPerCustomer: true,
       };
     }
   }

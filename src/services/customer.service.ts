@@ -12,7 +12,13 @@ export const getCustomers = (): Promise<ICustomer[]> => {
 };
 
 export const getSalesUsers = (): Promise<User[]> => {
-  return get<User[]>(`${USERS_ENDPOINT}?role=SALES`);
+  return get<User[]>(`${USERS_ENDPOINT}?role=SALES`).catch((error) => {
+    // Si es 403, el usuario no tiene permisos - retornar array vacío
+    if (error?.originalError?.response?.status === 403) {
+      return [];
+    }
+    throw error; // Re-lanzar otros errores
+  });
 };
 
 export const getPlatformUsers = (): Promise<User[]> => {

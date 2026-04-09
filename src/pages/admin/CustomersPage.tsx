@@ -38,9 +38,11 @@ import { type ICustomer } from "@/interfases/customer.interfase";
 import type { User } from "@/interfases/user.interfase";
 import { getCustomers, getSalesUsers, batchDeleteCustomers, batchAssignSales } from "@/services/customer.service";
 import { GlobalSettingsService } from "@/services/global-settings.service";
+import { useAuth } from "@/context/AuthProvider";
 
 const CustomersPage: React.FC = () => {
   const theme = useTheme();
+  const { user: currentUser } = useAuth();
   const [customers, setCustomers] = useState<ICustomer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<ICustomer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,14 +70,24 @@ const CustomersPage: React.FC = () => {
     severity: "success",
   });
 
+  const isAdminOrOwner = currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("OWNER");
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [customersData, salesData, multiSalesEnabled] = await Promise.all([
-        getCustomers(),
-        getSalesUsers(),
-        GlobalSettingsService.getMultiSalesPerCustomer(),
-      ]);
+      // Siempre cargar customers
+      const customersPromise = getCustomers();
+
+      // Solo cargar sales users y settings si es ADMIN/OWNER
+      const promises = isAdminOrOwner ? [customersPromise, getSalesUsers(), GlobalSettingsService.getMultiSalesPerCustomer()] : [customersPromise];
+
+      const results = await Promise.allSettled(promises);
+
+      // Extraer resultados con tipos correctos
+      const customersData = results[0].status === "fulfilled" ? (results[0].value as ICustomer[]) : [];
+      const salesData = results[1]?.status === "fulfilled" ? (results[1].value as User[]) : [];
+      const multiSalesEnabled = results[2]?.status === "fulfilled" ? (results[2].value as boolean) : true;
+
       setCustomers(customersData);
       setSalesUsers(salesData);
       setMultiSalesEnabled(multiSalesEnabled);
@@ -84,7 +96,7 @@ const CustomersPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAdminOrOwner]);
 
   useEffect(() => {
     fetchData();
@@ -371,23 +383,25 @@ const CustomersPage: React.FC = () => {
             }}
           />
           <Box sx={{ display: "flex", gap: 1.5 }}>
-            <Button
-              variant="outlined"
-              startIcon={<PersonAddIcon />}
-              onClick={() => setAssignDialogOpen(true)}
-              sx={{
-                borderRadius: 2,
-                fontWeight: 700,
-                borderColor: alpha(theme.palette.primary.main, 0.3),
-                color: theme.palette.primary.main,
-                "&:hover": {
-                  borderColor: theme.palette.primary.main,
-                  backgroundColor: alpha(theme.palette.primary.main, 0.05),
-                },
-              }}
-            >
-              Asignar Sales
-            </Button>
+            {isAdminOrOwner && (
+              <Button
+                variant="outlined"
+                startIcon={<PersonAddIcon />}
+                onClick={() => setAssignDialogOpen(true)}
+                sx={{
+                  borderRadius: 2,
+                  fontWeight: 700,
+                  borderColor: alpha(theme.palette.primary.main, 0.3),
+                  color: theme.palette.primary.main,
+                  "&:hover": {
+                    borderColor: theme.palette.primary.main,
+                    backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                  },
+                }}
+              >
+                Asignar Sales
+              </Button>
+            )}
             <Button
               variant="outlined"
               startIcon={<DeleteOutlineIcon />}
