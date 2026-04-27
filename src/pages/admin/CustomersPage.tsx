@@ -71,6 +71,8 @@ const CustomersPage: React.FC = () => {
   });
 
   const isAdminOrOwner = currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("OWNER");
+  const isWorker = currentUser?.roles?.includes("WORKER");
+  const showAuthor = isAdminOrOwner || isWorker;
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -78,8 +80,8 @@ const CustomersPage: React.FC = () => {
       // Siempre cargar customers
       const customersPromise = getCustomers();
 
-      // Solo cargar sales users y settings si es ADMIN/OWNER
-      const promises = isAdminOrOwner ? [customersPromise, getSalesUsers(), GlobalSettingsService.getMultiSalesPerCustomer()] : [customersPromise];
+      // Cargar sales users y settings si es ADMIN/OWNER/WORKER (para resolución de autoría)
+      const promises = (isAdminOrOwner || isWorker) ? [customersPromise, getSalesUsers(), GlobalSettingsService.getMultiSalesPerCustomer()] : [customersPromise];
 
       const results = await Promise.allSettled(promises);
 
@@ -96,7 +98,7 @@ const CustomersPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [isAdminOrOwner]);
+  }, [isAdminOrOwner, isWorker]);
 
   useEffect(() => {
     fetchData();
@@ -339,6 +341,7 @@ const CustomersPage: React.FC = () => {
           loading={loading}
           selectedIds={selectedIds}
           salesUsers={salesUsers}
+          showAuthor={showAuthor}
           onCustomerClick={(customer) => {
             const index = filteredCustomers.findIndex((c) => c._id === customer._id);
             handleRowClick(customer, index, { ctrlKey: false, metaKey: false, shiftKey: false } as React.MouseEvent);

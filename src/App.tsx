@@ -7,6 +7,7 @@ import type { AppRouteConfig } from "./types/auth.types";
 import { AuthProvider } from "./context/AuthProvider";
 import { CartProvider } from "./context/CartContext";
 import { QuoteProvider } from "./context/QuoteContext";
+import { FactorySettingsProvider } from "./context/FactorySettingsContext";
 import { RoleGuard } from "./components/guards/RoleGuard";
 import { appRoutes } from "./config/routes.config";
 
@@ -90,13 +91,15 @@ const AppRouter = () => {
 function App() {
   return (
     <AuthProvider>
-      <CartProvider>
-        <QuoteProvider>
-          <AppErrorBoundary>
-            <AppRouter />
-          </AppErrorBoundary>
-        </QuoteProvider>
-      </CartProvider>
+      <FactorySettingsProvider>
+        <CartProvider>
+          <QuoteProvider>
+            <AppErrorBoundary>
+              <AppRouter />
+            </AppErrorBoundary>
+          </QuoteProvider>
+        </CartProvider>
+      </FactorySettingsProvider>
     </AuthProvider>
   );
 }
