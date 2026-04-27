@@ -61,16 +61,24 @@ const DiscountRuleDrawer: React.FC<DiscountRuleDrawerProps> = ({ rule, open, onC
   }, [open]);
 
   const fetchSelectorData = async () => {
-    try {
-      const [mats, custs] = await Promise.all([get<Material[]>("/materials"), get<ICustomer[]>("/customers")]);
-      setAllMaterials(mats);
-      setAllCustomers(custs);
+    const [matsResult, custsResult] = await Promise.allSettled([
+      get<Material[]>("/materials"),
+      get<ICustomer[]>("/customers"),
+    ]);
 
-      // Extract unique categories
+    if (matsResult.status === "fulfilled") {
+      const mats = matsResult.value;
+      setAllMaterials(mats);
       const uniqueCats = Array.from(new Set(mats.map((m) => m.category).filter(Boolean)));
       setCategories(uniqueCats);
-    } catch (error) {
-      console.error("Error fetching selector data:", error);
+    } else {
+      console.error("Error fetching materials:", matsResult.reason);
+    }
+
+    if (custsResult.status === "fulfilled") {
+      setAllCustomers(custsResult.value);
+    } else {
+      console.error("Error fetching customers:", custsResult.reason);
     }
   };
 
