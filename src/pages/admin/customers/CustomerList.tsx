@@ -9,12 +9,13 @@ interface CustomerListProps {
   loading: boolean;
   selectedIds: Set<string>;
   salesUsers: User[];
+  showAuthor?: boolean;
   onCustomerClick: (customer: ICustomer) => void;
   onSelect: (customer: ICustomer, selected: boolean) => void;
   onSelectAll: (selectAll: boolean, visibleOnly: boolean) => void;
 }
 
-const CustomerList: React.FC<CustomerListProps> = ({ customers, loading, selectedIds, salesUsers, onCustomerClick, onSelect, onSelectAll }) => {
+const CustomerList: React.FC<CustomerListProps> = ({ customers, loading, selectedIds, salesUsers, showAuthor = false, onCustomerClick, onSelect, onSelectAll }) => {
   const theme = useTheme();
 
   const handleActionClick = (e: React.MouseEvent, customer: ICustomer) => {
@@ -84,6 +85,11 @@ const CustomerList: React.FC<CustomerListProps> = ({ customers, loading, selecte
         <Typography variant="overline" sx={{ flex: 1.5, textAlign: "center", fontWeight: 800, opacity: 0.5 }}>
           ASIGNADO
         </Typography>
+        {showAuthor && (
+          <Typography variant="overline" sx={{ flex: 1.5, fontWeight: 800, opacity: 0.5 }}>
+            CREADO POR
+          </Typography>
+        )}
         <Box sx={{ width: 40 }} />
       </Box>
 
@@ -93,6 +99,7 @@ const CustomerList: React.FC<CustomerListProps> = ({ customers, loading, selecte
           customer={customer}
           selected={selectedIds.has(customer._id || "")}
           salesUsers={salesUsers}
+          showAuthor={showAuthor}
           onClick={onCustomerClick}
           onSelect={onSelect}
           onActionClick={handleActionClick}

@@ -5,15 +5,17 @@ import { AppBar, Toolbar, Typography, Box, Avatar, Menu, MenuItem, IconButton, D
 import LogoutIcon from "@mui/icons-material/Logout";
 import CalculateIcon from "@mui/icons-material/Calculate";
 import { useAuth } from "@/context/AuthProvider";
+import { useFactorySettings } from "@/context/FactorySettingsContext";
 
 import AdminSidebar from "./components/AdminSidebar";
 
-const logo = "/logos/kuuk-logo.png";
+const DEFAULT_LOGO = "/logos/kuuk-logo.png";
 const drawerWidth = 260;
 
 const AdminLayout: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { logoUrl } = useFactorySettings();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -37,14 +39,14 @@ const AdminLayout: React.FC = () => {
           <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center", gap: 2 }}>
             <Box
               component="img"
-              src={logo}
-              alt="Kuuk Logo"
+              src={logoUrl ?? DEFAULT_LOGO}
+              alt="Logo"
               sx={{
-                maxHeight: 50, // Slightly smaller for Admin potentially, or same as User (60)
+                maxHeight: 50,
                 width: "auto",
                 objectFit: "contain",
                 display: "block",
-                filter: "brightness(0) invert(1)", // To make logo white on primary dark background if needed
+                filter: logoUrl ? "none" : "brightness(0) invert(1)",
               }}
             />
             <Typography

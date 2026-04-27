@@ -19,7 +19,7 @@ import {
   Alert,
   Collapse,
 } from "@mui/material";
-import axios from "axios"; // O tu apiService
+import apiClient from "@/services/api.service";
 
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -28,7 +28,6 @@ import CropSquareIcon from "@mui/icons-material/CropSquare";
 import Crop169Icon from "@mui/icons-material/Crop169";
 import CropPortraitIcon from "@mui/icons-material/CropPortrait";
 import CloseIcon from "@mui/icons-material/Close";
-import { config } from "@/config";
 import { resolveImageUrl } from "./utils/urlUtils";
 import { getCroppedImg } from "./utils/imageUtils";
 
@@ -174,10 +173,8 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
       const formData = new FormData();
       formData.append("file", croppedBlob, fileName);
 
-      const uploadUrl = `${config.api.baseURL}/assets/upload`;
-
       // 4. PETICIÓN
-      const response = await axios.post(uploadUrl, formData, {
+      const response = await apiClient.post("/assets/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

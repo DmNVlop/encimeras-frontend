@@ -1,10 +1,11 @@
 import React from "react";
-import { Box, Typography, Stack, Chip, IconButton, useTheme, alpha, Paper, Checkbox, Avatar } from "@mui/material";
+import { Box, Typography, Stack, Chip, IconButton, useTheme, alpha, Paper, Checkbox, Avatar, Tooltip } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import BusinessIcon from "@mui/icons-material/Business";
 import PersonIcon from "@mui/icons-material/Person";
 import EmailIcon from "@mui/icons-material/Email";
 import PhoneIcon from "@mui/icons-material/Phone";
+import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline";
 import { type ICustomer, CustomerType } from "@/interfases/customer.interfase";
 import type { User } from "@/interfases/user.interfase";
 
@@ -12,16 +13,18 @@ interface CustomerItemProps {
   customer: ICustomer;
   selected: boolean;
   salesUsers: User[];
+  showAuthor?: boolean;
   onClick: (customer: ICustomer) => void;
   onSelect: (customer: ICustomer, selected: boolean) => void;
   onActionClick: (e: React.MouseEvent, customer: ICustomer) => void;
 }
 
-const CustomerItem: React.FC<CustomerItemProps> = ({ customer, selected, salesUsers, onClick, onSelect, onActionClick }) => {
+const CustomerItem: React.FC<CustomerItemProps> = ({ customer, selected, salesUsers, showAuthor = false, onClick, onSelect, onActionClick }) => {
   const theme = useTheme();
   const isCompany = customer.type === CustomerType.COMPANY;
 
   const assignedUsers = salesUsers.filter((u) => customer.assignedUserIds?.includes(u._id));
+  const creatorUser = showAuthor ? salesUsers.find((u) => u._id === customer.createdBy) : null;
 
   const handleCheckboxClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -158,6 +161,59 @@ const CustomerItem: React.FC<CustomerItemProps> = ({ customer, selected, salesUs
             />
           )}
         </Box>
+
+        {/* Author Column — only for ADMIN/WORKER */}
+        {showAuthor && (
+          <Box sx={{ flex: 1.5 }}>
+            {creatorUser ? (
+              <Tooltip title={`Creado por ${creatorUser.name || creatorUser.username}`} placement="top">
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Avatar
+                    sx={{
+                      width: 26,
+                      height: 26,
+                      fontSize: "0.65rem",
+                      fontWeight: 700,
+                      backgroundColor: alpha(theme.palette.info.main, 0.12),
+                      color: theme.palette.info.dark,
+                      border: `1px solid ${alpha(theme.palette.info.main, 0.25)}`,
+                    }}
+                  >
+                    {(creatorUser.name || creatorUser.username).charAt(0).toUpperCase()}
+                  </Avatar>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: theme.palette.info.dark,
+                      fontWeight: 600,
+                      fontSize: "0.78rem",
+                      opacity: 0.85,
+                      maxWidth: 90,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {creatorUser.name || creatorUser.username}
+                  </Typography>
+                </Box>
+              </Tooltip>
+            ) : customer.createdBy ? (
+              <Tooltip title="Usuario no encontrado en sales" placement="top">
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                  <DriveFileRenameOutlineIcon sx={{ fontSize: 14, color: "text.secondary", opacity: 0.4 }} />
+                  <Typography variant="caption" sx={{ color: "text.secondary", opacity: 0.4, fontStyle: "italic" }}>
+                    Sin nombre
+                  </Typography>
+                </Box>
+              </Tooltip>
+            ) : (
+              <Typography variant="caption" sx={{ color: "text.secondary", opacity: 0.4, fontStyle: "italic" }}>
+                —
+              </Typography>
+            )}
+          </Box>
+        )}
 
         {/* Actions */}
         <Box>
