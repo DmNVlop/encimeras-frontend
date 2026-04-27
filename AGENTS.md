@@ -2,7 +2,7 @@
 
 ## 📋 Resumen de Implementación
 
-Se ha implementado completamente el sistema de jerarquía OWNER-SALES en el frontend, siguiendo el plan descrito en `docs/dev/sistema-de-jerarquia-usuarios-v2.md`. Todas las funcionalidades están ahora operativas.
+Se ha implementado completamente el sistema de jerarquía OWNER-SALES en el frontend, siguiendo el plan descrito en `../docs/dev/sistema-de-jerarquia-usuarios-v2.md`. Todas las funcionalidades están ahora operativas.
 
 ## 🏗️ Cambios Implementados
 
@@ -157,6 +157,6 @@ src/
 
 ## 🔍 Referencias
 
-- Documentación original: `docs/dev/sistema-de-jerarquia-usuarios-v2.md`
+- Documentación original: `../docs/dev/sistema-de-jerarquia-usuarios-v2.md`
 - Patrón seguido: `CustomersPage.tsx` (filtros y batch operations)
 - API endpoints: Ver documentación backend para nuevos endpoints
