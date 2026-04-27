@@ -20,10 +20,11 @@ import { draftsApi } from "@/services/drafts.service";
 import { validateAssemblies } from "@/utils/quoteValidation";
 import { useCart } from "@/context/CartContext";
 import { mapStateToCoreDto, mapStateToUiState } from "@/utils/coreMapper";
+import { useFactorySettings } from "@/context/FactorySettingsContext";
 
 const steps = ["Material", "Forma y Medidas", "Trabajos y Ensamblaje", "Complementos", "Resumen"];
 
-const logo = "/logos/kuuk-logo.png";
+const DEFAULT_LOGO = "/logos/kuuk-logo.png";
 
 const WizardContent: React.FC<{ activeStep: number; onReset?: () => void }> = ({ activeStep, onReset }) => {
   switch (activeStep) {
@@ -69,6 +70,7 @@ const WizardStepperContent: React.FC = () => {
   const location = useLocation(); // Para leer ?draftId=...
   const navigate = useNavigate();
   const { cart, addItemsFromGroup } = useCart(); // Nuevo
+  const { logoUrl } = useFactorySettings();
 
   // Feedback para carga grupal
   const [groupLoadSuccess, setGroupLoadSuccess] = useState(false);
@@ -303,7 +305,7 @@ const WizardStepperContent: React.FC = () => {
           onResetClick={() => setOpenResetDialog(true)}
           canReset={mainPieces.length > 0 || !!wizardTempMaterial}
           validationError={validationError}
-          logo={logo}
+          logo={logoUrl ?? DEFAULT_LOGO}
         />
 
         {/* --- B. CONTENIDO --- */}

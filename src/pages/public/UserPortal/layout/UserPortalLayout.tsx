@@ -34,12 +34,13 @@ import {
 import { Badge } from "@mui/material";
 import { useAuth } from "@/context/AuthProvider";
 import { useCart } from "@/context/CartContext";
+import { useFactorySettings } from "@/context/FactorySettingsContext";
 import { Role } from "@/interfases/user.interfase";
 import { MiniCartMenu } from "@/pages/public/common/MiniCartMenu";
 
 const drawerWidth = 240;
 const closedDrawerWidth = 72;
-const logo = "/logos/kuuk-logo.png";
+const DEFAULT_LOGO = "/logos/kuuk-logo.png";
 
 const menuItems = [
   { text: "Resumen", icon: <DashboardIcon />, path: "/dashboard" },
@@ -57,6 +58,7 @@ export default function UserPortalLayout() {
   const location = useLocation();
   const { logout, user } = useAuth();
   const { cart } = useCart();
+  const { logoUrl } = useFactorySettings();
   const isAdminOrSales = user?.roles?.some((role) => role === Role.ADMIN || role === Role.SALES);
   const isOwner = user?.roles?.some((role) => role === Role.OWNER);
   const cartItemsCount = cart?.items?.length || 0;
@@ -121,8 +123,8 @@ export default function UserPortalLayout() {
           <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center", gap: 2 }}>
             <Box
               component="img"
-              src={logo}
-              alt="Kuuk Logo"
+              src={logoUrl ?? DEFAULT_LOGO}
+              alt="Logo"
               sx={{
                 maxHeight: 60,
                 width: "auto",
