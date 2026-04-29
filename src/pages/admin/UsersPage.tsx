@@ -1,22 +1,6 @@
 // src/pages/admin/UsersPage.tsx
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  Box,
-  Button,
-  Chip,
-  TextField,
-  InputAdornment,
-  Typography,
-  Stack,
-  Paper,
-  Snackbar,
-  Alert,
-  Tooltip,
-  IconButton,
-  Tab,
-  Tabs,
-  Badge,
-} from "@mui/material";
+import { Box, Button, Chip, TextField, InputAdornment, Typography, Stack, Paper, Snackbar, Alert, Tooltip, IconButton, Tab, Tabs, Badge } from "@mui/material";
 import { DataGrid, type GridColDef, GridActionsCellItem, type GridRowId, type GridRowSelectionModel } from "@mui/x-data-grid";
 import { esES } from "@mui/x-data-grid/locales";
 
@@ -44,13 +28,18 @@ import { useAuth } from "@/context/AuthProvider";
 import { getUsers, getManagedUsers, deleteUser, batchDeleteUsers, createUser, updateUser } from "@/services/user.service";
 
 const ROLE_TAB_CONFIG = [
-  { label: "Todos", value: "ALL", color: undefined as "default" | "error" | "warning" | "success" | "info" | "secondary" | undefined, icon: <PersonOutlineIcon fontSize="small" /> },
+  {
+    label: "Todos",
+    value: "ALL",
+    color: undefined as "default" | "error" | "warning" | "success" | "info" | "secondary" | undefined,
+    icon: <PersonOutlineIcon fontSize="small" />,
+  },
   { label: "Admin", value: Role.ADMIN, color: "error" as const, icon: <AdminPanelSettingsIcon fontSize="small" /> },
   { label: "Owner", value: Role.OWNER, color: "secondary" as const, icon: <BusinessIcon fontSize="small" /> },
   { label: "Manager", value: Role.MANAGER, color: "warning" as const, icon: <ManageAccountsIcon fontSize="small" /> },
   { label: "Sales", value: Role.SALES, color: "success" as const, icon: <SellIcon fontSize="small" /> },
-  { label: "Worker", value: Role.WORKER, color: "info" as const, icon: <EngineeringIcon fontSize="small" /> },
   { label: "User", value: Role.USER, color: "default" as const, icon: <PersonIcon fontSize="small" /> },
+  { label: "Worker", value: Role.WORKER, color: "info" as const, icon: <EngineeringIcon fontSize="small" /> },
 ];
 
 const ROLE_COLORS: Record<string, "default" | "error" | "warning" | "success" | "info" | "secondary"> = {
@@ -102,21 +91,36 @@ const UsersPage: React.FC = () => {
     }
   };
 
-  const isAdmin = currentAuthUser?.roles.includes("ADMIN");
-  const isManager = currentAuthUser?.roles.includes("MANAGER");
+  const currentRoles = currentAuthUser?.roles ?? [];
+  const isAdmin = currentRoles.includes("ADMIN");
+  const isOwner = currentRoles.includes("OWNER");
+  const isManager = currentRoles.includes("MANAGER");
+
+  // ADMIN: todos los tabs. OWNER: Manager/Sales/Worker/User + "Todos". MANAGER: Sales + "Todos". Resto: solo "Todos".
+  const OWNER_TABS = new Set([Role.MANAGER, Role.SALES, Role.WORKER, Role.USER] as string[]);
+  const visibleTabs = ROLE_TAB_CONFIG.filter((tab) => {
+    if (isAdmin) return true;
+    if (tab.value === "ALL") return true;
+    if (isOwner) return OWNER_TABS.has(tab.value);
+    if (isManager) return tab.value === Role.SALES;
+    return false;
+  });
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      let data: User[];
-      if (isManager) {
-        data = await getManagedUsers();
-      } else {
-        data = await getUsers({});
-      }
+      // MANAGER: usa /users/managed (solo sus SALES)
+      // SALES/WORKER/USER: GET /users devuelve solo su propio perfil
+      // OWNER/ADMIN: GET /users con scope completo
+      const data = isManager ? await getManagedUsers() : await getUsers({});
       const validUsers = data.filter((u) => !!u._id);
-      setAllUsers(validUsers);
+      // MANAGER no aparece en getManagedUsers() — añadirlo para que el lookup de manager en columnas funcione
+      const usersWithSelf =
+        isManager && currentAuthUser && !validUsers.find((u) => u._id === currentAuthUser._id)
+          ? [currentAuthUser as User, ...validUsers]
+          : validUsers;
+      setAllUsers(usersWithSelf);
       setUsers(validUsers);
       setFilteredUsers(validUsers);
     } catch (err) {
@@ -124,7 +128,7 @@ const UsersPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [isManager]);
+  }, [isManager, currentAuthUser]);
 
   useEffect(() => {
     loadUsers();
@@ -136,9 +140,7 @@ const UsersPage: React.FC = () => {
       if (!u._id) return false;
 
       const matchesSearch =
-        u.username.toLowerCase().includes(term) ||
-        (u.name && u.name.toLowerCase().includes(term)) ||
-        (u.email && u.email.toLowerCase().includes(term));
+        u.username.toLowerCase().includes(term) || (u.name && u.name.toLowerCase().includes(term)) || (u.email && u.email.toLowerCase().includes(term));
 
       const matchesRole = roleTab === "ALL" || u.roles.includes(roleTab as Role);
 
@@ -203,8 +205,11 @@ const UsersPage: React.FC = () => {
     } catch (err) {
       setError(err);
       const backendError = err as any;
+      const backendMessage = Array.isArray(backendError?.message) ? backendError.message.join(". ") : backendError?.message;
       if (backendError?.statusCode === 409) {
         setSnackbar({ open: true, message: "El nombre de usuario ya está en uso", severity: "error" });
+      } else if (backendMessage) {
+        setSnackbar({ open: true, message: backendMessage, severity: "error" });
       } else {
         setSnackbar({ open: true, message: "Error al guardar usuario", severity: "error" });
       }
@@ -229,12 +234,17 @@ const UsersPage: React.FC = () => {
               variant="filled"
               color={ROLE_COLORS[role] ?? "default"}
               icon={
-                role === "ADMIN" ? <AdminPanelSettingsIcon /> :
-                role === "OWNER" ? <BusinessIcon /> :
-                role === "MANAGER" ? <ManageAccountsIcon /> :
-                role === "SALES" ? <SellIcon /> :
-                role === "WORKER" ? <EngineeringIcon /> :
-                undefined
+                role === "ADMIN" ? (
+                  <AdminPanelSettingsIcon />
+                ) : role === "OWNER" ? (
+                  <BusinessIcon />
+                ) : role === "MANAGER" ? (
+                  <ManageAccountsIcon />
+                ) : role === "SALES" ? (
+                  <SellIcon />
+                ) : role === "WORKER" ? (
+                  <EngineeringIcon />
+                ) : undefined
               }
               sx={{ fontWeight: 600, fontSize: "0.7rem" }}
             />
@@ -247,17 +257,14 @@ const UsersPage: React.FC = () => {
       headerName: "Manager",
       width: 180,
       renderCell: (params) => {
-        if (!params.value) return <Typography variant="caption" color="text.disabled">—</Typography>;
+        if (!params.value)
+          return (
+            <Typography variant="caption" color="text.disabled">
+              —
+            </Typography>
+          );
         const manager = allUsers.find((u) => u._id === params.value);
-        return (
-          <Chip
-            label={manager?.name || manager?.username || "—"}
-            size="small"
-            variant="outlined"
-            color="warning"
-            icon={<ManageAccountsIcon />
-          />
-        );
+        return <Chip label={manager?.name || manager?.username || "—"} size="small" variant="outlined" color="warning" icon={<ManageAccountsIcon />} />;
       },
     },
     {
@@ -268,7 +275,7 @@ const UsersPage: React.FC = () => {
         const creator = allUsers.find((u) => u._id === params.value);
         return (
           <Typography variant="caption" color="text.secondary">
-            {creator ? (creator.name || creator.username) : "—"}
+            {creator ? creator.name || creator.username : "—"}
           </Typography>
         );
       },
@@ -277,8 +284,7 @@ const UsersPage: React.FC = () => {
       field: "createdAt",
       headerName: "Alta",
       width: 120,
-      valueFormatter: (value) =>
-        value ? new Date(value).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }) : "",
+      valueFormatter: (value) => (value ? new Date(value).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }) : ""),
     },
     {
       field: "info",
@@ -293,9 +299,17 @@ const UsersPage: React.FC = () => {
           <Tooltip
             title={
               <Box sx={{ p: 0.5 }}>
-                <Typography variant="caption" display="block"><strong>Creado por:</strong> {creator?.name || creator?.username || "N/A"}</Typography>
-                {u.managerId && <Typography variant="caption" display="block"><strong>Manager:</strong> {manager?.name || manager?.username}</Typography>}
-                <Typography variant="caption" display="block"><strong>Factory:</strong> {u.factoryId || "N/A"}</Typography>
+                <Typography variant="caption" display="block">
+                  <strong>Creado por:</strong> {creator?.name || creator?.username || "N/A"}
+                </Typography>
+                {u.managerId && (
+                  <Typography variant="caption" display="block">
+                    <strong>Manager:</strong> {manager?.name || manager?.username}
+                  </Typography>
+                )}
+                <Typography variant="caption" display="block">
+                  <strong>Factory:</strong> {u.factoryId || "N/A"}
+                </Typography>
               </Box>
             }
             arrow
@@ -344,7 +358,7 @@ const UsersPage: React.FC = () => {
             "& .MuiTab-root": { minHeight: 44, textTransform: "none", fontWeight: 500, fontSize: "0.82rem", gap: 0.5, px: 2 },
           }}
         >
-          {ROLE_TAB_CONFIG.map((tab) => {
+          {visibleTabs.map((tab) => {
             const count = countByRole(tab.value);
             return (
               <Tab

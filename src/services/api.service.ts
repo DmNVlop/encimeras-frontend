@@ -69,13 +69,8 @@ apiClient.interceptors.response.use(
         return Promise.reject(data);
       }
 
-      // CASO: 403 Forbidden (Sin permisos)
-      if (status === 403) {
-        errorMessage = "No tienes permisos para realizar esta acción.";
-      }
-      // CASO: Errores controlados del backend (BadRequest con mensaje)
-      else if (data) {
-        // Si tenemos data, devolvemos el objeto completo para que el componente decida qué mostrar
+      // CASO: Errores controlados del backend (con mensaje específico)
+      if (data) {
         return Promise.reject(data);
       } else {
         errorMessage = error.response.statusText || errorMessage;
