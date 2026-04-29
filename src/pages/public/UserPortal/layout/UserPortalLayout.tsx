@@ -59,14 +59,14 @@ export default function UserPortalLayout() {
   const { logout, user } = useAuth();
   const { cart } = useCart();
   const { logoUrl } = useFactorySettings();
-  const isAdminOrSales = user?.roles?.some((role) => role === Role.ADMIN || role === Role.SALES);
+  const isAdminOrSales = user?.roles?.some((role) => role === Role.ADMIN || role === Role.SALES || role === Role.MANAGER);
   const isOwner = user?.roles?.some((role) => role === Role.OWNER);
   const cartItemsCount = cart?.items?.length || 0;
 
   const sidebarItems = [
     ...(isAdminOrSales ? [{ text: "Panel Admin", icon: <AdminPanelSettingsIcon sx={{ color: theme.palette.primary.main }} />, path: "/admin/orders" }] : []),
     ...(isOwner && !isAdminOrSales
-      ? [{ text: "Panel Admin", icon: <AdminPanelSettingsIcon sx={{ color: theme.palette.primary.main }} />, path: "/admin/dashboard" }]
+      ? [{ text: "Panel Admin", icon: <AdminPanelSettingsIcon sx={{ color: theme.palette.primary.main }} />, path: "/admin/users" }]
       : []),
     ...menuItems,
   ];
@@ -237,7 +237,7 @@ export default function UserPortalLayout() {
                 <MenuItem
                   onClick={() => {
                     handleClose();
-                    navigate("/admin/dashboard");
+                    navigate("/admin/users");
                   }}
                   sx={{ color: "primary.main", fontWeight: "bold" }}
                 >

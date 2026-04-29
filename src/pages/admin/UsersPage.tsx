@@ -75,6 +75,7 @@ const UsersPage: React.FC = () => {
   });
 
   const isOwner = currentAuthUser?.roles.includes("OWNER");
+  const isManager = currentAuthUser?.roles.includes("MANAGER");
   const isAdmin = currentAuthUser?.roles.includes("ADMIN");
 
   const loadUsers = useCallback(async () => {
@@ -218,7 +219,7 @@ const UsersPage: React.FC = () => {
               label={role}
               size="small"
               variant="outlined"
-              color={role === "ADMIN" ? "error" : role === "OWNER" ? "secondary" : role === "SALES" ? "success" : "default"}
+              color={role === "ADMIN" ? "error" : role === "OWNER" ? "secondary" : role === "MANAGER" ? "warning" : role === "SALES" ? "success" : "default"}
               icon={role === "ADMIN" ? <AdminPanelSettingsIcon /> : role === "OWNER" ? <BusinessIcon /> : role === "SALES" ? <SellIcon /> : undefined}
             />
           ))}
@@ -342,10 +343,10 @@ const UsersPage: React.FC = () => {
           ))}
         </Select>
 
-        {isOwner && (
+        {(isOwner || isManager) && (
           <FormControlLabel
             control={<Checkbox checked={managedOnlyFilter} onChange={(e) => setManagedOnlyFilter(e.target.checked)} />}
-            label="Solo mis SALES"
+            label={isManager ? "Solo mis gestionados" : "Solo mis SALES"}
           />
         )}
       </Box>
@@ -362,7 +363,7 @@ const UsersPage: React.FC = () => {
                 variant="contained"
                 startIcon={<SwapHorizIcon />}
                 onClick={() => setTransferDialogOpen(true)}
-                disabled={selectedUsersList.every((u) => !u.roles.includes(Role.SALES))}
+                disabled={selectedUsersList.every((u) => !u.roles.includes(Role.SALES) && !u.roles.includes(Role.MANAGER))}
               >
                 Transferir Ownership
               </Button>

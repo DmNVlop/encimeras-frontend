@@ -44,37 +44,37 @@ export const appRoutes: AppRouteConfig[] = [
     path: "/quote",
     component: NewQuoteWizardPage,
     // Array vacío o null significa "Público"
-    allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.SALES, UserRole.USER],
+    allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER, UserRole.SALES, UserRole.USER],
   },
 
   // 3. USER PORTAL (Client)
   {
     path: "/",
     component: UserPortalLayout,
-    allowedRoles: [UserRole.USER, UserRole.ADMIN, UserRole.OWNER, UserRole.SALES],
+    allowedRoles: [UserRole.USER, UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER, UserRole.SALES],
     children: [
-      { path: "dashboard", component: UserDashboard, allowedRoles: [UserRole.USER, UserRole.OWNER, UserRole.SALES, UserRole.ADMIN] },
-      { path: "my-quotes", component: UserQuotes, allowedRoles: [UserRole.USER, UserRole.OWNER, UserRole.SALES, UserRole.ADMIN] },
-      { path: "my-quotes/:orderId", component: OrderDetail, allowedRoles: [UserRole.USER, UserRole.OWNER, UserRole.SALES, UserRole.ADMIN] },
-      { path: "cart", component: CartView, allowedRoles: [UserRole.USER, UserRole.OWNER, UserRole.SALES, UserRole.ADMIN] },
-      { path: "drafts", component: UserDrafts, allowedRoles: [UserRole.USER, UserRole.OWNER, UserRole.SALES, UserRole.ADMIN] },
-      { path: "user-profile", component: UserProfile, allowedRoles: [UserRole.USER, UserRole.OWNER, UserRole.SALES, UserRole.ADMIN] },
+      { path: "dashboard", component: UserDashboard, allowedRoles: [UserRole.USER, UserRole.OWNER, UserRole.MANAGER, UserRole.SALES, UserRole.ADMIN] },
+      { path: "my-quotes", component: UserQuotes, allowedRoles: [UserRole.USER, UserRole.OWNER, UserRole.MANAGER, UserRole.SALES, UserRole.ADMIN] },
+      { path: "my-quotes/:orderId", component: OrderDetail, allowedRoles: [UserRole.USER, UserRole.OWNER, UserRole.MANAGER, UserRole.SALES, UserRole.ADMIN] },
+      { path: "cart", component: CartView, allowedRoles: [UserRole.USER, UserRole.OWNER, UserRole.MANAGER, UserRole.SALES, UserRole.ADMIN] },
+      { path: "drafts", component: UserDrafts, allowedRoles: [UserRole.USER, UserRole.OWNER, UserRole.MANAGER, UserRole.SALES, UserRole.ADMIN] },
+      { path: "user-profile", component: UserProfile, allowedRoles: [UserRole.USER, UserRole.OWNER, UserRole.MANAGER, UserRole.SALES, UserRole.ADMIN] },
     ],
   },
 
-  // 4. PANEL DE ADMIN (ADMIN & OWNER & SALES)
+  // 4. PANEL DE ADMIN (ADMIN, OWNER, MANAGER & SALES)
   {
     path: "/admin",
     component: AdminLayout,
-    allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.SALES],
+    allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER, UserRole.SALES],
     children: [
       { path: "dashboard", component: DashboardPage, allowedRoles: [UserRole.ADMIN] },
-      { path: "orders", component: OrdersPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.SALES] },
-      { path: "users", component: UsersPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER] },
-      { path: "customers", component: CustomersPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.SALES] },
-      { path: "discount-rules", component: DiscountRulesPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.SALES] },
-      { path: "doc-config", component: DocConfigPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER] },
-      { path: "factory-settings", component: FactorySettingsPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER] },
+      { path: "orders", component: OrdersPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER, UserRole.SALES] },
+      { path: "users", component: UsersPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER] },
+      { path: "customers", component: CustomersPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER, UserRole.SALES] },
+      { path: "discount-rules", component: DiscountRulesPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER, UserRole.SALES] },
+      { path: "doc-config", component: DocConfigPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER] },
+      { path: "factory-settings", component: FactorySettingsPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER] },
       { path: "materials", component: MaterialsPage, allowedRoles: [UserRole.ADMIN] },
       { path: "rule-sets", component: MeasurementRuleSetPage, allowedRoles: [UserRole.ADMIN] },
       { path: "addons", component: AddonsPage, allowedRoles: [UserRole.ADMIN] },

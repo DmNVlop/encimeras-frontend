@@ -1,9 +1,10 @@
 export const Role = {
-  ADMIN: "ADMIN", // Superusuario
-  OWNER: "OWNER", // Propietario de fábrica
-  USER: "USER", // Cliente final
-  SALES: "SALES", // Comercial / Vendedor
-  WORKER: "WORKER", // Operario de fábrica
+  ADMIN: "ADMIN",     // Superusuario
+  OWNER: "OWNER",     // Propietario de fábrica
+  MANAGER: "MANAGER", // Gerente de fábrica
+  SALES: "SALES",     // Comercial / Vendedor
+  WORKER: "WORKER",   // Operario de fábrica
+  USER: "USER",       // Cliente final
 } as const;
 
 export type Role = (typeof Role)[keyof typeof Role];

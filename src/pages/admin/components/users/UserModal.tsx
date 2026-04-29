@@ -49,8 +49,18 @@ const UserModal: React.FC<UserModalProps> = ({ open, onClose, onSubmit, user, is
   const [selectedOwnerId, setSelectedOwnerId] = useState<string>("");
 
   const isOwner = currentUser?.roles.includes("OWNER");
+  const isManager = currentUser?.roles.includes("MANAGER");
   const isAdmin = currentUser?.roles.includes("ADMIN");
-  const availableRoles = isOwner ? [Role.SALES, Role.USER] : Object.values(Role);
+
+  // Roles disponibles según jerarquía del usuario actual
+  const availableRoles = isAdmin
+    ? Object.values(Role)
+    : isOwner
+      ? [Role.MANAGER, Role.SALES, Role.WORKER, Role.USER]
+      : isManager
+        ? [Role.SALES, Role.WORKER, Role.USER]
+        : [Role.USER];
+
   const autoFactoryId = currentUser?.factoryId;
   const showOwnerSelector = isAdmin && roles.includes(Role.SALES) && !isEditMode;
 
@@ -167,7 +177,7 @@ const UserModal: React.FC<UserModalProps> = ({ open, onClose, onSubmit, user, is
 
         <TextField margin="normal" fullWidth label="Teléfono" name="phone" value={formData.phone || ""} onChange={handleChange} />
 
-        {isOwner && !isEditMode && (
+        {(isOwner || isManager) && !isEditMode && (
           <Alert severity="info" sx={{ mt: 1, mb: 1 }}>
             Los usuarios creados heredarán automáticamente el factoryId de tu cuenta.
           </Alert>
@@ -215,7 +225,7 @@ const UserModal: React.FC<UserModalProps> = ({ open, onClose, onSubmit, user, is
           </Alert>
         )}
 
-        {isOwner && roles.includes(Role.SALES) && !isEditMode && (
+        {(isOwner || isManager) && roles.includes(Role.SALES) && !isEditMode && (
           <Alert severity="success" sx={{ mt: 1 }}>
             Este usuario SALES será gestionado automáticamente por tu cuenta
           </Alert>
