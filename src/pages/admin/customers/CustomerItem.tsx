@@ -1,11 +1,12 @@
-import React from "react";
-import { Box, Typography, Stack, Chip, IconButton, useTheme, alpha, Paper, Checkbox, Avatar, Tooltip } from "@mui/material";
+import React, { useState } from "react";
+import { Box, Typography, Stack, Chip, IconButton, useTheme, alpha, Paper, Checkbox, Avatar, Tooltip, Menu, MenuItem as MuiMenuItem, ListItemIcon, ListItemText } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import BusinessIcon from "@mui/icons-material/Business";
 import PersonIcon from "@mui/icons-material/Person";
 import EmailIcon from "@mui/icons-material/Email";
 import PhoneIcon from "@mui/icons-material/Phone";
 import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline";
+import OpenInFullIcon from "@mui/icons-material/OpenInFull";
 import { type ICustomer, CustomerType } from "@/interfases/customer.interfase";
 import type { User } from "@/interfases/user.interfase";
 
@@ -14,13 +15,14 @@ interface CustomerItemProps {
   selected: boolean;
   salesUsers: User[];
   showAuthor?: boolean;
-  onClick: (customer: ICustomer) => void;
+  onClick: (customer: ICustomer, event: React.MouseEvent) => void;
   onSelect: (customer: ICustomer, selected: boolean) => void;
-  onActionClick: (e: React.MouseEvent, customer: ICustomer) => void;
+  onOpenDrawer: (customer: ICustomer) => void;
 }
 
-const CustomerItem: React.FC<CustomerItemProps> = ({ customer, selected, salesUsers, showAuthor = false, onClick, onSelect, onActionClick }) => {
+const CustomerItem: React.FC<CustomerItemProps> = ({ customer, selected, salesUsers, showAuthor = false, onClick, onSelect, onOpenDrawer }) => {
   const theme = useTheme();
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const isCompany = customer.type === CustomerType.COMPANY;
 
   const assignedUsers = salesUsers.filter((u) => customer.assignedUserIds?.includes(u._id));
@@ -31,8 +33,23 @@ const CustomerItem: React.FC<CustomerItemProps> = ({ customer, selected, salesUs
     onSelect(customer, !selected);
   };
 
-  const handleRowClick = () => {
-    onClick(customer);
+  const handleRowClick = (e: React.MouseEvent) => {
+    onClick(customer, e);
+  };
+
+  const handleMenuOpen = (e: React.MouseEvent<HTMLElement>) => {
+    e.stopPropagation();
+    setMenuAnchor(e.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchor(null);
+  };
+
+  const handleOpenDrawer = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMenuAnchor(null);
+    onOpenDrawer(customer);
   };
 
   return (
@@ -48,6 +65,7 @@ const CustomerItem: React.FC<CustomerItemProps> = ({ customer, selected, salesUs
         backdropFilter: "blur(10px)",
         transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
         cursor: "pointer",
+        userSelect: "none",
         display: "flex",
         alignItems: "center",
         "&:hover": {
@@ -127,20 +145,26 @@ const CustomerItem: React.FC<CustomerItemProps> = ({ customer, selected, salesUs
         <Box sx={{ flex: 1.5, display: "flex", justifyContent: "center", gap: 0.5, flexWrap: "wrap" }}>
           {assignedUsers.length > 0 ? (
             assignedUsers.slice(0, 3).map((user) => (
-              <Avatar
+              <Tooltip
                 key={user._id}
-                sx={{
-                  width: 28,
-                  height: 28,
-                  fontSize: "0.7rem",
-                  fontWeight: 700,
-                  backgroundColor: alpha(theme.palette.warning.main, 0.15),
-                  color: theme.palette.warning.dark,
-                  border: `1px solid ${alpha(theme.palette.warning.main, 0.3)}`,
-                }}
+                title={[user.name, user.username, user.email].filter(Boolean).join(" · ")}
+                placement="top"
               >
-                {(user.name || user.username).charAt(0).toUpperCase()}
-              </Avatar>
+                <Avatar
+                  sx={{
+                    width: 28,
+                    height: 28,
+                    fontSize: "0.7rem",
+                    fontWeight: 700,
+                    backgroundColor: alpha(theme.palette.warning.main, 0.15),
+                    color: theme.palette.warning.dark,
+                    border: `1px solid ${alpha(theme.palette.warning.main, 0.3)}`,
+                    cursor: "default",
+                  }}
+                >
+                  {(user.name || user.username).charAt(0).toUpperCase()}
+                </Avatar>
+              </Tooltip>
             ))
           ) : (
             <Typography variant="caption" sx={{ color: "text.secondary", opacity: 0.4, fontStyle: "italic" }}>
@@ -219,7 +243,7 @@ const CustomerItem: React.FC<CustomerItemProps> = ({ customer, selected, salesUs
         <Box>
           <IconButton
             size="small"
-            onClick={(e) => onActionClick(e, customer)}
+            onClick={handleMenuOpen}
             sx={{
               color: "text.secondary",
               transition: "all 0.2s",
@@ -228,6 +252,35 @@ const CustomerItem: React.FC<CustomerItemProps> = ({ customer, selected, salesUs
           >
             <MoreVertIcon />
           </IconButton>
+          <Menu
+            anchorEl={menuAnchor}
+            open={Boolean(menuAnchor)}
+            onClose={handleMenuClose}
+            onClick={(e) => e.stopPropagation()}
+            slotProps={{
+              paper: {
+                elevation: 4,
+                sx: {
+                  borderRadius: 3,
+                  minWidth: 180,
+                  border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                  backdropFilter: "blur(20px)",
+                  background: alpha(theme.palette.background.paper, 0.95),
+                  overflow: "visible",
+                  mt: 0.5,
+                },
+              },
+            }}
+            transformOrigin={{ horizontal: "right", vertical: "top" }}
+            anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+          >
+            <MuiMenuItem onClick={handleOpenDrawer} sx={{ borderRadius: 2, mx: 0.5, my: 0.25 }}>
+              <ListItemIcon>
+                <OpenInFullIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary="Ver / Editar" primaryTypographyProps={{ fontWeight: 700, fontSize: "0.9rem" }} />
+            </MuiMenuItem>
+          </Menu>
         </Box>
       </Box>
     </Paper>

@@ -1,11 +1,10 @@
 import { get, create, update, remove, post } from "./api.service";
+import apiClient from "./api.service";
 import type { ICustomer, ICustomerCreate } from "@/interfases/customer.interfase";
 import type { User } from "@/interfases/user.interfase";
-import { config } from "@/config";
 
 const ENDPOINT = "/customers";
 const USERS_ENDPOINT = "/users";
-const API_BASE = config.api.baseURL;
 
 export const getCustomers = (): Promise<ICustomer[]> => {
   return get<ICustomer[]>(ENDPOINT);
@@ -50,16 +49,9 @@ export const batchDeleteCustomers = (customerIds: string[]): Promise<any> => {
 };
 
 export const batchAssignSales = (customerIds: string[], salesUserIds: string[]): Promise<any> => {
-  return patch(`${ENDPOINT}/batch/assign-sales`, { customerIds, salesUserIds });
+  return patch(`${ENDPOINT}/batch/assign-users`, { customerIds, assignedUserIds: salesUserIds });
 };
 
 const patch = <T>(url: string, data: any): Promise<T> => {
-  return fetch(`${API_BASE}${url}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  }).then((res) => {
-    if (!res.ok) throw new Error("Request failed");
-    return res.json() as Promise<T>;
-  });
+  return apiClient.patch<T>(url, data).then((res) => res.data);
 };

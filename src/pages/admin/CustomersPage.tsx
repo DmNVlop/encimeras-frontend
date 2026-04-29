@@ -36,13 +36,15 @@ import CustomerList from "./customers/CustomerList";
 import CustomerDrawer from "./customers/CustomerDrawer";
 import { type ICustomer } from "@/interfases/customer.interfase";
 import type { User } from "@/interfases/user.interfase";
-import { getCustomers, getSalesUsers, batchDeleteCustomers, batchAssignSales } from "@/services/customer.service";
-import { GlobalSettingsService } from "@/services/global-settings.service";
+import { getCustomers, batchDeleteCustomers, batchAssignSales } from "@/services/customer.service";
+import { getUsers } from "@/services/user.service";
 import { useAuth } from "@/context/AuthProvider";
+import { useFactorySettings } from "@/context/FactorySettingsContext";
 
 const CustomersPage: React.FC = () => {
   const theme = useTheme();
   const { user: currentUser } = useAuth();
+  const { settings } = useFactorySettings();
   const [customers, setCustomers] = useState<ICustomer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<ICustomer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,16 +61,17 @@ const CustomersPage: React.FC = () => {
   const [isNew, setIsNew] = useState(false);
 
   // Batch actions state
-  const [salesUsers, setSalesUsers] = useState<User[]>([]);
+  const [assignableUsers, setAssignableUsers] = useState<User[]>([]);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedSalesUsers, setSelectedSalesUsers] = useState<string[]>([]);
-  const [multiSalesEnabled, setMultiSalesEnabled] = useState<boolean>(true);
+  const [selectedAssignedUsers, setSelectedAssignedUsers] = useState<string[]>([]);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "success" | "error" }>({
     open: false,
     message: "",
     severity: "success",
   });
+
+  const multiAssignedEnabled = settings?.multiAssignedUsersPerCustomer ?? true;
 
   const isAdminOrOwner = currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("OWNER") || currentUser?.roles?.includes("MANAGER");
   const isWorker = currentUser?.roles?.includes("WORKER");
@@ -77,22 +80,32 @@ const CustomersPage: React.FC = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      // Siempre cargar customers
       const customersPromise = getCustomers();
 
-      // Cargar sales users y settings si es ADMIN/OWNER/WORKER (para resolución de autoría)
-      const promises = (isAdminOrOwner || isWorker) ? [customersPromise, getSalesUsers(), GlobalSettingsService.getMultiSalesPerCustomer()] : [customersPromise];
+      const promises = (isAdminOrOwner || isWorker)
+        ? [
+            customersPromise,
+            // Cargar SALES y MANAGER en paralelo para el selector de asignación
+            Promise.all([
+              getUsers({ role: "SALES" }).catch(() => [] as User[]),
+              getUsers({ role: "MANAGER" }).catch(() => [] as User[]),
+            ]),
+          ]
+        : [customersPromise];
 
       const results = await Promise.allSettled(promises);
 
-      // Extraer resultados con tipos correctos
       const customersData = results[0].status === "fulfilled" ? (results[0].value as ICustomer[]) : [];
-      const salesData = results[1]?.status === "fulfilled" ? (results[1].value as User[]) : [];
-      const multiSalesEnabled = results[2]?.status === "fulfilled" ? (results[2].value as boolean) : true;
+
+      if (results[1]?.status === "fulfilled") {
+        const [salesUsers, managerUsers] = results[1].value as [User[], User[]];
+        // Mezclar y deduplicar por _id
+        const combined = [...salesUsers, ...managerUsers];
+        const deduped = Array.from(new Map(combined.map((u) => [u._id, u])).values());
+        setAssignableUsers(deduped);
+      }
 
       setCustomers(customersData);
-      setSalesUsers(salesData);
-      setMultiSalesEnabled(multiSalesEnabled);
     } catch (error) {
       console.error("Error loading customers:", error);
     } finally {
@@ -184,38 +197,37 @@ const CustomersPage: React.FC = () => {
   // Batch actions
   const handleBatchAssign = async () => {
     try {
-      // Validación frontend antes de enviar
-      if (!multiSalesEnabled && selectedSalesUsers.length > 1) {
+      if (!multiAssignedEnabled && selectedAssignedUsers.length > 1) {
         setSnackbar({
           open: true,
-          message: "Multi-sales está deshabilitado. Solo puedes asignar 1 usuario sales.",
+          message: "Modo exclusivo activo: solo puedes asignar 1 usuario por cliente.",
           severity: "error",
         });
         return;
       }
 
-      if (selectedSalesUsers.length === 0) {
+      if (selectedAssignedUsers.length === 0) {
         setSnackbar({
           open: true,
-          message: "Debes seleccionar al menos un usuario sales.",
+          message: "Debes seleccionar al menos un usuario.",
           severity: "error",
         });
         return;
       }
 
       const customerIds = Array.from(selectedIds);
-      await batchAssignSales(customerIds, selectedSalesUsers);
+      await batchAssignSales(customerIds, selectedAssignedUsers);
       setSnackbar({ open: true, message: "Usuarios asignados correctamente", severity: "success" });
       setAssignDialogOpen(false);
-      setSelectedSalesUsers([]);
+      setSelectedAssignedUsers([]);
       setSelectedIds(new Set());
       fetchData();
     } catch (error: any) {
       let errorMessage = "Error al asignar usuarios";
       if (error.response?.status === 404) {
-        errorMessage = "Sales users no encontrados o sin rol SALES";
+        errorMessage = "Usuarios no encontrados o sin rol SALES/MANAGER";
       } else if (error.response?.status === 403) {
-        errorMessage = "Multi-sales deshabilitado y se enviaron más de 1 usuario";
+        errorMessage = "Modo exclusivo activo — solo se permite 1 usuario por cliente";
       } else if (error.response?.status === 400) {
         errorMessage = "No se encontraron clientes activos para asignar";
       }
@@ -242,7 +254,18 @@ const CustomersPage: React.FC = () => {
     }
   };
 
+  const getUserRoleBadge = (user: User) => {
+    const isSales = user.roles?.includes("SALES");
+    const isManager = user.roles?.includes("MANAGER");
+    if (isManager) return { label: "MANAGER", color: theme.palette.warning.main };
+    if (isSales) return { label: "SALES", color: theme.palette.primary.main };
+    return { label: "OTRO", color: theme.palette.text.secondary };
+  };
+
   const selectedCount = selectedIds.size;
+
+  // Para pasar a CustomerList — lista de SALES para resolución de autoría (sin MANAGER)
+  const salesOnlyUsers = assignableUsers.filter((u) => u.roles?.includes("SALES"));
 
   return (
     <Box sx={{ pb: 8 }}>
@@ -340,11 +363,15 @@ const CustomersPage: React.FC = () => {
           customers={filteredCustomers}
           loading={loading}
           selectedIds={selectedIds}
-          salesUsers={salesUsers}
+          salesUsers={salesOnlyUsers}
           showAuthor={showAuthor}
-          onCustomerClick={(customer) => {
-            const index = filteredCustomers.findIndex((c) => c._id === customer._id);
-            handleRowClick(customer, index, { ctrlKey: false, metaKey: false, shiftKey: false } as React.MouseEvent);
+          onCustomerClick={(customer, index, event) => {
+            handleRowClick(customer, index, event);
+          }}
+          onOpenDrawer={(customer) => {
+            setSelectedCustomer(customer);
+            setIsNew(false);
+            setDrawerOpen(true);
           }}
           onSelect={handleSelect}
           onSelectAll={handleSelectAll}
@@ -402,7 +429,7 @@ const CustomersPage: React.FC = () => {
                   },
                 }}
               >
-                Asignar Sales
+                Asignar Usuario
               </Button>
             )}
             <Button
@@ -437,7 +464,7 @@ const CustomersPage: React.FC = () => {
         </Paper>
       </Slide>
 
-      {/* Assign Sales Dialog */}
+      {/* Assign Users Dialog */}
       <Dialog
         open={assignDialogOpen}
         onClose={() => setAssignDialogOpen(false)}
@@ -453,51 +480,88 @@ const CustomersPage: React.FC = () => {
           },
         }}
       >
-        <DialogTitle sx={{ fontWeight: 800, fontSize: "1.25rem" }}>Asignar Usuarios Sales</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 800, fontSize: "1.25rem" }}>Asignar Usuarios a Clientes</DialogTitle>
         <DialogContent>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Selecciona los usuarios sales que quieres asignar a los {selectedCount} clientes seleccionados.
-            {!multiSalesEnabled && (
-              <Alert severity="warning" sx={{ mt: 2, borderRadius: 2 }}>
-                <Typography variant="caption" fontWeight={700}>
-                  ⚠️ Multi-sales deshabilitado: Solo puedes asignar 1 usuario sales por cliente
-                </Typography>
-              </Alert>
-            )}
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Selecciona los usuarios (SALES o MANAGER) que quieres asignar a los{" "}
+            <strong>{selectedCount}</strong> clientes seleccionados.
           </Typography>
+          {!multiAssignedEnabled && (
+            <Alert severity="warning" sx={{ mb: 2, borderRadius: 2 }}>
+              <Typography variant="caption" fontWeight={700}>
+                Modo exclusivo activo: solo puedes asignar 1 usuario por cliente.
+              </Typography>
+            </Alert>
+          )}
           <FormControl fullWidth>
-            <InputLabel>Usuarios Sales</InputLabel>
+            <InputLabel>Usuarios</InputLabel>
             <Select
               multiple
-              value={selectedSalesUsers}
-              onChange={(e) => setSelectedSalesUsers(e.target.value as string[])}
+              value={selectedAssignedUsers}
+              onChange={(e) => {
+                const newVal = e.target.value as string[];
+                // Si modo exclusivo, limitar a 1
+                if (!multiAssignedEnabled && newVal.length > 1) {
+                  setSelectedAssignedUsers([newVal[newVal.length - 1]]);
+                } else {
+                  setSelectedAssignedUsers(newVal);
+                }
+              }}
               renderValue={(selected) =>
                 selected
                   .map((id) => {
-                    const user = salesUsers.find((u) => u._id === id);
-                    return user ? user.name || user.username : id;
+                    const u = assignableUsers.find((u) => u._id === id);
+                    return u ? u.name || u.username : id;
                   })
                   .join(", ")
               }
               sx={{ borderRadius: 2 }}
             >
-              {salesUsers.map((user) => (
-                <MenuItem key={user._id} value={user._id}>
-                  <Checkbox checked={selectedSalesUsers.includes(user._id)} />
-                  <ListItemText primary={user.name || user.username} secondary={user.email} />
-                </MenuItem>
-              ))}
+              {assignableUsers.map((user) => {
+                const badge = getUserRoleBadge(user);
+                return (
+                  <MenuItem key={user._id} value={user._id}>
+                    <Checkbox checked={selectedAssignedUsers.includes(user._id)} />
+                    <ListItemText
+                      primary={
+                        <Stack direction="row" alignItems="center" spacing={1}>
+                          <Typography variant="body2">{user.name || user.username}</Typography>
+                          <Chip
+                            label={badge.label}
+                            size="small"
+                            sx={{
+                              height: 18,
+                              fontSize: "0.65rem",
+                              fontWeight: 700,
+                              backgroundColor: alpha(badge.color, 0.12),
+                              color: badge.color,
+                              border: `1px solid ${alpha(badge.color, 0.3)}`,
+                            }}
+                          />
+                        </Stack>
+                      }
+                      secondary={user.email}
+                    />
+                  </MenuItem>
+                );
+              })}
             </Select>
           </FormControl>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 3 }}>
-          <Button onClick={() => setAssignDialogOpen(false)} sx={{ fontWeight: 700 }}>
+          <Button
+            onClick={() => {
+              setAssignDialogOpen(false);
+              setSelectedAssignedUsers([]);
+            }}
+            sx={{ fontWeight: 700 }}
+          >
             Cancelar
           </Button>
           <Button
             variant="contained"
             onClick={handleBatchAssign}
-            disabled={selectedSalesUsers.length === 0}
+            disabled={selectedAssignedUsers.length === 0}
             sx={{
               fontWeight: 700,
               backgroundColor: theme.palette.primary.main,

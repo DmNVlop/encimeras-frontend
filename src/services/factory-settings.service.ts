@@ -5,6 +5,7 @@ export interface IFactorySettings {
   factoryId?: string;
   logoUrl: string | null;
   logoFilename: string | null;
+  multiAssignedUsersPerCustomer?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -27,6 +28,13 @@ export const factorySettingsService = {
 
   async deleteLogo(): Promise<IFactorySettings> {
     const response = await apiClient.delete<IFactorySettings>(`${BASE_URL}/logo`);
+    return response.data;
+  },
+
+  async updateAssignmentMode(multiAssignedUsersPerCustomer: boolean): Promise<IFactorySettings> {
+    const response = await apiClient.patch<IFactorySettings>(`${BASE_URL}/assignment-mode`, {
+      multiAssignedUsersPerCustomer,
+    });
     return response.data;
   },
 };
