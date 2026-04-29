@@ -33,9 +33,9 @@ const menuConfig: NavItem[] = [
     children: [
       { text: "Usuarios", path: "/admin/users", allowedRoles: ["ADMIN", "OWNER", "MANAGER"] },
       { text: "Clientes", path: "/admin/customers", allowedRoles: ["ADMIN", "OWNER", "MANAGER", "SALES"] },
-      { text: "Descuentos", path: "/admin/discount-rules", allowedRoles: ["ADMIN", "OWNER", "MANAGER", "SALES"] },
-      { text: "Doc Config", path: "/admin/doc-config", allowedRoles: ["ADMIN", "OWNER", "MANAGER"] },
-      { text: "Fábrica", path: "/admin/factory-settings", allowedRoles: ["ADMIN", "OWNER", "MANAGER"] },
+      { text: "Descuentos", path: "/admin/discount-rules", allowedRoles: ["ADMIN", "OWNER"] },
+      { text: "Doc Config", path: "/admin/doc-config", allowedRoles: ["ADMIN", "OWNER"] },
+      { text: "Fábrica", path: "/admin/factory-settings", allowedRoles: ["ADMIN", "OWNER"] },
     ],
   },
   {
