@@ -29,7 +29,6 @@ import InfoIcon from "@mui/icons-material/Info";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import BusinessIcon from "@mui/icons-material/Business";
 import SellIcon from "@mui/icons-material/Sell";
-import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import EngineeringIcon from "@mui/icons-material/Engineering";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
@@ -38,7 +37,7 @@ import { useSearchParams } from "react-router-dom";
 import { Role, type User } from "@/interfases/user.interfase";
 import AdminPageTitle from "./components/AdminPageTitle";
 import UserModal from "./components/users/UserModal";
-import TransferOwnerDialog from "./components/users/TransferOwnerDialog";
+import AssignManagerDialog from "./components/users/AssignManagerDialog";
 import ConfirmDeleteDialog from "./components/users/ConfirmDeleteDialog";
 import { ApiErrorFeedback } from "../public/common/ApiErrorFeedback";
 import { useAuth } from "@/context/AuthProvider";
@@ -244,19 +243,19 @@ const UsersPage: React.FC = () => {
       ),
     },
     {
-      field: "ownerId",
-      headerName: "Gestionado por",
+      field: "managerId",
+      headerName: "Manager",
       width: 180,
       renderCell: (params) => {
         if (!params.value) return <Typography variant="caption" color="text.disabled">—</Typography>;
-        const owner = allUsers.find((u) => u._id === params.value);
+        const manager = allUsers.find((u) => u._id === params.value);
         return (
           <Chip
-            label={owner?.name || owner?.username || "—"}
+            label={manager?.name || manager?.username || "—"}
             size="small"
             variant="outlined"
-            color="secondary"
-            icon={<PersonIcon />}
+            color="warning"
+            icon={<ManageAccountsIcon />
           />
         );
       },
@@ -288,14 +287,14 @@ const UsersPage: React.FC = () => {
       sortable: false,
       renderCell: (params) => {
         const u = params.row as User;
-        const owner = allUsers.find((x) => x._id === u.ownerId);
+        const manager = allUsers.find((x) => x._id === u.managerId);
         const creator = allUsers.find((x) => x._id === u.createdBy);
         return (
           <Tooltip
             title={
               <Box sx={{ p: 0.5 }}>
                 <Typography variant="caption" display="block"><strong>Creado por:</strong> {creator?.name || creator?.username || "N/A"}</Typography>
-                {u.ownerId && <Typography variant="caption" display="block"><strong>Gestiona:</strong> {owner?.name || owner?.username}</Typography>}
+                {u.managerId && <Typography variant="caption" display="block"><strong>Manager:</strong> {manager?.name || manager?.username}</Typography>}
                 <Typography variant="caption" display="block"><strong>Factory:</strong> {u.factoryId || "N/A"}</Typography>
               </Box>
             }
@@ -395,14 +394,14 @@ const UsersPage: React.FC = () => {
             {selectionModel.ids.size} usuario(s) seleccionado(s)
           </Typography>
           <Stack direction="row" spacing={2}>
-            {isAdmin && (
+            {(isAdmin || currentAuthUser?.roles.includes("OWNER")) && (
               <Button
                 variant="contained"
-                startIcon={<SwapHorizIcon />}
+                startIcon={<ManageAccountsIcon />}
                 onClick={() => setTransferDialogOpen(true)}
-                disabled={selectedUsersList.every((u) => !u.roles.includes(Role.SALES) && !u.roles.includes(Role.MANAGER))}
+                disabled={selectedUsersList.every((u) => !u.roles.includes(Role.SALES))}
               >
-                Transferir Ownership
+                Asignar Manager
               </Button>
             )}
             <Button variant="outlined" color="error" startIcon={<DeleteIcon />} onClick={handleBatchDelete}>
@@ -439,15 +438,16 @@ const UsersPage: React.FC = () => {
 
       <UserModal open={open} onClose={handleClose} onSubmit={handleSubmit} user={currentUser} isEditMode={isEditMode} />
 
-      <TransferOwnerDialog
+      <AssignManagerDialog
         open={transferDialogOpen}
         onClose={() => setTransferDialogOpen(false)}
         userIds={Array.from(selectionModel.ids) as string[]}
         users={allUsers}
+        allUsers={allUsers}
         onTransferComplete={() => {
           loadUsers();
           setSelectionModel({ type: "include", ids: new Set<GridRowId>() });
-          setSnackbar({ open: true, message: "Usuarios transferidos exitosamente", severity: "success" });
+          setSnackbar({ open: true, message: "Manager asignado exitosamente", severity: "success" });
         }}
       />
 
