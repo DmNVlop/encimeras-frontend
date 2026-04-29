@@ -10,18 +10,14 @@ interface CustomerListProps {
   selectedIds: Set<string>;
   salesUsers: User[];
   showAuthor?: boolean;
-  onCustomerClick: (customer: ICustomer) => void;
+  onCustomerClick: (customer: ICustomer, index: number, event: React.MouseEvent) => void;
+  onOpenDrawer: (customer: ICustomer) => void;
   onSelect: (customer: ICustomer, selected: boolean) => void;
   onSelectAll: (selectAll: boolean, visibleOnly: boolean) => void;
 }
 
-const CustomerList: React.FC<CustomerListProps> = ({ customers, loading, selectedIds, salesUsers, showAuthor = false, onCustomerClick, onSelect, onSelectAll }) => {
+const CustomerList: React.FC<CustomerListProps> = ({ customers, loading, selectedIds, salesUsers, showAuthor = false, onCustomerClick, onOpenDrawer, onSelect, onSelectAll }) => {
   const theme = useTheme();
-
-  const handleActionClick = (e: React.MouseEvent, customer: ICustomer) => {
-    e.stopPropagation();
-    onCustomerClick(customer);
-  };
 
   const allVisibleSelected = customers.length > 0 && customers.every((c) => selectedIds.has(c._id || ""));
   const someSelected = customers.some((c) => selectedIds.has(c._id || ""));
@@ -93,16 +89,16 @@ const CustomerList: React.FC<CustomerListProps> = ({ customers, loading, selecte
         <Box sx={{ width: 40 }} />
       </Box>
 
-      {customers.map((customer) => (
+      {customers.map((customer, index) => (
         <CustomerItem
           key={customer._id}
           customer={customer}
           selected={selectedIds.has(customer._id || "")}
           salesUsers={salesUsers}
           showAuthor={showAuthor}
-          onClick={onCustomerClick}
+          onClick={(c, e) => onCustomerClick(c, index, e)}
           onSelect={onSelect}
-          onActionClick={handleActionClick}
+          onOpenDrawer={onOpenDrawer}
         />
       ))}
     </Box>

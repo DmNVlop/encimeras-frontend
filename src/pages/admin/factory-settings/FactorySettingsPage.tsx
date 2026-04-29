@@ -16,10 +16,14 @@ import {
   alpha,
   useTheme,
   Skeleton,
+  Switch,
+  FormControlLabel,
+  Divider,
 } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import BrokenImageOutlinedIcon from "@mui/icons-material/BrokenImageOutlined";
+import GroupAddIcon from "@mui/icons-material/GroupAdd";
 import AdminPageTitle from "../components/AdminPageTitle";
 import { factorySettingsService } from "@/services/factory-settings.service";
 import { useAuth } from "@/context/AuthProvider";
@@ -34,12 +38,13 @@ const FactorySettingsPage: React.FC = () => {
   const { user } = useAuth();
   const { settings, logoUrl, loading, setSettings } = useFactorySettings();
 
+  const isAdmin = user?.roles.some((r) => r === "ADMIN") ?? false;
   const canEdit = user?.roles.some((r) => r === "ADMIN" || r === "OWNER") ?? false;
-  // MANAGER puede ver config de fábrica pero no modificar logo (canEdit sigue siendo solo ADMIN/OWNER)
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [updatingAssignment, setUpdatingAssignment] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "success" | "error" | "warning" }>({
     open: false,
@@ -55,7 +60,6 @@ const FactorySettingsPage: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Reset input so same file can be re-selected
     e.target.value = "";
 
     if (!ACCEPTED_TYPES.includes(file.type)) {
@@ -93,6 +97,27 @@ const FactorySettingsPage: React.FC = () => {
     }
   };
 
+  const handleAssignmentModeToggle = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.checked;
+    setUpdatingAssignment(true);
+    try {
+      const updated = await factorySettingsService.updateAssignmentMode(newValue);
+      setSettings(updated);
+      showSnack(
+        newValue
+          ? "Modo multi-usuario activado: varios SALES o MANAGER por cliente."
+          : "Modo exclusivo activado: solo un usuario asignado por cliente.",
+        "success",
+      );
+    } catch {
+      showSnack("Error al actualizar la configuración de asignación.", "error");
+    } finally {
+      setUpdatingAssignment(false);
+    }
+  };
+
+  const multiAssigned = settings?.multiAssignedUsersPerCustomer ?? true;
+
   return (
     <Box sx={{ pb: 8 }}>
       <Stack
@@ -105,11 +130,12 @@ const FactorySettingsPage: React.FC = () => {
         <Box>
           <AdminPageTitle>Configuración de Fábrica</AdminPageTitle>
           <Typography variant="body1" color="text.secondary" sx={{ mt: 1, opacity: 0.8 }}>
-            Personaliza la identidad visual de tu fábrica en la plataforma.
+            Personaliza la identidad visual y el comportamiento de tu fábrica.
           </Typography>
         </Box>
       </Stack>
 
+      {/* Logo Section */}
       <Paper
         elevation={0}
         sx={{
@@ -117,6 +143,7 @@ const FactorySettingsPage: React.FC = () => {
           borderRadius: 3,
           border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
           maxWidth: 700,
+          mb: 3,
         }}
       >
         <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
@@ -127,7 +154,6 @@ const FactorySettingsPage: React.FC = () => {
           Formatos admitidos: PNG, JPG, WEBP. Máximo {MAX_FILE_SIZE_MB}MB.
         </Typography>
 
-        {/* Logo preview area */}
         <Box
           sx={{
             width: "100%",
@@ -166,7 +192,6 @@ const FactorySettingsPage: React.FC = () => {
           )}
         </Box>
 
-        {/* Actions */}
         {canEdit ? (
           <Stack direction="row" spacing={2} flexWrap="wrap">
             <input
@@ -227,6 +252,92 @@ const FactorySettingsPage: React.FC = () => {
           </Typography>
         )}
       </Paper>
+
+      {/* Assignment Mode Section — solo ADMIN */}
+      {isAdmin && (
+        <Paper
+          elevation={0}
+          sx={{
+            p: 4,
+            borderRadius: 3,
+            border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+            maxWidth: 700,
+          }}
+        >
+          <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1 }}>
+            <GroupAddIcon sx={{ color: "text.secondary", fontSize: 22 }} />
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              Asignación de usuarios a clientes
+            </Typography>
+          </Stack>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            Controla si un cliente puede tener varios usuarios asignados (SALES o MANAGER) o solo uno.
+          </Typography>
+
+          <Divider sx={{ mb: 3 }} />
+
+          {loading ? (
+            <Skeleton variant="rounded" width={320} height={56} />
+          ) : (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+                gap: 3,
+                flexWrap: "wrap",
+              }}
+            >
+              <Box sx={{ flex: 1, minWidth: 200 }}>
+                <Typography variant="body1" fontWeight={600} sx={{ mb: 0.5 }}>
+                  {multiAssigned ? "Multi-usuario habilitado" : "Usuario exclusivo"}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {multiAssigned
+                    ? "Un cliente puede tener varios SALES y/o MANAGER asignados."
+                    : "Cada cliente solo puede tener un usuario asignado (SALES o MANAGER)."}
+                </Typography>
+              </Box>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={multiAssigned}
+                    onChange={handleAssignmentModeToggle}
+                    disabled={updatingAssignment}
+                    color="primary"
+                    sx={{ ml: 1 }}
+                  />
+                }
+                label={
+                  updatingAssignment ? (
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <CircularProgress size={14} />
+                      <Typography variant="body2">Guardando...</Typography>
+                    </Stack>
+                  ) : (
+                    <Typography variant="body2" fontWeight={600} color={multiAssigned ? "primary.main" : "text.secondary"}>
+                      {multiAssigned ? "Activado" : "Desactivado"}
+                    </Typography>
+                  )
+                }
+                labelPlacement="start"
+                sx={{ m: 0 }}
+              />
+            </Box>
+          )}
+
+          <Alert
+            severity={multiAssigned ? "info" : "warning"}
+            sx={{ mt: 3, borderRadius: 2 }}
+          >
+            <Typography variant="caption">
+              {multiAssigned
+                ? "Al asignar usuarios, puedes seleccionar varios SALES o MANAGER para el mismo cliente."
+                : "Al asignar usuarios, solo se permitirá seleccionar uno. Si ya hay varios asignados, la próxima asignación los reemplazará."}
+            </Typography>
+          </Alert>
+        </Paper>
+      )}
 
       {/* Delete confirmation dialog */}
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)} maxWidth="xs" fullWidth>
