@@ -42,8 +42,7 @@ const CustomerItem: React.FC<CustomerItemProps> = ({ customer, selected, salesUs
     setMenuAnchor(e.currentTarget);
   };
 
-  const handleMenuClose = (e?: React.MouseEvent) => {
-    e?.stopPropagation();
+  const handleMenuClose = () => {
     setMenuAnchor(null);
   };
 
