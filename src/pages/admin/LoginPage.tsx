@@ -56,6 +56,8 @@ const LoginPage: React.FC = () => {
         navigate("/admin/orders", { replace: true });
       } else if (userRoles.includes(UserRole.OWNER)) {
         navigate("/admin/users", { replace: true });
+      } else if (userRoles.includes(UserRole.MANAGER)) {
+        navigate("/admin/orders", { replace: true });
       } else if (userRoles.includes(UserRole.SALES) || userRoles.includes(UserRole.USER)) {
         navigate("/my-quotes", { replace: true });
       } else if (userRoles.includes(UserRole.WORKER)) {

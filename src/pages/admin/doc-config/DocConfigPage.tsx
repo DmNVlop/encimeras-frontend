@@ -15,7 +15,7 @@ const DocConfigPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const canEdit = user?.roles.includes("ADMIN");
-  const canView = user?.roles.includes("ADMIN") || user?.roles.includes("OWNER");
+  const canView = user?.roles.includes("ADMIN") || user?.roles.includes("OWNER") || user?.roles.includes("MANAGER");
 
   // Redirect if no access
   useEffect(() => {

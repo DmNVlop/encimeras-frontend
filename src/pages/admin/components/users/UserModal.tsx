@@ -18,7 +18,7 @@ import {
 } from "@mui/material";
 import { Role, type User } from "@/interfases/user.interfase";
 import { useAuth } from "@/context/AuthProvider";
-import { getOwnerUsers } from "@/services/user.service";
+import { getManagerUsers, getOwnerUsers } from "@/services/user.service";
 
 const modalStyle = {
   position: "absolute" as "absolute",
@@ -45,35 +45,67 @@ const UserModal: React.FC<UserModalProps> = ({ open, onClose, onSubmit, user, is
   const [formData, setFormData] = useState<Partial<User>>({});
   const [password, setPassword] = useState("");
   const [roles, setRoles] = useState<Role[]>([]);
+  const [managersList, setManagersList] = useState<User[]>([]);
   const [ownersList, setOwnersList] = useState<User[]>([]);
+  const [selectedManagerId, setSelectedManagerId] = useState<string>("");
   const [selectedOwnerId, setSelectedOwnerId] = useState<string>("");
 
   const isOwner = currentUser?.roles.includes("OWNER");
+  const isManager = currentUser?.roles.includes("MANAGER");
   const isAdmin = currentUser?.roles.includes("ADMIN");
-  const availableRoles = isOwner ? [Role.SALES, Role.USER] : Object.values(Role);
+
+  const availableRoles = isAdmin
+    ? Object.values(Role)
+    : isOwner
+      ? [Role.MANAGER, Role.SALES, Role.WORKER, Role.USER]
+      : isManager
+        ? [Role.SALES, Role.WORKER, Role.USER]
+        : [Role.USER];
+
   const autoFactoryId = currentUser?.factoryId;
-  const showOwnerSelector = isAdmin && roles.includes(Role.SALES) && !isEditMode;
+
+  // ADMIN u OWNER crean SALES → deben seleccionar MANAGER
+  // ADMIN edita SALES → puede cambiar MANAGER
+  const showManagerSelector = (isAdmin || isOwner) && roles.includes(Role.SALES) && (!isEditMode || isAdmin);
+  // MANAGER crea SALES → se auto-asigna (no muestra selector)
+  const managerAutoAssigned = isManager && roles.includes(Role.SALES) && !isEditMode;
+  // ADMIN crea MANAGER → debe seleccionar OWNER
+  // ADMIN edita MANAGER → puede cambiar OWNER
+  const showOwnerSelector = isAdmin && roles.includes(Role.MANAGER) && !roles.includes(Role.OWNER) && (!isEditMode || isAdmin);
 
   useEffect(() => {
     if (open) {
       if (isEditMode && user) {
         setFormData(user);
         setRoles(user.roles || [Role.USER]);
-        setPassword(""); // No enviamos contraseña de vuelta
+        setPassword("");
+        setSelectedManagerId(user.managerId || "");
         setSelectedOwnerId(user.ownerId || "");
       } else {
         setFormData({ username: "", name: "", email: "", phone: "", factoryId: autoFactoryId });
         setRoles([Role.USER]);
         setPassword("");
+        setSelectedManagerId("");
         setSelectedOwnerId("");
       }
 
-      // Cargar lista de OWNERs si es ADMIN creando SALES
-      if (isAdmin && !isEditMode) {
+      if (isAdmin || isOwner) {
+        loadManagers();
+      }
+      if (isAdmin) {
         loadOwners();
       }
     }
-  }, [open, isEditMode, user, autoFactoryId, isAdmin]);
+  }, [open, isEditMode, user, autoFactoryId, isAdmin, isOwner]);
+
+  const loadManagers = async () => {
+    try {
+      const managers = await getManagerUsers();
+      setManagersList(managers);
+    } catch (error) {
+      console.error("Error loading managers:", error);
+    }
+  };
 
   const loadOwners = async () => {
     try {
@@ -90,18 +122,22 @@ const UserModal: React.FC<UserModalProps> = ({ open, onClose, onSubmit, user, is
   };
 
   const handleRolesChange = (event: any) => {
-    const {
-      target: { value },
-    } = event;
+    const { target: { value } } = event;
     setRoles(typeof value === "string" ? (value.split(",") as Role[]) : value);
+    setSelectedManagerId("");
+    setSelectedOwnerId("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validación: ADMIN creando SALES requiere ownerId
-    if (isAdmin && roles.includes(Role.SALES) && !selectedOwnerId && !isEditMode) {
-      alert("Debes seleccionar un OWNER gestor para usuarios SALES");
+    if ((isAdmin || isOwner) && roles.includes(Role.SALES) && !selectedManagerId) {
+      alert("Debes seleccionar un Manager para el usuario SALES");
+      return;
+    }
+
+    if (isAdmin && roles.includes(Role.MANAGER) && !roles.includes(Role.OWNER) && !selectedOwnerId) {
+      alert("Debes seleccionar un Owner para el usuario MANAGER");
       return;
     }
 
@@ -118,16 +154,17 @@ const UserModal: React.FC<UserModalProps> = ({ open, onClose, onSubmit, user, is
       submissionData.factoryId = autoFactoryId;
     }
 
-    // Si es ADMIN creando SALES, incluir ownerId
-    if (isAdmin && roles.includes(Role.SALES) && selectedOwnerId) {
+    if ((isAdmin || isOwner) && roles.includes(Role.SALES) && selectedManagerId) {
+      submissionData.managerId = selectedManagerId;
+    }
+
+    if (isAdmin && roles.includes(Role.MANAGER) && !roles.includes(Role.OWNER) && selectedOwnerId) {
       submissionData.ownerId = selectedOwnerId;
     }
 
     await onSubmit(submissionData);
     onClose();
   };
-
-  const allRoles = availableRoles;
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -144,7 +181,7 @@ const UserModal: React.FC<UserModalProps> = ({ open, onClose, onSubmit, user, is
           name="username"
           value={formData.username || ""}
           onChange={handleChange}
-          disabled={isEditMode} // Username suele ser inmutable en muchos sistemas
+          disabled={isEditMode}
           error={!!formData.username && formData.username.includes(" ")}
           helperText={formData.username && formData.username.includes(" ") ? "No se permiten espacios" : ""}
         />
@@ -167,7 +204,7 @@ const UserModal: React.FC<UserModalProps> = ({ open, onClose, onSubmit, user, is
 
         <TextField margin="normal" fullWidth label="Teléfono" name="phone" value={formData.phone || ""} onChange={handleChange} />
 
-        {isOwner && !isEditMode && (
+        {(isOwner || isManager) && !isEditMode && (
           <Alert severity="info" sx={{ mt: 1, mb: 1 }}>
             Los usuarios creados heredarán automáticamente el factoryId de tu cuenta.
           </Alert>
@@ -183,7 +220,7 @@ const UserModal: React.FC<UserModalProps> = ({ open, onClose, onSubmit, user, is
             input={<OutlinedInput label="Roles" />}
             renderValue={(selected) => selected.join(", ")}
           >
-            {allRoles.map((role) => (
+            {availableRoles.map((role) => (
               <MenuItem key={role} value={role}>
                 <Checkbox checked={roles.indexOf(role) > -1} />
                 <ListItemText primary={role} />
@@ -193,31 +230,71 @@ const UserModal: React.FC<UserModalProps> = ({ open, onClose, onSubmit, user, is
           <FormHelperText>Al menos un rol es requerido</FormHelperText>
         </FormControl>
 
-        {/* Selector de OWNER para ADMIN creando SALES */}
-        {showOwnerSelector && (
+        {/* Selector de MANAGER para ADMIN/OWNER creando SALES */}
+        {showManagerSelector && (
           <FormControl fullWidth margin="normal" required>
-            <InputLabel>OWNER Gestor</InputLabel>
-            <Select value={selectedOwnerId} onChange={(e) => setSelectedOwnerId(e.target.value)} label="OWNER Gestor">
-              {ownersList.map((owner) => (
-                <MenuItem key={owner._id} value={owner._id}>
-                  {owner.name || owner.username} ({owner.username})
-                </MenuItem>
-              ))}
+            <InputLabel>Manager Asignado</InputLabel>
+            <Select
+              value={selectedManagerId}
+              onChange={(e) => setSelectedManagerId(e.target.value)}
+              label="Manager Asignado"
+            >
+              {managersList.length === 0 ? (
+                <MenuItem disabled value="">Sin managers disponibles</MenuItem>
+              ) : (
+                managersList.map((manager) => (
+                  <MenuItem key={manager._id} value={manager._id}>
+                    {manager.name || manager.username} (@{manager.username})
+                  </MenuItem>
+                ))
+              )}
             </Select>
-            <FormHelperText>Selecciona el OWNER que gestionará este usuario SALES</FormHelperText>
+            <FormHelperText>Selecciona el Manager que gestionará este usuario SALES</FormHelperText>
           </FormControl>
         )}
 
-        {/* Alertas informativas */}
-        {isAdmin && roles.includes(Role.SALES) && !isEditMode && (
-          <Alert severity="info" sx={{ mt: 1 }}>
-            {selectedOwnerId ? "Usuario SALES será asignado al OWNER seleccionado" : "Debes seleccionar un OWNER gestor para usuarios SALES"}
+        {showManagerSelector && (
+          <Alert severity={selectedManagerId ? "success" : "warning"} sx={{ mt: 1 }}>
+            {selectedManagerId
+              ? "SALES será asignado al Manager seleccionado"
+              : "Debes seleccionar un Manager para este usuario SALES"}
           </Alert>
         )}
 
-        {isOwner && roles.includes(Role.SALES) && !isEditMode && (
+        {/* Selector de OWNER para ADMIN creando MANAGER */}
+        {showOwnerSelector && (
+          <FormControl fullWidth margin="normal" required>
+            <InputLabel>Owner Asignado</InputLabel>
+            <Select
+              value={selectedOwnerId}
+              onChange={(e) => setSelectedOwnerId(e.target.value)}
+              label="Owner Asignado"
+            >
+              {ownersList.length === 0 ? (
+                <MenuItem disabled value="">Sin owners disponibles</MenuItem>
+              ) : (
+                ownersList.map((owner) => (
+                  <MenuItem key={owner._id} value={owner._id}>
+                    {owner.name || owner.username} (@{owner.username})
+                  </MenuItem>
+                ))
+              )}
+            </Select>
+            <FormHelperText>Selecciona el Owner al que pertenecerá este Manager</FormHelperText>
+          </FormControl>
+        )}
+
+        {showOwnerSelector && (
+          <Alert severity={selectedOwnerId ? "success" : "warning"} sx={{ mt: 1 }}>
+            {selectedOwnerId
+              ? "MANAGER será asignado al Owner seleccionado"
+              : "Debes seleccionar un Owner para este usuario MANAGER"}
+          </Alert>
+        )}
+
+        {managerAutoAssigned && (
           <Alert severity="success" sx={{ mt: 1 }}>
-            Este usuario SALES será gestionado automáticamente por tu cuenta
+            Este usuario SALES quedará bajo tu gestión automáticamente
           </Alert>
         )}
 
@@ -229,7 +306,12 @@ const UserModal: React.FC<UserModalProps> = ({ open, onClose, onSubmit, user, is
             type="submit"
             fullWidth
             variant="contained"
-            disabled={roles.length === 0 || (!isEditMode && !password) || (isAdmin && roles.includes(Role.SALES) && !selectedOwnerId && !isEditMode)}
+            disabled={
+              roles.length === 0 ||
+              (!isEditMode && !password) ||
+              (showManagerSelector && !isEditMode && !selectedManagerId) ||
+              (showOwnerSelector && !isEditMode && !selectedOwnerId)
+            }
           >
             Guardar
           </Button>

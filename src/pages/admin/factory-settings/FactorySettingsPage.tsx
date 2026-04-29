@@ -35,6 +35,7 @@ const FactorySettingsPage: React.FC = () => {
   const { settings, logoUrl, loading, setSettings } = useFactorySettings();
 
   const canEdit = user?.roles.some((r) => r === "ADMIN" || r === "OWNER") ?? false;
+  // MANAGER puede ver config de fábrica pero no modificar logo (canEdit sigue siendo solo ADMIN/OWNER)
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);

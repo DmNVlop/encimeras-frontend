@@ -1,23 +1,6 @@
 // src/pages/admin/UsersPage.tsx
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  Box,
-  Button,
-  Chip,
-  TextField,
-  InputAdornment,
-  Select,
-  MenuItem,
-  FormControlLabel,
-  Checkbox,
-  Typography,
-  Stack,
-  Paper,
-  Snackbar,
-  Alert,
-  Tooltip,
-  IconButton,
-} from "@mui/material";
+import { Box, Button, Chip, TextField, InputAdornment, Typography, Stack, Paper, Snackbar, Alert, Tooltip, IconButton, Tab, Tabs, Badge } from "@mui/material";
 import { DataGrid, type GridColDef, GridActionsCellItem, type GridRowId, type GridRowSelectionModel } from "@mui/x-data-grid";
 import { esES } from "@mui/x-data-grid/locales";
 
@@ -30,20 +13,48 @@ import InfoIcon from "@mui/icons-material/Info";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import BusinessIcon from "@mui/icons-material/Business";
 import SellIcon from "@mui/icons-material/Sell";
-import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
+import EngineeringIcon from "@mui/icons-material/Engineering";
+import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
+
+import { useSearchParams } from "react-router-dom";
 import { Role, type User } from "@/interfases/user.interfase";
 import AdminPageTitle from "./components/AdminPageTitle";
 import UserModal from "./components/users/UserModal";
-import TransferOwnerDialog from "./components/users/TransferOwnerDialog";
+import AssignManagerDialog from "./components/users/AssignManagerDialog";
 import ConfirmDeleteDialog from "./components/users/ConfirmDeleteDialog";
 import { ApiErrorFeedback } from "../public/common/ApiErrorFeedback";
 import { useAuth } from "@/context/AuthProvider";
 import { getUsers, getManagedUsers, deleteUser, batchDeleteUsers, createUser, updateUser } from "@/services/user.service";
 
+const ROLE_TAB_CONFIG = [
+  {
+    label: "Todos",
+    value: "ALL",
+    color: undefined as "default" | "error" | "warning" | "success" | "info" | "secondary" | undefined,
+    icon: <PersonOutlineIcon fontSize="small" />,
+  },
+  { label: "Admin", value: Role.ADMIN, color: "error" as const, icon: <AdminPanelSettingsIcon fontSize="small" /> },
+  { label: "Owner", value: Role.OWNER, color: "secondary" as const, icon: <BusinessIcon fontSize="small" /> },
+  { label: "Manager", value: Role.MANAGER, color: "warning" as const, icon: <ManageAccountsIcon fontSize="small" /> },
+  { label: "Sales", value: Role.SALES, color: "success" as const, icon: <SellIcon fontSize="small" /> },
+  { label: "User", value: Role.USER, color: "default" as const, icon: <PersonIcon fontSize="small" /> },
+  { label: "Worker", value: Role.WORKER, color: "info" as const, icon: <EngineeringIcon fontSize="small" /> },
+];
+
+const ROLE_COLORS: Record<string, "default" | "error" | "warning" | "success" | "info" | "secondary"> = {
+  ADMIN: "error",
+  OWNER: "secondary",
+  MANAGER: "warning",
+  SALES: "success",
+  WORKER: "info",
+  USER: "default",
+};
+
 const UsersPage: React.FC = () => {
   const { user: currentAuthUser } = useAuth();
-  const [allUsers, setAllUsers] = useState<User[]>([]); // Complete list of all users
-  const [users, setUsers] = useState<User[]>([]); // Users after initial filtering
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -52,89 +63,96 @@ const UsersPage: React.FC = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
   const [error, setError] = useState<any>(null);
 
-  // Filtros y búsqueda
   const [search, setSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState<string>("ALL");
-  const [managedOnlyFilter, setManagedOnlyFilter] = useState(false);
 
-  // Selección múltiple
   const [selectionModel, setSelectionModel] = useState<GridRowSelectionModel>({
     type: "include",
     ids: new Set<GridRowId>(),
   });
 
-  // Modales
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  // Snackbar
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "success" | "error" }>({
     open: false,
     message: "",
     severity: "success",
   });
 
-  const isOwner = currentAuthUser?.roles.includes("OWNER");
-  const isAdmin = currentAuthUser?.roles.includes("ADMIN");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const roleTab = searchParams.get("role") ?? "ALL";
+
+  const setRoleTab = (value: string) => {
+    setPaginationModel((p) => ({ ...p, page: 0 }));
+    if (value === "ALL") {
+      setSearchParams({}, { replace: true });
+    } else {
+      setSearchParams({ role: value }, { replace: true });
+    }
+  };
+
+  const currentRoles = currentAuthUser?.roles ?? [];
+  const isAdmin = currentRoles.includes("ADMIN");
+  const isOwner = currentRoles.includes("OWNER");
+  const isManager = currentRoles.includes("MANAGER");
+
+  // ADMIN: todos los tabs. OWNER: Manager/Sales/Worker/User + "Todos". MANAGER: Sales + "Todos". Resto: solo "Todos".
+  const OWNER_TABS = new Set([Role.MANAGER, Role.SALES, Role.WORKER, Role.USER] as string[]);
+  const visibleTabs = ROLE_TAB_CONFIG.filter((tab) => {
+    if (isAdmin) return true;
+    if (tab.value === "ALL") return true;
+    if (isOwner) return OWNER_TABS.has(tab.value);
+    if (isManager) return tab.value === Role.SALES;
+    return false;
+  });
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      let data: User[];
-
-      if (isOwner && managedOnlyFilter) {
-        // OWNER usando filtro "Solo mis SALES"
-        data = await getManagedUsers();
-      } else {
-        // Todos los usuarios o filtro por rol
-        data = await getUsers({ role: roleFilter !== "ALL" ? roleFilter : undefined });
-      }
-
-      // Filtrar usuarios que no tengan _id para evitar errores en DataGrid
-      const validUsers = data.filter((user) => !!user._id);
-      const invalidUsers = data.filter((user) => !user._id);
-      if (invalidUsers.length > 0) {
-        console.warn(`${invalidUsers.length} usuarios sin _id recibidos:`, invalidUsers);
-      }
-      // Always update allUsers with the complete list
-      setAllUsers(validUsers);
+      // MANAGER: usa /users/managed (solo sus SALES)
+      // SALES/WORKER/USER: GET /users devuelve solo su propio perfil
+      // OWNER/ADMIN: GET /users con scope completo
+      const data = isManager ? await getManagedUsers() : await getUsers({});
+      const validUsers = data.filter((u) => !!u._id);
+      // MANAGER no aparece en getManagedUsers() — añadirlo para que el lookup de manager en columnas funcione
+      const usersWithSelf =
+        isManager && currentAuthUser && !validUsers.find((u) => u._id === currentAuthUser._id)
+          ? [currentAuthUser as User, ...validUsers]
+          : validUsers;
+      setAllUsers(usersWithSelf);
       setUsers(validUsers);
-      setFilteredUsers(validUsers); // Inicialmente mostrar todos
+      setFilteredUsers(validUsers);
     } catch (err) {
-      console.error("Error loading users:", err);
       setError(err);
     } finally {
       setLoading(false);
     }
-  }, [isOwner, managedOnlyFilter, roleFilter]);
+  }, [isManager, currentAuthUser]);
 
   useEffect(() => {
     loadUsers();
   }, [loadUsers]);
 
-  // Filtrado local (búsqueda)
   useEffect(() => {
     const term = search.toLowerCase();
-    const filtered = users
-      .filter((user) => !!user._id) // Filtrar usuarios sin _id para evitar errores
-      .filter((user) => {
-        const matchesSearch =
-          user.username.toLowerCase().includes(term) ||
-          (user.name && user.name.toLowerCase().includes(term)) ||
-          (user.email && user.email.toLowerCase().includes(term));
+    const filtered = users.filter((u) => {
+      if (!u._id) return false;
 
-        // Filtro por rol (ya se aplica en loadUsers, pero mantenemos por si hay cambio de filtro)
-        const matchesRole = roleFilter === "ALL" || user.roles.includes(roleFilter as Role);
+      const matchesSearch =
+        u.username.toLowerCase().includes(term) || (u.name && u.name.toLowerCase().includes(term)) || (u.email && u.email.toLowerCase().includes(term));
 
-        // Si OWNER y managedOnlyFilter activo, filtrar solo sus SALES
-        const matchesManaged = !managedOnlyFilter || (user.ownerId === currentAuthUser?.id && user.roles.includes(Role.SALES));
+      const matchesRole = roleTab === "ALL" || u.roles.includes(roleTab as Role);
 
-        return matchesSearch && matchesRole && matchesManaged;
-      });
-
+      return matchesSearch && matchesRole;
+    });
     setFilteredUsers(filtered);
-  }, [search, users, roleFilter, managedOnlyFilter, currentAuthUser]);
+  }, [search, users, roleTab]);
+
+  const countByRole = (role: string) => {
+    if (role === "ALL") return users.length;
+    return users.filter((u) => u.roles.includes(role as Role)).length;
+  };
 
   const handleOpen = (user?: User) => {
     setIsEditMode(!!user);
@@ -151,7 +169,6 @@ const UsersPage: React.FC = () => {
         loadUsers();
         setSnackbar({ open: true, message: "Usuario eliminado exitosamente", severity: "success" });
       } catch (err) {
-        console.error("Error deleting user:", err);
         setError(err);
         setSnackbar({ open: true, message: "Error al eliminar usuario", severity: "error" });
       }
@@ -168,7 +185,6 @@ const UsersPage: React.FC = () => {
         setDeleteDialogOpen(false);
         setSnackbar({ open: true, message: `${selectedCount} usuario(s) eliminados exitosamente`, severity: "success" });
       } catch (err) {
-        console.error("Error deleting users:", err);
         setSnackbar({ open: true, message: "Error al eliminar usuarios", severity: "error" });
       }
     }
@@ -187,15 +203,13 @@ const UsersPage: React.FC = () => {
       loadUsers();
       handleClose();
     } catch (err) {
-      console.error("Error saving user:", err);
       setError(err);
-      if (typeof err === "object" && err !== null && "statusCode" in err) {
-        const backendError = err as any;
-        if (backendError.statusCode === 409) {
-          setSnackbar({ open: true, message: "El nombre de usuario ya está en uso", severity: "error" });
-        } else {
-          setSnackbar({ open: true, message: "Error al guardar usuario", severity: "error" });
-        }
+      const backendError = err as any;
+      const backendMessage = Array.isArray(backendError?.message) ? backendError.message.join(". ") : backendError?.message;
+      if (backendError?.statusCode === 409) {
+        setSnackbar({ open: true, message: "El nombre de usuario ya está en uso", severity: "error" });
+      } else if (backendMessage) {
+        setSnackbar({ open: true, message: backendMessage, severity: "error" });
       } else {
         setSnackbar({ open: true, message: "Error al guardar usuario", severity: "error" });
       }
@@ -203,13 +217,13 @@ const UsersPage: React.FC = () => {
   };
 
   const columns: GridColDef<User>[] = [
-    { field: "username", headerName: "Usuario", width: 150 },
-    { field: "name", headerName: "Nombre", width: 200 },
+    { field: "username", headerName: "Usuario", width: 140 },
+    { field: "name", headerName: "Nombre", width: 180 },
     { field: "email", headerName: "Email", width: 200 },
     {
       field: "roles",
       headerName: "Roles",
-      width: 280,
+      width: 260,
       renderCell: (params) => (
         <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap", alignItems: "center", height: "100%" }}>
           {params.value?.map((role: string) => (
@@ -217,75 +231,90 @@ const UsersPage: React.FC = () => {
               key={role}
               label={role}
               size="small"
-              variant="outlined"
-              color={role === "ADMIN" ? "error" : role === "OWNER" ? "secondary" : role === "SALES" ? "success" : "default"}
-              icon={role === "ADMIN" ? <AdminPanelSettingsIcon /> : role === "OWNER" ? <BusinessIcon /> : role === "SALES" ? <SellIcon /> : undefined}
+              variant="filled"
+              color={ROLE_COLORS[role] ?? "default"}
+              icon={
+                role === "ADMIN" ? (
+                  <AdminPanelSettingsIcon />
+                ) : role === "OWNER" ? (
+                  <BusinessIcon />
+                ) : role === "MANAGER" ? (
+                  <ManageAccountsIcon />
+                ) : role === "SALES" ? (
+                  <SellIcon />
+                ) : role === "WORKER" ? (
+                  <EngineeringIcon />
+                ) : undefined
+              }
+              sx={{ fontWeight: 600, fontSize: "0.7rem" }}
             />
           ))}
         </Box>
       ),
     },
     {
-      field: "ownerId",
-      headerName: "Gestionado por",
-      width: 200,
+      field: "managerId",
+      headerName: "Manager",
+      width: 180,
       renderCell: (params) => {
-        if (!params.value) return <Chip label="N/A" size="small" />;
-
-        const owner = allUsers.find((u) => u._id === params.value);
-        return <Chip label={owner?.name || owner?.username || "Unknown"} size="small" variant="outlined" color="secondary" icon={<PersonIcon />} />;
+        if (!params.value)
+          return (
+            <Typography variant="caption" color="text.disabled">
+              —
+            </Typography>
+          );
+        const manager = allUsers.find((u) => u._id === params.value);
+        return <Chip label={manager?.name || manager?.username || "—"} size="small" variant="outlined" color="warning" icon={<ManageAccountsIcon />} />;
       },
     },
     {
       field: "createdBy",
       headerName: "Creado por",
-      width: 180,
+      width: 160,
       renderCell: (params) => {
         const creator = allUsers.find((u) => u._id === params.value);
-        return creator ? creator.name || creator.username : "-";
+        return (
+          <Typography variant="caption" color="text.secondary">
+            {creator ? creator.name || creator.username : "—"}
+          </Typography>
+        );
       },
     },
     {
-      field: "factoryId",
-      headerName: "Factory ID",
-      width: 180,
-      renderCell: (params) => <Chip label={params.value || "-"} size="small" variant="outlined" color={params.value ? "info" : "default"} />,
-    },
-    {
       field: "createdAt",
-      headerName: "Creado",
-      width: 180,
-      valueFormatter: (value) => (value ? new Date(value).toLocaleString() : ""),
+      headerName: "Alta",
+      width: 120,
+      valueFormatter: (value) => (value ? new Date(value).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }) : ""),
     },
     {
-      field: "hierarchy",
-      headerName: "Info",
-      width: 60,
+      field: "info",
+      headerName: "",
+      width: 48,
+      sortable: false,
       renderCell: (params) => {
-        const user = params.row as User;
-        const owner = allUsers.find((u) => u._id === user.ownerId);
-        const creator = allUsers.find((u) => u._id === user.createdBy);
-
+        const u = params.row as User;
+        const manager = allUsers.find((x) => x._id === u.managerId);
+        const creator = allUsers.find((x) => x._id === u.createdBy);
         return (
           <Tooltip
             title={
-              <Box sx={{ p: 1 }}>
+              <Box sx={{ p: 0.5 }}>
                 <Typography variant="caption" display="block">
                   <strong>Creado por:</strong> {creator?.name || creator?.username || "N/A"}
                 </Typography>
-                {user.ownerId && (
+                {u.managerId && (
                   <Typography variant="caption" display="block">
-                    <strong>Gestionado por:</strong> {owner?.name || owner?.username}
+                    <strong>Manager:</strong> {manager?.name || manager?.username}
                   </Typography>
                 )}
                 <Typography variant="caption" display="block">
-                  <strong>Factory:</strong> {user.factoryId || "N/A"}
+                  <strong>Factory:</strong> {u.factoryId || "N/A"}
                 </Typography>
               </Box>
             }
             arrow
           >
-            <IconButton size="small">
+            <IconButton size="small" sx={{ opacity: 0.4, "&:hover": { opacity: 1 } }}>
               <InfoIcon fontSize="small" />
             </IconButton>
           </Tooltip>
@@ -296,7 +325,7 @@ const UsersPage: React.FC = () => {
       field: "actions",
       type: "actions",
       headerName: "Acciones",
-      width: 120,
+      width: 100,
       getActions: (params) => [
         <GridActionsCellItem icon={<EditIcon />} label="Editar" onClick={() => handleOpen(params.row)} />,
         <GridActionsCellItem icon={<DeleteIcon />} label="Eliminar" onClick={() => handleDelete(params.id as string)} />,
@@ -308,7 +337,7 @@ const UsersPage: React.FC = () => {
 
   return (
     <Box>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
         <AdminPageTitle>Gestión de Usuarios</AdminPageTitle>
         <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpen()}>
           Añadir Usuario
@@ -317,54 +346,76 @@ const UsersPage: React.FC = () => {
 
       <ApiErrorFeedback error={error} title="Error en Gestión de Usuarios" onRetry={loadUsers} />
 
-      {/* Barra de filtros */}
-      <Box sx={{ mb: 2, display: "flex", gap: 2, alignItems: "center" }}>
+      {/* Tabs por rol */}
+      <Paper variant="outlined" sx={{ mb: 2, borderRadius: 2, overflow: "hidden" }}>
+        <Tabs
+          value={roleTab}
+          onChange={(_, v) => setRoleTab(v)}
+          variant="scrollable"
+          scrollButtons="auto"
+          sx={{
+            minHeight: 44,
+            "& .MuiTab-root": { minHeight: 44, textTransform: "none", fontWeight: 500, fontSize: "0.82rem", gap: 0.5, px: 2 },
+          }}
+        >
+          {visibleTabs.map((tab) => {
+            const count = countByRole(tab.value);
+            return (
+              <Tab
+                key={tab.value}
+                value={tab.value}
+                label={
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                    {tab.icon}
+                    <span>{tab.label}</span>
+                    {count > 0 && (
+                      <Badge
+                        badgeContent={count}
+                        color={tab.color ?? "default"}
+                        sx={{ "& .MuiBadge-badge": { position: "static", transform: "none", fontSize: "0.65rem", height: 16, minWidth: 16 } }}
+                      />
+                    )}
+                  </Box>
+                }
+              />
+            );
+          })}
+        </Tabs>
+      </Paper>
+
+      {/* Búsqueda */}
+      <Box sx={{ mb: 2 }}>
         <TextField
-          placeholder="Buscar por nombre, username, email..."
+          fullWidth
+          placeholder="Buscar por nombre, username o email..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          size="small"
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon />
+                <SearchIcon fontSize="small" />
               </InputAdornment>
             ),
           }}
-          sx={{ flexGrow: 1 }}
         />
-
-        <Select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} sx={{ minWidth: 150 }}>
-          <MenuItem value="ALL">Todos los roles</MenuItem>
-          {Object.values(Role).map((role) => (
-            <MenuItem key={role} value={role}>
-              {role}
-            </MenuItem>
-          ))}
-        </Select>
-
-        {isOwner && (
-          <FormControlLabel
-            control={<Checkbox checked={managedOnlyFilter} onChange={(e) => setManagedOnlyFilter(e.target.checked)} />}
-            label="Solo mis SALES"
-          />
-        )}
       </Box>
 
-      {/* Barra de acciones masivas */}
+      {/* Acciones masivas */}
       {selectionModel.ids.size > 0 && (
         <Paper sx={{ mb: 2, p: 2, bgcolor: "primary.light", borderRadius: 1 }}>
           <Typography variant="body2" sx={{ mb: 1 }}>
             {selectionModel.ids.size} usuario(s) seleccionado(s)
           </Typography>
           <Stack direction="row" spacing={2}>
-            {isAdmin && (
+            {(isAdmin || currentAuthUser?.roles.includes("OWNER")) && (
               <Button
                 variant="contained"
-                startIcon={<SwapHorizIcon />}
+                startIcon={<ManageAccountsIcon />}
                 onClick={() => setTransferDialogOpen(true)}
                 disabled={selectedUsersList.every((u) => !u.roles.includes(Role.SALES))}
               >
-                Transferir Ownership
+                Asignar Manager
               </Button>
             )}
             <Button variant="outlined" color="error" startIcon={<DeleteIcon />} onClick={handleBatchDelete}>
@@ -378,7 +429,7 @@ const UsersPage: React.FC = () => {
       )}
 
       {/* DataGrid */}
-      <Box sx={{ height: "calc(100vh - 250px)", width: "100%" }}>
+      <Box sx={{ height: "calc(100vh - 310px)", width: "100%" }}>
         <DataGrid
           rows={filteredUsers}
           columns={columns}
@@ -391,21 +442,26 @@ const UsersPage: React.FC = () => {
           checkboxSelection
           onRowSelectionModelChange={setSelectionModel}
           rowSelectionModel={selectionModel}
+          sx={{
+            borderRadius: 2,
+            "& .MuiDataGrid-row:hover": { bgcolor: "rgba(99,102,241,0.03)" },
+            "& .MuiDataGrid-columnHeader": { bgcolor: "rgba(0,0,0,0.02)", fontWeight: 700, fontSize: "0.78rem" },
+          }}
         />
       </Box>
 
-      {/* Modales */}
       <UserModal open={open} onClose={handleClose} onSubmit={handleSubmit} user={currentUser} isEditMode={isEditMode} />
 
-      <TransferOwnerDialog
+      <AssignManagerDialog
         open={transferDialogOpen}
         onClose={() => setTransferDialogOpen(false)}
         userIds={Array.from(selectionModel.ids) as string[]}
         users={allUsers}
+        allUsers={allUsers}
         onTransferComplete={() => {
           loadUsers();
           setSelectionModel({ type: "include", ids: new Set<GridRowId>() });
-          setSnackbar({ open: true, message: "Usuarios transferidos exitosamente", severity: "success" });
+          setSnackbar({ open: true, message: "Manager asignado exitosamente", severity: "success" });
         }}
       />
 
@@ -418,7 +474,6 @@ const UsersPage: React.FC = () => {
         count={selectionModel.ids.size}
       />
 
-      {/* Snackbar para feedback */}
       <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
         <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: "100%" }}>
           {snackbar.message}

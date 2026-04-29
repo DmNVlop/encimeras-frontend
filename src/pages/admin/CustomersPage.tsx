@@ -70,7 +70,7 @@ const CustomersPage: React.FC = () => {
     severity: "success",
   });
 
-  const isAdminOrOwner = currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("OWNER");
+  const isAdminOrOwner = currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("OWNER") || currentUser?.roles?.includes("MANAGER");
   const isWorker = currentUser?.roles?.includes("WORKER");
   const showAuthor = isAdminOrOwner || isWorker;
 

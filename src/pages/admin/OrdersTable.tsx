@@ -43,7 +43,7 @@ export const OrdersPage: React.FC = () => {
   const { user } = useAuth();
 
   // Protección: verificar rol
-  const hasAccess = user?.roles?.some((role) => role === Role.ADMIN || role === Role.SALES);
+  const hasAccess = user?.roles?.some((role) => role === Role.ADMIN || role === Role.OWNER || role === Role.MANAGER || role === Role.SALES);
 
   // GESTIÓN DE URL (Deep Linking)
   const [searchParams, setSearchParams] = useSearchParams();

@@ -1,9 +1,10 @@
 export const Role = {
-  ADMIN: "ADMIN", // Superusuario
-  OWNER: "OWNER", // Propietario de fábrica
-  USER: "USER", // Cliente final
-  SALES: "SALES", // Comercial / Vendedor
-  WORKER: "WORKER", // Operario de fábrica
+  ADMIN: "ADMIN",     // Superusuario
+  OWNER: "OWNER",     // Propietario de fábrica
+  MANAGER: "MANAGER", // Gerente de fábrica
+  SALES: "SALES",     // Comercial / Vendedor
+  WORKER: "WORKER",   // Operario de fábrica
+  USER: "USER",       // Cliente final
 } as const;
 
 export type Role = (typeof Role)[keyof typeof Role];
@@ -17,8 +18,9 @@ export interface User {
   phone?: string; // Teléfono
   roles: Role[]; // Array de roles
   factoryId?: string; // ID de fábrica (requerido para roles OWNER)
-  ownerId?: string; // ⭐ NUEVO: Referencia al OWNER que gestiona este usuario
-  createdBy?: string; // ⭐ NUEVO: ID del usuario que creó este registro
+  ownerId?: string; // Referencia al OWNER que gestiona este usuario
+  managerId?: string; // MANAGER asignado a este usuario SALES
+  createdBy?: string; // ID del usuario que creó este registro
   createdAt: string;
   updatedAt: string;
   password?: string; // Opcional para creación/edición

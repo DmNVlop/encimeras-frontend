@@ -12,24 +12,24 @@ export const shapeVariations: ShapeVariation[] = [
     pieces: [{ id: "p1", area: "1 / 1 / 2 / 3" }],
     defaultMeasurements: [{ length_mm: 2000, width_mm: 600 }],
   },
-  {
-    id: "LINEAR_RADIUS_CORNER",
-    group: "LINEAL",
-    name: "Pieza/Isla Redondo",
-    count: 1,
-    grid: { columns: "1fr 1fr", rows: "1fr", aspectRatio: "3 / 1" },
-    pieces: [{ id: "p1", area: "1 / 1 / 2 / 3", borderRadius: "200px 200px 200px 200px" }],
-    defaultMeasurements: [{ length_mm: 2000, width_mm: 600 }],
-  },
-  {
-    id: "LINEAR_CIRCLE",
-    group: "LINEAL",
-    name: "Pieza/Isla Circular",
-    count: 1,
-    grid: { columns: "1fr", rows: "1fr", aspectRatio: "1 / 1" },
-    pieces: [{ id: "p1", area: "1 / 1 / 2 / 2", borderRadius: "50%" }],
-    defaultMeasurements: [{ length_mm: 1200, width_mm: 1200 }],
-  },
+  // {
+  //   id: "LINEAR_RADIUS_CORNER",
+  //   group: "LINEAL",
+  //   name: "Pieza/Isla Redondo",
+  //   count: 1,
+  //   grid: { columns: "1fr 1fr", rows: "1fr", aspectRatio: "3 / 1" },
+  //   pieces: [{ id: "p1", area: "1 / 1 / 2 / 3", borderRadius: "200px 200px 200px 200px" }],
+  //   defaultMeasurements: [{ length_mm: 2000, width_mm: 600 }],
+  // },
+  // {
+  //   id: "LINEAR_CIRCLE",
+  //   group: "LINEAL",
+  //   name: "Pieza/Isla Circular",
+  //   count: 1,
+  //   grid: { columns: "1fr", rows: "1fr", aspectRatio: "1 / 1" },
+  //   pieces: [{ id: "p1", area: "1 / 1 / 2 / 2", borderRadius: "50%" }],
+  //   defaultMeasurements: [{ length_mm: 1200, width_mm: 1200 }],
+  // },
 
   // --- FORMA L ---
   {

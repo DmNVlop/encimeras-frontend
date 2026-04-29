@@ -1,6 +1,6 @@
 import { get, post, update, remove } from "./api.service";
 import type { User } from "@/interfases/user.interfase";
-import type { TransferOwnerDto, BatchTransferDto, BatchTransferResponse } from "@/interfases/transfer-owner.dto";
+import type { TransferOwnerDto, BatchTransferDto, TransferManagerDto, BatchTransferManagerDto, BatchTransferResponse } from "@/interfases/transfer-owner.dto";
 
 const ENDPOINT = "/users";
 
@@ -25,6 +25,10 @@ export const getOwnerUsers = (): Promise<User[]> => {
   return getUsers({ role: "OWNER" });
 };
 
+export const getManagerUsers = (): Promise<User[]> => {
+  return get<User[]>(`${ENDPOINT}/managers`);
+};
+
 export const getSalesUsers = (): Promise<User[]> => {
   return getUsers({ role: "SALES" });
 };
@@ -47,6 +51,14 @@ export const transferOwner = (userId: string, dto: TransferOwnerDto): Promise<Us
 
 export const batchTransferOwner = (dto: BatchTransferDto): Promise<BatchTransferResponse> => {
   return post<BatchTransferResponse>(`${ENDPOINT}/batch-transfer`, dto);
+};
+
+export const transferManager = (userId: string, dto: TransferManagerDto): Promise<User> => {
+  return post<User>(`${ENDPOINT}/${userId}/transfer-manager`, dto);
+};
+
+export const batchTransferManager = (dto: BatchTransferManagerDto): Promise<BatchTransferResponse> => {
+  return post<BatchTransferResponse>(`${ENDPOINT}/batch-transfer-manager`, dto);
 };
 
 export const batchDeleteUsers = (userIds: string[]): Promise<void> => {
