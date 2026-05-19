@@ -66,7 +66,7 @@ const UserModal: React.FC<UserModalProps> = ({ open, onClose, onSubmit, user, is
 
   // ADMIN u OWNER crean SALES → deben seleccionar MANAGER
   // ADMIN edita SALES → puede cambiar MANAGER
-  const showManagerSelector = (isAdmin || isOwner) && roles.includes(Role.SALES) && (!isEditMode || isAdmin);
+  const showManagerSelector = (isAdmin || isOwner) && roles.includes(Role.SALES);
   // MANAGER crea SALES → se auto-asigna (no muestra selector)
   const managerAutoAssigned = isManager && roles.includes(Role.SALES) && !isEditMode;
   // ADMIN crea MANAGER → debe seleccionar OWNER
@@ -309,8 +309,8 @@ const UserModal: React.FC<UserModalProps> = ({ open, onClose, onSubmit, user, is
             disabled={
               roles.length === 0 ||
               (!isEditMode && !password) ||
-              (showManagerSelector && !isEditMode && !selectedManagerId) ||
-              (showOwnerSelector && !isEditMode && !selectedOwnerId)
+              (showManagerSelector && !selectedManagerId) ||
+              (showOwnerSelector && !selectedOwnerId)
             }
           >
             Guardar

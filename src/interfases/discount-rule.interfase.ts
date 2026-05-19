@@ -29,9 +29,7 @@ export interface IDiscountRuleConditions {
   startDate?: Date | string;
   endDate?: Date | string;
   customerStrategy: CustomerStrategy;
-  targetCustomers: string[]; // ObjectIds
-  targetMaterials?: string[]; // IDs
-  targetCategories?: string[]; // Strings
+  targetCustomers: string[];
   minOrderValue?: number;
 }
 
@@ -41,6 +39,8 @@ export interface IDiscountRule {
   type: DiscountType;
   value: number;
   scope: DiscountScope;
+  targetMaterials?: string[];
+  targetCategories?: string[];
   priority: number;
   collisionStrategy: CollisionStrategy;
   stackable: boolean;

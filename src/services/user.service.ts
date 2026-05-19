@@ -1,4 +1,5 @@
 import { get, post, update, remove } from "./api.service";
+import apiClient from "./api.service";
 import type { User } from "@/interfases/user.interfase";
 import type { TransferOwnerDto, BatchTransferDto, TransferManagerDto, BatchTransferManagerDto, BatchTransferResponse } from "@/interfases/transfer-owner.dto";
 
@@ -61,6 +62,9 @@ export const batchTransferManager = (dto: BatchTransferManagerDto): Promise<Batc
   return post<BatchTransferResponse>(`${ENDPOINT}/batch-transfer-manager`, dto);
 };
 
-export const batchDeleteUsers = (userIds: string[]): Promise<void> => {
-  return remove(`${ENDPOINT}/batch`, userIds);
+export const batchDeleteUsers = (userIds: string[]): Promise<{ deleted: number; failed: string[] }> => {
+  if (userIds.length === 1) {
+    return apiClient.delete(`${ENDPOINT}/${userIds[0]}`).then((res) => res.data);
+  }
+  return apiClient.delete(`${ENDPOINT}/batch`, { data: { userIds } }).then((res) => res.data);
 };
