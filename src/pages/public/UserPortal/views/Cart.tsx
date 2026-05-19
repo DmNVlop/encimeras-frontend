@@ -6,6 +6,7 @@ import {
   Button,
   Card,
   CardContent,
+  Collapse,
   Divider,
   IconButton,
   List,
@@ -25,20 +26,66 @@ import {
   Construction as ConstructionIcon,
   Edit as EditIcon,
   InfoOutlined as InfoOutlinedIcon,
-  ViewInAr as ViewInArIcon,
-  BuildOutlined as BuildOutlinedIcon,
+  ExpandMore as ExpandMoreIcon,
 } from "@mui/icons-material";
 import { useCart } from "@/context/CartContext";
 import { useCartLoadAction } from "@/hooks/useCartLoadAction";
 import { CartLoadConflictDialog } from "@/components/cart/CartLoadConflictDialog";
 import { DraftNamingDialog } from "@/pages/public/QuoteWizard/components/DraftNamingDialog";
 import { CustomerSelection } from "@/pages/public/QuoteWizard/steps/components/step5/CustomerSelection";
+import PriceBreakdownPanel from "@/components/cart/PriceBreakdownPanel";
 import type { ICustomer } from "@/interfases/customer.interfase";
 import { get } from "@/services/api.service";
 import { useAuth } from "@/context/AuthProvider";
 
 // Importación diferida (Lazy Load) del módulo pesado PDF
 const LazyDownloadPdfButton = lazy(() => import("@/components/cart/DownloadPdfButton"));
+
+// Sub-componente: desglose colapsable de un ítem del carrito
+function CartItemBreakdown({ item, theme }: { item: any; theme: any }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Box>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          px: 2,
+          py: 0.75,
+          bgcolor: alpha(theme.palette.primary.main, 0.03),
+          borderTop: "1px solid",
+          borderColor: "divider",
+          cursor: "pointer",
+          userSelect: "none",
+        }}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <Typography variant="caption" color="primary.main" fontWeight={600} sx={{ textTransform: "uppercase", letterSpacing: 0.5 }}>
+          Ver desglose de precios
+        </Typography>
+        <ExpandMoreIcon
+          fontSize="small"
+          sx={{
+            color: "primary.main",
+            transform: open ? "rotate(180deg)" : "rotate(0deg)",
+            transition: "transform 0.2s",
+          }}
+        />
+      </Box>
+      <Collapse in={open}>
+        <Box sx={{ px: 2, py: 1.5, borderTop: "1px solid", borderColor: "divider" }}>
+          <PriceBreakdownPanel
+            piecesBreakdown={item.piecesBreakdown}
+            originalPoints={item.originalPoints ?? item.subtotalPoints}
+            subtotalPoints={item.subtotalPoints}
+            discountAmount={item.discountAmount ?? 0}
+          />
+        </Box>
+      </Collapse>
+    </Box>
+  );
+}
 
 export default function Cart() {
   const theme = useTheme();
@@ -300,159 +347,46 @@ export default function Cart() {
                 elevation={0}
                 sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}
               >
-                <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
-                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                    <Box sx={{ display: "flex", gap: 2 }}>
-                      <Avatar sx={{ bgcolor: alpha(theme.palette.secondary.main, 0.1), color: theme.palette.secondary.main, borderRadius: 2 }}>
+                <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
+                  {/* Cabecera del ítem */}
+                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", p: 2 }}>
+                    <Box sx={{ display: "flex", gap: 2, flex: 1, minWidth: 0 }}>
+                      <Avatar sx={{ bgcolor: alpha(theme.palette.secondary.main, 0.1), color: theme.palette.secondary.main, borderRadius: 2, flexShrink: 0 }}>
                         <DescriptionIcon />
                       </Avatar>
-                      <Box>
-                        <Typography variant="subtitle1" fontWeight="bold">
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography variant="subtitle1" fontWeight="bold" noWrap>
                           {item.customName}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <Typography variant="body2" color="text.secondary">
                           {item.hydratedContext?.materials?.[0]?.name || item.uiState?.wizardTempMaterial?.materialName || "Configuración Personalizada"}
-                        </Typography>
-
-                        {/* Detalles técnicos de las Piezas */}
-                        {item.core.mainPieces && item.core.mainPieces.length > 0 && (
-                          <Box sx={{ mt: 2 }}>
-                            <Typography
-                              variant="caption"
-                              fontWeight="bold"
-                              color="text.secondary"
-                              sx={{ textTransform: "uppercase", letterSpacing: 1, mb: 1, display: "inline-block" }}
-                            >
-                              Desglose Técnico ({item.core.mainPieces.length} piezas)
+                          {item.piecesBreakdown && item.piecesBreakdown.length > 0 && (
+                            <Typography component="span" variant="caption" color="text.disabled" sx={{ ml: 1 }}>
+                              · {item.piecesBreakdown.length} pieza{item.piecesBreakdown.length !== 1 ? "s" : ""}
                             </Typography>
-                            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                              {item.core.mainPieces.map((piece, idx) => (
-                                <Paper
-                                  key={idx}
-                                  elevation={0}
-                                  sx={{
-                                    p: 1.5,
-                                    bgcolor: alpha(theme.palette.primary.light, 0.05),
-                                    border: "1px solid",
-                                    borderColor: alpha(theme.palette.primary.main, 0.1),
-                                    borderRadius: 2,
-                                    minWidth: 160,
-                                    transition: "all 0.2s ease-in-out",
-                                    "&:hover": {
-                                      bgcolor: alpha(theme.palette.primary.light, 0.1),
-                                      borderColor: alpha(theme.palette.primary.main, 0.3),
-                                      transform: "translateY(-2px)",
-                                    },
-                                  }}
-                                >
-                                  <Typography
-                                    variant="caption"
-                                    fontWeight="bold"
-                                    color="primary.main"
-                                    gutterBottom
-                                    sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
-                                  >
-                                    <ViewInArIcon sx={{ fontSize: 14 }} /> PIEZA {idx + 1}
-                                  </Typography>
-                                  <Typography variant="body2" color="text.primary" fontWeight="medium">
-                                    {piece.length_mm}{" "}
-                                    <Typography component="span" variant="caption" color="text.secondary">
-                                      x
-                                    </Typography>{" "}
-                                    {piece.width_mm}{" "}
-                                    <Typography component="span" variant="caption" color="text.secondary">
-                                      mm
-                                    </Typography>
-                                  </Typography>
-
-                                  {piece.appliedAddons && piece.appliedAddons.length > 0 && (
-                                    <Box sx={{ mt: 1, pt: 1, borderTop: "1px dashed", borderColor: alpha(theme.palette.divider, 0.8) }}>
-                                      <Typography variant="caption" color="text.secondary" sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                                        <BuildOutlinedIcon sx={{ fontSize: 12, color: "text.secondary" }} /> {piece.appliedAddons.length}{" "}
-                                        {piece.appliedAddons.length === 1 ? "proceso" : "procesos"} adicionales
-                                      </Typography>
-                                    </Box>
-                                  )}
-                                </Paper>
-                              ))}
-                            </Box>
-                          </Box>
-                        )}
-
-                        {/* Feedback de Descuentos Individuales */}
-                        {item.discountAmount > 0 ? (
-                          <Box
-                            sx={{
-                              mt: 1,
-                              p: 1,
-                              bgcolor: alpha(theme.palette.success.main, 0.05),
-                              borderRadius: 2,
-                              border: "1px solid",
-                              borderColor: alpha(theme.palette.success.main, 0.2),
-                            }}
-                          >
-                            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
-                              <Typography
-                                variant="caption"
-                                sx={{ fontWeight: "bold", px: 1, py: 0.2, bgcolor: "success.main", color: "white", borderRadius: 1 }}
-                              >
-                                DESCUENTO ÍTEM
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary" sx={{ textDecoration: "line-through" }}>
-                                Base: {(item.originalPoints || item.subtotalPoints + item.discountAmount)?.toLocaleString()}
-                              </Typography>
-                            </Box>
-
-                            {/* Mostrar reglas aplicadas si el backend las proporciona */}
-                            {(item.appliedRules || item.appliedDiscounts) && (item.appliedRules || item.appliedDiscounts)!.length > 0 ? (
-                              <>
-                                {(item.appliedRules || item.appliedDiscounts)!.map((discount, i) => (
-                                  <Typography key={i} variant="caption" color="success.main" display="block" fontWeight="medium">
-                                    ✓ {discount.ruleName}: -
-                                    {discount.discountAmount?.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
-                                  </Typography>
-                                ))}
-                                {(item.appliedRules || item.appliedDiscounts)!.length > 1 && (
-                                  <Box sx={{ borderTop: "1px dashed", borderColor: alpha(theme.palette.success.main, 0.3), mt: 0.5, pt: 0.5 }}>
-                                    <Typography variant="caption" color="success.main" fontWeight="bold">
-                                      Total ítem: -{item.discountAmount?.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
-                                    </Typography>
-                                  </Box>
-                                )}
-                              </>
-                            ) : (
-                              // Fallback si no hay array de reglas
-                              <Typography variant="caption" color="success.main" display="block" fontWeight="medium">
-                                ✓ Descuento aplicado: -
-                                {item.discountAmount?.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}{" "}
-                              </Typography>
-                            )}
-
-                            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
-                              <Typography variant="caption" fontWeight="bold" color="text.secondary">
-                                Subtotal Neto:
-                              </Typography>
-                              <Typography variant="h6" color="primary.main" fontWeight="bold" sx={{ lineHeight: 1 }}>
-                                {item.subtotalPoints?.toLocaleString()}
-                              </Typography>
-                            </Box>
-                          </Box>
-                        ) : (
-                          <Typography variant="h6" color="primary.main" fontWeight="bold" sx={{ mt: 1 }}>
-                            {(item.originalPoints || item.subtotalPoints)?.toLocaleString()}
-                          </Typography>
-                        )}
+                          )}
+                        </Typography>
                       </Box>
                     </Box>
-                    <Box sx={{ display: "flex", gap: 1 }}>
-                      <Button size="small" startIcon={<EditIcon />} onClick={() => initiateLoad(item)} sx={{ borderRadius: 2 }}>
-                        Editar
-                      </Button>
-                      <IconButton color="error" onClick={() => removeFromCart(item.cartItemId || item._id || item.id || "")} size="small">
-                        <DeleteIcon />
-                      </IconButton>
+                    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 0.5, ml: 1 }}>
+                      <Box sx={{ display: "flex", gap: 1 }}>
+                        <Button size="small" startIcon={<EditIcon />} onClick={() => initiateLoad(item)} sx={{ borderRadius: 2 }}>
+                          Editar
+                        </Button>
+                        <IconButton color="error" onClick={() => removeFromCart(item.cartItemId || item._id || item.id || "")} size="small">
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+                      <Typography variant="h6" color="primary.main" fontWeight="bold">
+                        {(item.subtotalPoints ?? item.originalPoints)?.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </Typography>
                     </Box>
                   </Box>
+
+                  {/* Desglose de precios por pieza */}
+                  {item.piecesBreakdown && item.piecesBreakdown.length > 0 && (
+                    <CartItemBreakdown item={item} theme={theme} />
+                  )}
                 </CardContent>
               </Card>
             ))}
