@@ -1,6 +1,7 @@
 // d:\Proyectos\DEV\presupuesto-encimeras\frontend\src\interfases\cart.interfase.ts
 
 import type { CoreEntityDto, UIStateDto, HydratedContextDto } from "./core.interfase";
+import type { PieceBreakdownItem } from "./orders.interfase";
 
 export interface AppliedDiscountDto {
   ruleId: string;
@@ -21,8 +22,9 @@ export interface CartItem {
   originalPoints: number;
   discountAmount: number;
   subtotalPoints: number;
-  appliedDiscounts?: AppliedDiscountDto[]; // Alias para UI
-  appliedRules?: AppliedDiscountDto[]; // Nombre real del backend
+  appliedDiscounts?: AppliedDiscountDto[];
+  appliedRules?: AppliedDiscountDto[];
+  piecesBreakdown?: PieceBreakdownItem[];
   draftId?: string;
   createdAt?: string;
   updatedAt?: string;

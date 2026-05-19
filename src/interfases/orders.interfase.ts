@@ -27,13 +27,39 @@ export interface AppliedGlobalRule {
   discountAmount: number;
 }
 
+export interface AddonBreakdownItem {
+  code: string;
+  addonName: string;
+  name: string;
+  imageUrl?: string;
+  pricePoints: number;
+  measurements?: Record<string, number>;
+  quantity?: number;
+}
+
+export interface PieceBreakdownItem {
+  id: string;
+  pieceName: string;
+  materialId: string;
+  materialName: string;
+  materialCategory: string;
+  length_mm: number;
+  width_mm: number;
+  basePricePoints: number;
+  addons: AddonBreakdownItem[];
+  subtotalPoints: number;
+  discountAmount: number;
+  finalPricePoints: number;
+}
+
 export interface OrderLineItem {
   cartItemId?: string;
-  cartItemName: string; // Trazabilidad técnica (ej: "Cocina de Juana")
+  cartItemName: string;
   type: string;
   originalPoints: number;
   discountAmount: number;
-  subtotalPoints: number; // Precio final con descuento de la línea
+  subtotalPoints: number;
+  piecesBreakdown?: PieceBreakdownItem[];
   core?: {
     mainPieces: any[];
     factoryId?: string;

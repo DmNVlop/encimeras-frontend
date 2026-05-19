@@ -1,14 +1,13 @@
 import React from "react";
 import { Document, Page, Text, View, StyleSheet, Image } from "@react-pdf/renderer";
-import type { PdfData } from "../../utils/pdfAdapter";
+import type { PdfData, PdfPieceBreakdown } from "../../utils/pdfAdapter";
 
-// 1. Diseño Empresarial y Premium
 const styles = StyleSheet.create({
   page: {
     padding: 35,
     paddingBottom: 60,
     fontFamily: "Helvetica",
-    color: "#1e293b", // Gris Pizarra muy oscuro
+    color: "#1e293b",
   },
 
   // -- CABECERA & LOGO --
@@ -40,7 +39,7 @@ const styles = StyleSheet.create({
     color: "#64748b",
   },
 
-  // -- BLOQUE DE INFORMACIÓN (CLIENTE Y PROYECTO) --
+  // -- BLOQUE DE INFORMACIÓN --
   infoBlock: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -80,35 +79,40 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // -- BLOQUE DE ESTANCIA (Ej. Cocina o Isla) --
+  // -- BLOQUE DE ESTANCIA --
   itemContainer: {
-    marginBottom: 20,
-    padding: 12,
+    marginBottom: 16,
     backgroundColor: "#ffffff",
     borderRadius: 6,
     borderWidth: 1,
     borderColor: "#e2e8f0",
     borderLeftWidth: 4,
-    borderLeftColor: "#3b82f6", // Un acento azul profesional
+    borderLeftColor: "#3b82f6",
+    overflow: "hidden",
   },
   itemHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-end",
-    marginBottom: 10,
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    backgroundColor: "#f8fafc",
     borderBottomWidth: 1,
     borderBottomColor: "#e2e8f0",
-    paddingBottom: 6,
   },
   itemTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "bold",
     color: "#0f172a",
   },
+  itemSubtotalBox: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 4,
+  },
   itemSubtotalLabel: {
-    fontSize: 9,
+    fontSize: 8,
     color: "#64748b",
-    marginRight: 4,
   },
   itemSubtotal: {
     fontSize: 13,
@@ -116,38 +120,157 @@ const styles = StyleSheet.create({
     color: "#0f172a",
   },
 
-  // -- FILA DE PIEZA --
+  // -- CABECERA DE COLUMNAS DE PIEZA --
+  piecesColHeader: {
+    flexDirection: "row",
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    backgroundColor: "#f1f5f9",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
+  },
+  colHeaderText: {
+    fontSize: 7,
+    fontWeight: "bold",
+    color: "#94a3b8",
+    textTransform: "uppercase",
+    letterSpacing: 0.3,
+  },
+
+  // -- FILA DE PIEZA UNIFICADA --
   pieceRow: {
     flexDirection: "row",
+    paddingHorizontal: 12,
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#f1f5f9",
   },
-  pieceCol1: { width: "35%", paddingRight: 10 }, // Material / Ref
-  pieceCol2: { width: "25%", paddingRight: 10 }, // Dimensiones
-  pieceCol3: { width: "40%" }, // Ensamblajes / Extras
+  pieceRowAlt: {
+    flexDirection: "row",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+    backgroundColor: "#fafbfc",
+  },
 
-  pieceSubtitle: {
-    fontSize: 8,
+  // Columnas de la fila de pieza
+  colRef: { width: "28%", paddingRight: 8 },
+  colDims: { width: "20%", paddingRight: 8 },
+  colAddons: { width: "35%", paddingRight: 8 },
+  colPrice: { width: "17%", alignItems: "flex-end" },
+
+  colSubtitle: {
+    fontSize: 7,
     color: "#94a3b8",
     marginBottom: 3,
     textTransform: "uppercase",
     fontWeight: "bold",
+    letterSpacing: 0.2,
   },
-  pieceMainText: {
-    fontSize: 10,
-    color: "#1e293b",
-  },
-
-  addonText: {
+  pieceLabel: {
     fontSize: 9,
-    color: "#475569",
+    fontWeight: "bold",
+    color: "#1e293b",
+    marginBottom: 2,
+  },
+  materialName: {
+    fontSize: 9,
+    color: "#334155",
     marginBottom: 3,
   },
-  emptyText: {
-    fontSize: 9,
+  attrText: {
+    fontSize: 7.5,
+    color: "#64748b",
+    marginBottom: 1,
+  },
+  dimsText: {
+    fontSize: 10,
+    fontWeight: "bold",
+    color: "#1e293b",
+    marginBottom: 2,
+  },
+  dimsUnit: {
+    fontSize: 8,
+    color: "#64748b",
+  },
+
+  // Addons inline
+  addonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 3,
+  },
+  addonName: {
+    fontSize: 8.5,
+    color: "#475569",
+    flex: 1,
+    paddingRight: 4,
+  },
+  addonPrice: {
+    fontSize: 8.5,
+    color: "#475569",
+    fontWeight: "bold",
+  },
+  addonMeasure: {
+    fontSize: 7,
+    color: "#94a3b8",
+    paddingLeft: 8,
+    marginBottom: 1,
+  },
+  noAddonText: {
+    fontSize: 8,
     color: "#94a3b8",
     fontStyle: "italic",
+  },
+
+  // Columna de precio de la pieza
+  basePriceRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    marginBottom: 2,
+  },
+  basePriceLabel: {
+    fontSize: 7.5,
+    color: "#94a3b8",
+  },
+  basePriceValue: {
+    fontSize: 8,
+    color: "#475569",
+  },
+  discountRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    marginBottom: 2,
+  },
+  discountLabel: {
+    fontSize: 7.5,
+    color: "#16a34a",
+  },
+  discountValue: {
+    fontSize: 8,
+    color: "#16a34a",
+    fontWeight: "bold",
+  },
+  priceDivider: {
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#cbd5e1",
+    width: "100%",
+    marginVertical: 3,
+  },
+  totalPriceLabel: {
+    fontSize: 7.5,
+    color: "#64748b",
+    marginBottom: 1,
+    alignSelf: "flex-end",
+  },
+  totalPriceValue: {
+    fontSize: 11,
+    fontWeight: "bold",
+    color: "#0f172a",
   },
 
   // -- FOOTER DE TOTALES GENERALES --
@@ -185,7 +308,7 @@ const styles = StyleSheet.create({
   },
   totalsLabelHighlight: {
     fontSize: 10,
-    color: "#16a34a", // Verde elegante para ahorro
+    color: "#16a34a",
     fontWeight: "bold",
   },
   totalsValueHighlight: {
@@ -242,22 +365,21 @@ interface CartPdfDocumentProps {
   data: PdfData;
 }
 
-/**
- * Componente Visual para el Resumen del Pedido en PDF.
- * Preparado a nivel empresarial.
- */
 export const CartPdfDocument: React.FC<CartPdfDocumentProps> = ({ data }) => {
-  // Helpers de visualización
   const formatCode = (code: string) =>
     code
       .replace(/_/g, " ")
       .toLowerCase()
       .replace(/\b\w/g, (l) => l.toUpperCase());
 
+  // Busca el breakdown de una pieza por índice
+  const getPieceBreakdown = (itemBreakdown: PdfPieceBreakdown[] | undefined, pieceIndex: number) =>
+    itemBreakdown?.[pieceIndex];
+
   return (
     <Document title={`Presupuesto_${data.orderId.slice(-6).toUpperCase()}`} author="Kuuk" subject="Presupuesto">
       <Page size="A4" style={styles.page}>
-        {/* 1. CABECERA: Logo + Título */}
+        {/* 1. CABECERA */}
         <View style={styles.headerRow}>
           {data.logoStr ? <Image src={data.logoStr} style={styles.logo} /> : <Text style={{ fontSize: 18, fontWeight: "bold" }}>KUUK</Text>}
           <View style={styles.headerTitleBox}>
@@ -266,9 +388,8 @@ export const CartPdfDocument: React.FC<CartPdfDocumentProps> = ({ data }) => {
           </View>
         </View>
 
-        {/* 2. BLOQUE INFO: Proyecto/Metadatos y Cliente */}
+        {/* 2. BLOQUE INFO */}
         <View style={styles.infoBlock}>
-          {/* Detalles del Cliente */}
           <View style={styles.infoCol}>
             <Text style={styles.infoTitle}>Datos del Cliente</Text>
             <View style={styles.infoRow}>
@@ -295,7 +416,6 @@ export const CartPdfDocument: React.FC<CartPdfDocumentProps> = ({ data }) => {
             </View>
           </View>
 
-          {/* Detalles del Presupuesto */}
           <View style={styles.infoCol}>
             <Text style={styles.infoTitle}>Detalles del Documento</Text>
             <View style={styles.infoRow}>
@@ -319,7 +439,7 @@ export const CartPdfDocument: React.FC<CartPdfDocumentProps> = ({ data }) => {
           </View>
         </View>
 
-        {/* 4. BLOQUE DE TOTALES FINALES (wrap=false para protegerlo) */}
+        {/* 3. TOTALES FINALES */}
         <View style={styles.totalsContainer} wrap={false}>
           <View style={styles.totalsBox}>
             <View style={styles.totalsRow}>
@@ -327,7 +447,6 @@ export const CartPdfDocument: React.FC<CartPdfDocumentProps> = ({ data }) => {
               <Text style={styles.totalsValue}>{data.subtotalBruto.toFixed(2)} </Text>
             </View>
 
-            {/* Si hay reglas globales de descuento las mostramos desglosadas */}
             {data.appliedGlobalRules && data.appliedGlobalRules.length > 0 ? (
               <View style={{ marginBottom: 6 }}>
                 <Text style={{ fontSize: 9, color: "#16a34a", fontWeight: "bold", marginBottom: 4 }}>Descuentos Aplicados:</Text>
@@ -339,7 +458,6 @@ export const CartPdfDocument: React.FC<CartPdfDocumentProps> = ({ data }) => {
                 ))}
               </View>
             ) : (
-              /* Sin desglose por regla: mostrar solo el total de descuento */
               data.totalDescuento > 0 && (
                 <View style={styles.totalsRowHighlight}>
                   <Text style={styles.totalsLabelHighlight}>Descuentos Aplicados</Text>
@@ -357,73 +475,128 @@ export const CartPdfDocument: React.FC<CartPdfDocumentProps> = ({ data }) => {
           </View>
         </View>
 
-        {/* 3. LISTADO DE ESTANCIAS */}
+        {/* 4. LISTADO DE ESTANCIAS */}
         {data.items.map((item) => (
           <View key={item.cartItemId} style={styles.itemContainer}>
+            {/* Cabecera de la estancia */}
             <View style={styles.itemHeader}>
               <Text style={styles.itemTitle}>{item.name}</Text>
-              <View style={{ flexDirection: "row", alignItems: "baseline" }}>
-                <Text style={styles.itemSubtotalLabel}>Suma Estancia:</Text>
-                <Text style={styles.itemSubtotal}>{item.subtotal.toFixed(2)} </Text>
+              <View style={styles.itemSubtotalBox}>
+                <Text style={styles.itemSubtotalLabel}>Total estancia:</Text>
+                <Text style={styles.itemSubtotal}>{item.subtotal.toFixed(2)} pts</Text>
               </View>
             </View>
 
-            {/* DESGLOSE DE PIEZAS */}
-            {item.pieces.map((piece, i) => (
-              <View key={piece.id} style={styles.pieceRow} wrap={false}>
-                <View style={styles.pieceCol1}>
-                  <Text style={styles.pieceSubtitle}>Referencia / Material</Text>
-                  <Text style={styles.pieceMainText}>
-                    <Text style={{ fontWeight: "bold" }}>P.{i + 1} -</Text> {piece.materialName}
-                  </Text>
-                  {/* Atributos del Material */}
-                  {Object.keys(piece.attributes).length > 0 && (
-                    <View style={{ marginTop: 4 }}>
-                      {Object.entries(piece.attributes).map(([key, val]) => (
-                        <Text key={key} style={{ fontSize: 8, color: "#64748b" }}>
+            {/* Cabecera de columnas */}
+            <View style={styles.piecesColHeader}>
+              <View style={styles.colRef}><Text style={styles.colHeaderText}>Referencia / Material</Text></View>
+              <View style={styles.colDims}><Text style={styles.colHeaderText}>Dimensiones</Text></View>
+              <View style={styles.colAddons}><Text style={styles.colHeaderText}>Procesos de Fabricación</Text></View>
+              <View style={[styles.colPrice, { alignItems: "flex-end" }]}><Text style={styles.colHeaderText}>Precio</Text></View>
+            </View>
+
+            {/* Filas de piezas */}
+            {item.pieces.map((piece, i) => {
+              const bd = getPieceBreakdown(item.piecesBreakdown, i);
+              const rowStyle = i % 2 === 1 ? styles.pieceRowAlt : styles.pieceRow;
+
+              return (
+                <View key={piece.id} style={rowStyle} wrap={false}>
+                  {/* Col 1: Referencia / Material */}
+                  <View style={styles.colRef}>
+                    <Text style={styles.pieceLabel}>P.{i + 1} — {piece.materialName}</Text>
+                    {Object.keys(piece.attributes).length > 0 &&
+                      Object.entries(piece.attributes).map(([key, val]) => (
+                        <Text key={key} style={styles.attrText}>
                           • {formatCode(key)}: {String(val)}
                         </Text>
                       ))}
-                    </View>
-                  )}
-                </View>
+                  </View>
 
-                <View style={styles.pieceCol2}>
-                  <Text style={styles.pieceSubtitle}>Dimensiones Reales</Text>
-                  <Text style={styles.pieceMainText}>{piece.dimensions}</Text>
-                </View>
+                  {/* Col 2: Dimensiones */}
+                  <View style={styles.colDims}>
+                    {bd ? (
+                      <>
+                        <Text style={styles.dimsText}>
+                          {bd.dimensions.replace(" mm", "")}
+                        </Text>
+                        <Text style={styles.dimsUnit}>mm</Text>
+                      </>
+                    ) : (
+                      <Text style={styles.dimsText}>{piece.dimensions}</Text>
+                    )}
+                  </View>
 
-                <View style={styles.pieceCol3}>
-                  <Text style={styles.pieceSubtitle}>Detalles y Procesos de Fabricación</Text>
-                  {piece.addons.length === 0 ? (
-                    <Text style={styles.emptyText}>Corte limpio básico (sin extras)</Text>
-                  ) : (
-                    piece.addons.map((addon, idx) => {
-                      const hasMeasurements = Object.keys(addon.measurementsMap).length > 0;
-                      const hasAttributes = Object.keys(addon.attributesMap).length > 0;
+                  {/* Col 3: Addons con precio inline */}
+                  <View style={styles.colAddons}>
+                    {piece.addons.length === 0 ? (
+                      <Text style={styles.noAddonText}>Corte limpio básico (sin extras)</Text>
+                    ) : (
+                      piece.addons.map((addon, idx) => {
+                        const addonBd = bd?.addons?.[idx];
+                        const hasMeasurements = Object.keys(addon.measurementsMap).length > 0;
+                        const hasAttributes = Object.keys(addon.attributesMap).length > 0;
 
-                      return (
-                        <View key={idx} style={{ marginBottom: 4 }}>
-                          <Text style={styles.addonText}>• {formatCode(addon.code)}</Text>
-                          {hasMeasurements && (
-                            <Text style={{ fontSize: 8, color: "#64748b", paddingLeft: 6 }}>
-                              Medidas:{" "}
-                              {Object.entries(addon.measurementsMap)
-                                .filter(([_, v]) => v !== undefined)
-                                .map(([k, v]) => `${formatCode(k.replace("_mm", "").replace("_ml", ""))}: ${v}`)
-                                .join(", ")}
-                            </Text>
-                          )}
-                          {hasAttributes && (
-                            <Text style={{ fontSize: 8, color: "#64748b", paddingLeft: 6 }}>Notas: {Object.values(addon.attributesMap).join(", ")}</Text>
-                          )}
+                        return (
+                          <View key={idx} style={{ marginBottom: 4 }}>
+                            <View style={styles.addonRow}>
+                              <Text style={styles.addonName}>• {formatCode(addon.code)}</Text>
+                              {addonBd && (
+                                <Text style={styles.addonPrice}>+{addonBd.pricePoints.toFixed(2)}</Text>
+                              )}
+                            </View>
+                            {hasMeasurements && (
+                              <Text style={styles.addonMeasure}>
+                                {Object.entries(addon.measurementsMap)
+                                  .filter(([_, v]) => v !== undefined)
+                                  .map(([k, v]) => `${formatCode(k.replace("_mm", "").replace("_ml", ""))}: ${v}`)
+                                  .join("  ·  ")}
+                              </Text>
+                            )}
+                            {hasAttributes && (
+                              <Text style={styles.addonMeasure}>
+                                Notas: {Object.values(addon.attributesMap).join(", ")}
+                              </Text>
+                            )}
+                          </View>
+                        );
+                      })
+                    )}
+                  </View>
+
+                  {/* Col 4: Precio de la pieza */}
+                  <View style={styles.colPrice}>
+                    {bd ? (
+                      <>
+                        <View style={styles.basePriceRow}>
+                          <Text style={styles.basePriceLabel}>Base</Text>
+                          <Text style={styles.basePriceValue}>{bd.basePricePoints.toFixed(2)}</Text>
                         </View>
-                      );
-                    })
-                  )}
+                        {bd.addons.length > 0 && (
+                          <View style={styles.basePriceRow}>
+                            <Text style={styles.basePriceLabel}>Extras</Text>
+                            <Text style={styles.basePriceValue}>
+                              +{bd.addons.reduce((s, a) => s + a.pricePoints, 0).toFixed(2)}
+                            </Text>
+                          </View>
+                        )}
+                        {bd.discountAmount > 0 && (
+                          <View style={styles.discountRow}>
+                            <Text style={styles.discountLabel}>Dto.</Text>
+                            <Text style={styles.discountValue}>-{bd.discountAmount.toFixed(2)}</Text>
+                          </View>
+                        )}
+                        <View style={styles.priceDivider} />
+                        <Text style={styles.totalPriceLabel}>total</Text>
+                        <Text style={styles.totalPriceValue}>{bd.finalPricePoints.toFixed(2)}</Text>
+                      </>
+                    ) : (
+                      <Text style={{ fontSize: 9, color: "#94a3b8", fontStyle: "italic" }}>—</Text>
+                    )}
+                  </View>
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         ))}
 

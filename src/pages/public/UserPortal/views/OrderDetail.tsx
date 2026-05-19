@@ -35,6 +35,7 @@ import { getCustomerById } from "@/services/customer.service";
 import { useAuth } from "@/context/AuthProvider";
 import type { Order, OrderLineItem } from "@/interfases/orders.interfase";
 import type { ICustomer } from "@/interfases/customer.interfase";
+import PriceBreakdownPanel from "@/components/cart/PriceBreakdownPanel";
 
 // Lazy load del botón PDF — igual que en el carrito, para no penalizar el bundle inicial
 const LazyDownloadPdfButton = React.lazy(() => import("@/components/cart/DownloadPdfButton"));
@@ -209,15 +210,17 @@ function PieceRow({ piece, index, materialsMap }: { piece: any; index: number; m
 // ACORDEÓN DE ESTANCIA
 // ─────────────────────────────────────────────────────────────────────────────
 function LineItemAccordion({ item, index }: { item: OrderLineItem; index: number }) {
-  // Construir mapa de materiales desde el hydratedContext o el technicalSnapshot
+  const hasPricedBreakdown = Array.isArray(item.piecesBreakdown) && item.piecesBreakdown.length > 0;
+
+  // Fallback legacy: construir vista técnica sin precios si no hay breakdown
   const materialsMap = new Map<string, string>();
   const materials: any[] = (item as any).hydratedContext?.materials || (item as any).technicalSnapshot?.materials || [];
   materials.forEach((m: any) => {
     if (m._id) materialsMap.set(m._id, m.name || m.materialName);
     if (m.id) materialsMap.set(m.id, m.name || m.materialName);
   });
-
   const mainPieces: any[] = (item as any).core?.mainPieces || (item as any).technicalSnapshot?.pieces || (item as any).technicalSnapshot?.mainPieces || [];
+  const pieceCount = hasPricedBreakdown ? item.piecesBreakdown!.length : mainPieces.length;
 
   return (
     <Accordion
@@ -246,32 +249,42 @@ function LineItemAccordion({ item, index }: { item: OrderLineItem; index: number
         </Typography>
         <Stack direction="row" spacing={2} alignItems="center">
           <Typography variant="caption" color="text.secondary">
-            {mainPieces.length} pieza{mainPieces.length !== 1 ? "s" : ""}
+            {pieceCount} pieza{pieceCount !== 1 ? "s" : ""}
           </Typography>
           <Typography variant="subtitle1" fontWeight={700} color="primary.main">
             {(item.subtotalPoints ?? 0).toFixed(2)}
           </Typography>
         </Stack>
       </AccordionSummary>
+
       <AccordionDetails sx={{ p: 2 }}>
-        {mainPieces.length === 0 ? (
+        {hasPricedBreakdown ? (
+          <PriceBreakdownPanel
+            piecesBreakdown={item.piecesBreakdown!}
+            originalPoints={item.originalPoints ?? item.subtotalPoints}
+            subtotalPoints={item.subtotalPoints}
+            discountAmount={item.discountAmount}
+          />
+        ) : mainPieces.length === 0 ? (
           <Alert severity="info" variant="outlined">
             Los detalles técnicos de esta estancia no están disponibles.
           </Alert>
         ) : (
-          mainPieces.map((piece: any, i: number) => <PieceRow key={piece.id || i} piece={piece} index={i} materialsMap={materialsMap} />)
-        )}
-
-        {/* Descuentos de línea si existen */}
-        {item.discountAmount > 0 && (
-          <Box sx={{ mt: 1.5, textAlign: "right" }}>
-            <Typography variant="caption" color="text.secondary">
-              Precio original: <s>{(item.originalPoints ?? 0).toFixed(2)} </s>
-            </Typography>
-            <Typography variant="caption" color="success.main" fontWeight={600} sx={{ ml: 1.5 }}>
-              Descuento: -{item.discountAmount.toFixed(2)}
-            </Typography>
-          </Box>
+          <>
+            {mainPieces.map((piece: any, i: number) => (
+              <PieceRow key={piece.id || i} piece={piece} index={i} materialsMap={materialsMap} />
+            ))}
+            {item.discountAmount > 0 && (
+              <Box sx={{ mt: 1.5, textAlign: "right" }}>
+                <Typography variant="caption" color="text.secondary">
+                  Precio original: <s>{(item.originalPoints ?? 0).toFixed(2)}</s>
+                </Typography>
+                <Typography variant="caption" color="success.main" fontWeight={600} sx={{ ml: 1.5 }}>
+                  Descuento: -{item.discountAmount.toFixed(2)}
+                </Typography>
+              </Box>
+            )}
+          </>
         )}
       </AccordionDetails>
     </Accordion>
