@@ -162,6 +162,13 @@ const UsersPage: React.FC = () => {
 
   const handleClose = () => setOpen(false);
 
+  const canDeleteUser = (target: User): boolean => {
+    if (isAdmin) return true;
+    if (isOwner) return target.roles.some((r) => ([Role.MANAGER, Role.SALES, Role.WORKER, Role.USER] as string[]).includes(r));
+    if (isManager) return target.roles.includes(Role.SALES) && target.managerId === currentAuthUser?._id;
+    return false;
+  };
+
   const handleDelete = async (id: string) => {
     if (window.confirm("¿Estás seguro de que quieres eliminar este usuario?")) {
       try {
@@ -328,7 +335,9 @@ const UsersPage: React.FC = () => {
       width: 100,
       getActions: (params) => [
         <GridActionsCellItem icon={<EditIcon />} label="Editar" onClick={() => handleOpen(params.row)} />,
-        <GridActionsCellItem icon={<DeleteIcon />} label="Eliminar" onClick={() => handleDelete(params.id as string)} />,
+        ...(canDeleteUser(params.row)
+          ? [<GridActionsCellItem icon={<DeleteIcon />} label="Eliminar" onClick={() => handleDelete(params.id as string)} />]
+          : []),
       ],
     },
   ];

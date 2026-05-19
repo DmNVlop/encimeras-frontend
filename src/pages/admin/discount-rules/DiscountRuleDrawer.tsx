@@ -92,6 +92,8 @@ const DiscountRuleDrawer: React.FC<DiscountRuleDrawerProps> = ({ rule, open, onC
         type: DiscountType.PERCENTAGE,
         value: 0,
         scope: DiscountScope.GLOBAL_TOTAL,
+        targetMaterials: [],
+        targetCategories: [],
         priority: 0,
         collisionStrategy: CollisionStrategy.SUM,
         stackable: true,
@@ -99,8 +101,6 @@ const DiscountRuleDrawer: React.FC<DiscountRuleDrawerProps> = ({ rule, open, onC
         conditions: {
           customerStrategy: CustomerStrategy.ALL,
           targetCustomers: [],
-          targetMaterials: [],
-          targetCategories: [],
         },
       });
       setEditing(true);
@@ -315,9 +315,9 @@ const DiscountRuleDrawer: React.FC<DiscountRuleDrawerProps> = ({ rule, open, onC
                     multiple
                     options={allMaterials}
                     getOptionLabel={(option) => option.name}
-                    value={allMaterials.filter((m) => formData.conditions?.targetMaterials?.includes(m._id))}
+                    value={allMaterials.filter((m) => formData.targetMaterials?.includes(m._id))}
                     onChange={(_, newValue) =>
-                      handleConditionChange(
+                      handleInputChange(
                         "targetMaterials",
                         newValue.map((m) => m._id),
                       )
@@ -335,8 +335,8 @@ const DiscountRuleDrawer: React.FC<DiscountRuleDrawerProps> = ({ rule, open, onC
                   <Autocomplete
                     multiple
                     options={categories}
-                    value={formData.conditions?.targetCategories || []}
-                    onChange={(_, newValue) => handleConditionChange("targetCategories", newValue)}
+                    value={formData.targetCategories || []}
+                    onChange={(_, newValue) => handleInputChange("targetCategories", newValue)}
                     disabled={!editing || loading}
                     renderInput={(params) => (
                       <TextField {...params} label="Categorías Seleccionadas" size="small" required sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }} />
