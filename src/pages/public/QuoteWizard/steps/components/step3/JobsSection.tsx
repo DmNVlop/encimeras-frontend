@@ -1,5 +1,6 @@
-import React from "react";
-import { Box, Typography, Grid, Divider, Chip, Alert, Fade, useTheme } from "@mui/material";
+import React, { useState } from "react";
+import { Box, Typography, Grid, Divider, Chip, Alert, Fade, useTheme, Autocomplete, TextField } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 import HandymanIcon from "@mui/icons-material/Handyman";
 import { ProjectPiecesSelector } from "@/pages/public/components/ProjectPiecesSelector";
 import { AppliedJobRow } from "./AppliedJobRow";
@@ -36,6 +37,7 @@ export const JobsSection: React.FC<JobsSectionProps> = ({
   handleImageError,
 }) => {
   const theme = useTheme();
+  const [searchQuery, setSearchQuery] = useState("");
 
   return (
     <Box>
@@ -68,6 +70,9 @@ export const JobsSection: React.FC<JobsSectionProps> = ({
                 .filter((addon) => jobAddons.some((def) => def.code === addon.code));
 
               const compatibleJobs = jobAddons.filter((job) => job.allowedMaterialCategories.includes(matCategory));
+              const filteredJobs = searchQuery
+                ? compatibleJobs.filter((job) => job.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                : compatibleJobs;
 
               return (
                 <>
@@ -91,6 +96,33 @@ export const JobsSection: React.FC<JobsSectionProps> = ({
                       >
                         TRABAJOS APLICADOS EN PIEZA {activeTabIndex + 1}
                       </Typography>
+                      <Autocomplete
+                        size="small"
+                        options={compatibleJobs}
+                        getOptionLabel={(opt) => opt.name}
+                        inputValue={searchQuery}
+                        onInputChange={(_, val) => setSearchQuery(val)}
+                        onChange={(_, selected) => {
+                          if (selected) {
+                            handleAddJob(activeTabIndex, selected);
+                            setSearchQuery("");
+                          }
+                        }}
+                        sx={{ width: 260 }}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            placeholder="Buscar trabajo..."
+                            slotProps={{
+                              input: {
+                                ...params.InputProps,
+                                startAdornment: <SearchIcon fontSize="small" sx={{ mr: 0.5, color: "text.disabled" }} />,
+                              },
+                            }}
+                          />
+                        )}
+                        noOptionsText="Sin resultados"
+                      />
                     </Box>
 
                     {appliedJobsWithIndex.length === 0 ? (
@@ -121,7 +153,7 @@ export const JobsSection: React.FC<JobsSectionProps> = ({
 
                   {/* 2. CATÁLOGO */}
                   <Grid container spacing={2}>
-                    {compatibleJobs.map((job) => (
+                    {filteredJobs.map((job) => (
                       <Grid size={{ xs: 6, sm: 4, md: 3, lg: 2 }} key={job._id}>
                         <AvailableJobCard
                           addon={job}

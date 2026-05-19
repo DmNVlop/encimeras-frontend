@@ -15,11 +15,23 @@ export interface ExtractedPiece {
   addons: ExtractedAddon[];
 }
 
+export interface PdfPieceBreakdown {
+  pieceName: string;
+  materialName: string;
+  dimensions: string;
+  basePricePoints: number;
+  addons: { addonName: string; pricePoints: number }[];
+  subtotalPoints: number;
+  discountAmount: number;
+  finalPricePoints: number;
+}
+
 export interface ExtractedItem {
   cartItemId: string;
   name: string;
   subtotal: number;
   pieces: ExtractedPiece[];
+  piecesBreakdown?: PdfPieceBreakdown[];
 }
 
 export interface PdfData {
@@ -178,6 +190,21 @@ export const mapCartToPdfModel = (
       };
     });
 
+    const rawBreakdown: any[] = item.piecesBreakdown || [];
+    const piecesBreakdown: PdfPieceBreakdown[] = rawBreakdown.map((pb: any) => ({
+      pieceName: pb.pieceName,
+      materialName: pb.materialName,
+      dimensions: `${pb.length_mm ?? 0} x ${pb.width_mm ?? 0} mm`,
+      basePricePoints: pb.basePricePoints ?? 0,
+      addons: (pb.addons || []).map((a: any) => ({
+        addonName: a.addonName || a.name || a.code,
+        pricePoints: a.pricePoints ?? 0,
+      })),
+      subtotalPoints: pb.subtotalPoints ?? 0,
+      discountAmount: pb.discountAmount ?? 0,
+      finalPricePoints: pb.finalPricePoints ?? 0,
+    }));
+
     return {
       cartItemId: item.cartItemId || `item-${itemIndex}`,
       name: isOrder ? item.cartItemName || "Estancia de Presupuesto" : item.customName || "Estancia sin nombre",
@@ -185,6 +212,7 @@ export const mapCartToPdfModel = (
       // En ORDEN:   originalPoints - discountAmount (subtotalPoints no viene del backend de órdenes)
       subtotal: item.subtotalPoints != null ? item.subtotalPoints : (item.originalPoints ?? 0) - (item.discountAmount ?? 0),
       pieces,
+      piecesBreakdown: piecesBreakdown.length > 0 ? piecesBreakdown : undefined,
     };
   });
 
