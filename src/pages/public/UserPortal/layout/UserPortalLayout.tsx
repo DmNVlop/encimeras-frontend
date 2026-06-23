@@ -37,6 +37,7 @@ import { useCart } from "@/context/CartContext";
 import { useFactorySettings } from "@/context/FactorySettingsContext";
 import { Role } from "@/interfases/user.interfase";
 import { MiniCartMenu } from "@/pages/public/common/MiniCartMenu";
+import { VersionBadge } from "@/components/common/VersionBadge";
 
 const drawerWidth = 240;
 const closedDrawerWidth = 72;
@@ -184,6 +185,8 @@ export default function UserPortalLayout() {
             >
               <MiniCartMenu onClose={handleCartMenuClose} />
             </Menu>
+
+            <VersionBadge />
 
             <Typography variant="body2" sx={{ display: { xs: "none", sm: "block" }, textAlign: "right" }}>
               <Box component="span" sx={{ display: "block", fontWeight: "bold" }}>

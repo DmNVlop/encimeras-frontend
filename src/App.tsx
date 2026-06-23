@@ -8,6 +8,7 @@ import { AuthProvider } from "./context/AuthProvider";
 import { CartProvider } from "./context/CartContext";
 import { QuoteProvider } from "./context/QuoteContext";
 import { FactorySettingsProvider } from "./context/FactorySettingsContext";
+import { VersionProvider } from "./context/VersionContext";
 import { RoleGuard } from "./components/guards/RoleGuard";
 import { appRoutes } from "./config/routes.config";
 
@@ -90,17 +91,19 @@ const AppRouter = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <FactorySettingsProvider>
-        <CartProvider>
-          <QuoteProvider>
-            <AppErrorBoundary>
-              <AppRouter />
-            </AppErrorBoundary>
-          </QuoteProvider>
-        </CartProvider>
-      </FactorySettingsProvider>
-    </AuthProvider>
+    <VersionProvider>
+      <AuthProvider>
+        <FactorySettingsProvider>
+          <CartProvider>
+            <QuoteProvider>
+              <AppErrorBoundary>
+                <AppRouter />
+              </AppErrorBoundary>
+            </QuoteProvider>
+          </CartProvider>
+        </FactorySettingsProvider>
+      </AuthProvider>
+    </VersionProvider>
   );
 }
 
