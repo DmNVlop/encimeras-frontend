@@ -3,32 +3,37 @@ import {
   Typography,
   Divider,
   Chip,
-  Stack,
   Collapse,
   IconButton,
   Alert,
+  alpha,
+  useTheme,
 } from "@mui/material";
 import {
   ExpandMore as ExpandMoreIcon,
   Straighten as StraightenIcon,
   Build as BuildIcon,
-  Percent as PercentIcon,
+  LocalOffer as LocalOfferIcon,
 } from "@mui/icons-material";
 import { useState } from "react";
 import type { PieceBreakdownItem } from "@/interfases/orders.interfase";
+import type { AppliedDiscountDto } from "@/interfases/cart.interfase";
+import { ItemDiscountRulesPanel } from "./ItemDiscountRulesPanel";
 
 interface PriceBreakdownPanelProps {
   piecesBreakdown: PieceBreakdownItem[];
   itemName?: string;
-  /** Puntos totales brutos del ítem (sin descuento) */
   originalPoints: number;
-  /** Puntos finales del ítem (con descuento) */
   subtotalPoints: number;
   discountAmount?: number;
+  appliedRules?: AppliedDiscountDto[];
 }
 
 const fmt = (n: number) =>
   n.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+// Paleta de colores para el borde izquierdo de cada pieza
+const PIECE_COLORS = ["#5C6BC0", "#26A69A", "#EF5350", "#FFA726", "#66BB6A", "#AB47BC"];
 
 function AddonRow({ addon }: { addon: PieceBreakdownItem["addons"][number] }) {
   const measStr = addon.measurements
@@ -44,27 +49,26 @@ function AddonRow({ addon }: { addon: PieceBreakdownItem["addons"][number] }) {
       sx={{
         display: "flex",
         justifyContent: "space-between",
-        alignItems: "flex-start",
-        pl: 2,
+        alignItems: "center",
         py: 0.5,
-        borderLeft: "2px solid",
-        borderColor: "grey.200",
-        ml: 1,
+        px: 1,
+        borderRadius: 1,
+        "&:hover": { bgcolor: "action.hover" },
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, flex: 1 }}>
-        <BuildIcon sx={{ fontSize: 12, color: "text.disabled", flexShrink: 0 }} />
-        <Typography variant="caption" color="text.secondary">
+      <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, flex: 1, minWidth: 0 }}>
+        <BuildIcon sx={{ fontSize: 11, color: "text.disabled", flexShrink: 0 }} />
+        <Typography variant="caption" color="text.secondary" noWrap>
           {addon.name || addon.addonName || addon.code}
           {qty}
-          {measStr ? (
-            <Typography component="span" variant="caption" color="text.disabled" sx={{ ml: 0.5 }}>
-              ({measStr})
-            </Typography>
-          ) : null}
         </Typography>
+        {measStr && (
+          <Typography variant="caption" color="text.disabled" sx={{ flexShrink: 0 }}>
+            ({measStr})
+          </Typography>
+        )}
       </Box>
-      <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ ml: 1, flexShrink: 0 }}>
+      <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ ml: 2, flexShrink: 0 }}>
         {fmt(addon.pricePoints)}
       </Typography>
     </Box>
@@ -72,18 +76,21 @@ function AddonRow({ addon }: { addon: PieceBreakdownItem["addons"][number] }) {
 }
 
 function PieceBlock({ piece, index }: { piece: PieceBreakdownItem; index: number }) {
+  const theme = useTheme();
   const [open, setOpen] = useState(true);
   const hasAddons = piece.addons && piece.addons.length > 0;
   const hasDiscount = piece.discountAmount > 0;
+  const accentColor = PIECE_COLORS[index % PIECE_COLORS.length];
 
   return (
     <Box
       sx={{
-        border: "1px solid",
-        borderColor: "grey.200",
         borderRadius: 2,
         overflow: "hidden",
-        mb: 1,
+        border: "1px solid",
+        borderColor: "divider",
+        borderLeft: `3px solid ${accentColor}`,
+        mb: 1.5,
       }}
     >
       {/* Cabecera de pieza */}
@@ -92,20 +99,21 @@ function PieceBlock({ piece, index }: { piece: PieceBreakdownItem; index: number
           display: "flex",
           alignItems: "center",
           px: 1.5,
-          py: 1,
-          bgcolor: "grey.50",
+          py: 0.875,
+          bgcolor: alpha(accentColor, 0.04),
           cursor: hasAddons ? "pointer" : "default",
           userSelect: "none",
+          gap: 1,
         }}
         onClick={() => hasAddons && setOpen((v) => !v)}
       >
         {/* Badge número */}
         <Box
           sx={{
-            width: 22,
-            height: 22,
+            width: 20,
+            height: 20,
             borderRadius: "50%",
-            bgcolor: "primary.main",
+            bgcolor: accentColor,
             color: "white",
             display: "flex",
             alignItems: "center",
@@ -113,43 +121,42 @@ function PieceBlock({ piece, index }: { piece: PieceBreakdownItem; index: number
             fontSize: 11,
             fontWeight: 700,
             flexShrink: 0,
-            mr: 1,
           }}
         >
           {index + 1}
         </Box>
 
-        {/* Material + dimensiones */}
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography variant="body2" fontWeight={700} noWrap>
-            {piece.materialName}
+        {/* Material */}
+        <Typography variant="body2" fontWeight={700} sx={{ flex: 1, minWidth: 0 }} noWrap>
+          {piece.materialName}
+        </Typography>
+
+        {/* Dimensiones */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.4, flexShrink: 0 }}>
+          <StraightenIcon sx={{ fontSize: 11, color: "text.disabled" }} />
+          <Typography variant="caption" color="text.secondary">
+            {piece.length_mm} × {piece.width_mm} mm
           </Typography>
-          <Stack direction="row" spacing={0.5} alignItems="center">
-            <StraightenIcon sx={{ fontSize: 11, color: "text.disabled" }} />
-            <Typography variant="caption" color="text.secondary">
-              {piece.length_mm} × {piece.width_mm} mm
-            </Typography>
-          </Stack>
         </Box>
 
-        {/* Precio base */}
-        <Box sx={{ textAlign: "right", ml: 1 }}>
-          <Typography variant="caption" color="text.disabled" display="block">
+        {/* Base price */}
+        <Box sx={{ textAlign: "right", ml: 1.5, flexShrink: 0 }}>
+          <Typography variant="caption" color="text.disabled" display="block" sx={{ lineHeight: 1, mb: 0.25 }}>
             base
           </Typography>
-          <Typography variant="body2" fontWeight={600}>
+          <Typography variant="body2" fontWeight={700}>
             {fmt(piece.basePricePoints)}
           </Typography>
         </Box>
 
         {hasAddons && (
-          <IconButton size="small" sx={{ ml: 0.5, p: 0.25 }}>
+          <IconButton size="small" sx={{ ml: 0.25, p: 0.25 }}>
             <ExpandMoreIcon
-              fontSize="small"
               sx={{
+                fontSize: 16,
                 transform: open ? "rotate(180deg)" : "rotate(0deg)",
                 transition: "transform 0.2s",
-                color: "text.secondary",
+                color: accentColor,
               }}
             />
           </IconButton>
@@ -159,7 +166,22 @@ function PieceBlock({ piece, index }: { piece: PieceBreakdownItem; index: number
       {/* Addons */}
       {hasAddons && (
         <Collapse in={open}>
-          <Box sx={{ px: 1.5, pt: 0.5, pb: 1 }}>
+          <Box
+            sx={{
+              px: 1.5,
+              pt: 0.75,
+              pb: 0.5,
+              borderTop: "1px dashed",
+              borderColor: alpha(accentColor, 0.2),
+            }}
+          >
+            <Typography
+              variant="caption"
+              color="text.disabled"
+              sx={{ textTransform: "uppercase", letterSpacing: 0.4, fontSize: "0.6rem", display: "block", mb: 0.25, pl: 0.5 }}
+            >
+              Complementos
+            </Typography>
             {piece.addons.map((addon, i) => (
               <AddonRow key={`${addon.code}-${i}`} addon={addon} />
             ))}
@@ -174,34 +196,38 @@ function PieceBlock({ piece, index }: { piece: PieceBreakdownItem; index: number
           justifyContent: "space-between",
           alignItems: "center",
           px: 1.5,
-          py: 0.75,
-          bgcolor: hasDiscount ? "success.50" : "primary.50",
+          py: 0.625,
+          bgcolor: hasDiscount ? alpha(theme.palette.success.main, 0.06) : alpha(accentColor, 0.06),
           borderTop: "1px solid",
-          borderColor: "grey.100",
+          borderColor: hasDiscount ? alpha(theme.palette.success.main, 0.2) : alpha(accentColor, 0.15),
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
           {hasDiscount && (
             <Chip
-              icon={<PercentIcon sx={{ fontSize: "12px !important" }} />}
+              icon={<LocalOfferIcon sx={{ fontSize: "10px !important" }} />}
               label={`-${fmt(piece.discountAmount)}`}
               size="small"
               color="success"
               variant="outlined"
-              sx={{ height: 20, fontSize: "0.65rem" }}
+              sx={{ height: 18, fontSize: "0.62rem", "& .MuiChip-label": { px: 0.75 } }}
             />
           )}
-          <Typography variant="caption" color="text.secondary">
+          <Typography variant="caption" color={hasDiscount ? "success.main" : "text.secondary"} fontWeight={hasDiscount ? 600 : 400}>
             {hasDiscount ? "total pieza c/dto." : "total pieza"}
           </Typography>
         </Box>
         <Box sx={{ textAlign: "right" }}>
           {hasDiscount && (
-            <Typography variant="caption" color="text.disabled" sx={{ textDecoration: "line-through", display: "block", lineHeight: 1 }}>
+            <Typography
+              variant="caption"
+              color="text.disabled"
+              sx={{ textDecoration: "line-through", display: "block", lineHeight: 1 }}
+            >
               {fmt(piece.subtotalPoints)}
             </Typography>
           )}
-          <Typography variant="body2" fontWeight={700} color={hasDiscount ? "success.main" : "primary.main"}>
+          <Typography variant="body2" fontWeight={800} color={hasDiscount ? "success.main" : accentColor}>
             {fmt(piece.finalPricePoints)}
           </Typography>
         </Box>
@@ -215,7 +241,10 @@ export default function PriceBreakdownPanel({
   originalPoints,
   subtotalPoints,
   discountAmount = 0,
+  appliedRules,
 }: PriceBreakdownPanelProps) {
+  const theme = useTheme();
+
   if (!piecesBreakdown || piecesBreakdown.length === 0) {
     return (
       <Alert severity="info" variant="outlined" sx={{ fontSize: "0.78rem" }}>
@@ -232,39 +261,67 @@ export default function PriceBreakdownPanel({
         <PieceBlock key={piece.id || i} piece={piece} index={i} />
       ))}
 
-      <Divider sx={{ my: 1.5 }} />
+      {/* Sección descuentos globales del ítem */}
+      {appliedRules && appliedRules.length > 0 && (
+        <>
+          <Divider sx={{ my: 1.5 }}>
+            <Typography variant="caption" color="text.disabled" sx={{ textTransform: "uppercase", letterSpacing: 0.5, fontSize: "0.6rem" }}>
+              Descuentos aplicados
+            </Typography>
+          </Divider>
+          <ItemDiscountRulesPanel appliedRules={appliedRules} />
+        </>
+      )}
 
       {/* Totales del ítem */}
-      <Stack spacing={0.5}>
+      <Box
+        sx={{
+          mt: 1.5,
+          pt: 1.5,
+          borderTop: "2px solid",
+          borderColor: "divider",
+        }}
+      >
         {hasDiscount && (
-          <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-            <Typography variant="caption" color="text.secondary">
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
+            <Typography variant="caption" color="text.disabled">
               Subtotal bruto
             </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ textDecoration: "line-through" }}>
+            <Typography variant="caption" color="text.disabled" sx={{ textDecoration: "line-through" }}>
               {fmt(originalPoints)}
             </Typography>
           </Box>
         )}
-        {hasDiscount && (
-          <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+        {hasDiscount && !(appliedRules && appliedRules.length > 0) && (
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
             <Typography variant="caption" color="success.main" fontWeight={600}>
-              Descuento
+              Descuento total
             </Typography>
             <Typography variant="caption" color="success.main" fontWeight={600}>
-              -{fmt(discountAmount)}
+              −{fmt(discountAmount)}
             </Typography>
           </Box>
         )}
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <Typography variant="body2" fontWeight={700}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mt: 0.5,
+            px: 1.5,
+            py: 0.75,
+            borderRadius: 1.5,
+            bgcolor: alpha(theme.palette.primary.main, 0.06),
+          }}
+        >
+          <Typography variant="body2" fontWeight={700} color="text.secondary">
             Total estancia
           </Typography>
           <Typography variant="subtitle1" fontWeight={800} color="primary.main">
             {fmt(subtotalPoints)}
           </Typography>
         </Box>
-      </Stack>
+      </Box>
     </Box>
   );
 }

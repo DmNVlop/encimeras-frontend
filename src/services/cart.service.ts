@@ -1,3 +1,4 @@
+import apiClient from "./api.service";
 import { get, post, remove, put } from "./api.service";
 import type { Cart, AddToCartPayload, CheckoutResponse } from "@/interfases/cart.interfase";
 
@@ -62,7 +63,13 @@ export const cartApi = {
    * Asigna un cliente al carrito y recalcula los totales y descuentos.
    */
   assignCustomer: async (customerId: string) => {
-    // Si el backend espera PUT para modificar y la lógica está en /cart/customer
     return post<Cart>("/cart/customer", { customerId });
+  },
+
+  /**
+   * Quita el cliente asignado al carrito y recalcula.
+   */
+  clearCustomer: async () => {
+    return apiClient.delete<Cart>("/cart/customer").then((res) => res.data);
   },
 };

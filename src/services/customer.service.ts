@@ -45,7 +45,7 @@ export const linkCustomerToUser = (customerId: string, userId: string): Promise<
 };
 
 export const batchDeleteCustomers = (customerIds: string[]): Promise<any> => {
-  return remove(`${ENDPOINT}/batch`, customerIds);
+  return remove(`${ENDPOINT}/batch`, customerIds, undefined, "customerIds");
 };
 
 export const batchAssignSales = (customerIds: string[], salesUserIds: string[]): Promise<any> => {

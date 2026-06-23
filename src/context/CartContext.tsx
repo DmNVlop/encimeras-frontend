@@ -190,7 +190,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const clearCartCustomer = async () => {
     try {
       setLoading(true);
-      const updatedCart = await cartApi.assignCustomer("");
+      const updatedCart = await cartApi.clearCustomer();
       setCart(updatedCart);
     } catch (error) {
       console.error("Error clearing customer from cart:", error);
