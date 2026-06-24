@@ -7,6 +7,7 @@ import {
   Card,
   CardContent,
   Collapse,
+  Chip,
   Divider,
   IconButton,
   List,
@@ -20,13 +21,13 @@ import {
 import {
   Delete as DeleteIcon,
   ShoppingCart as CartIcon,
-  Description as DescriptionIcon,
-  ArrowForward as ArrowForwardIcon,
+ArrowForward as ArrowForwardIcon,
   Save as SaveIcon,
   Construction as ConstructionIcon,
   Edit as EditIcon,
   InfoOutlined as InfoOutlinedIcon,
   ExpandMore as ExpandMoreIcon,
+  LocalOffer as LocalOfferIcon,
 } from "@mui/icons-material";
 import { useCart } from "@/context/CartContext";
 import { useCartLoadAction } from "@/hooks/useCartLoadAction";
@@ -34,6 +35,7 @@ import { CartLoadConflictDialog } from "@/components/cart/CartLoadConflictDialog
 import { DraftNamingDialog } from "@/pages/public/QuoteWizard/components/DraftNamingDialog";
 import { CustomerSelection } from "@/pages/public/QuoteWizard/steps/components/step5/CustomerSelection";
 import PriceBreakdownPanel from "@/components/cart/PriceBreakdownPanel";
+import { CartSummaryDiscountBreakdown } from "@/components/cart/CartSummaryDiscountBreakdown";
 import type { ICustomer } from "@/interfases/customer.interfase";
 import { get } from "@/services/api.service";
 import { useAuth } from "@/context/AuthProvider";
@@ -44,6 +46,18 @@ const LazyDownloadPdfButton = lazy(() => import("@/components/cart/DownloadPdfBu
 // Sub-componente: desglose colapsable de un ítem del carrito
 function CartItemBreakdown({ item, theme }: { item: any; theme: any }) {
   const [open, setOpen] = useState(false);
+
+  const hasDiscount = (item.discountAmount ?? 0) > 0;
+  const totalAddons = (item.piecesBreakdown ?? []).reduce(
+    (sum: number, p: any) => sum + (p.addons?.length ?? 0),
+    0
+  );
+  const baseMat = (item.piecesBreakdown ?? []).reduce(
+    (sum: number, p: any) => sum + (p.basePricePoints ?? 0),
+    0
+  );
+  const fmt = (n: number) => n.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
   return (
     <Box>
       <Box
@@ -52,24 +66,51 @@ function CartItemBreakdown({ item, theme }: { item: any; theme: any }) {
           alignItems: "center",
           justifyContent: "space-between",
           px: 2,
-          py: 0.75,
+          py: 0.5,
           bgcolor: alpha(theme.palette.primary.main, 0.03),
           borderTop: "1px solid",
           borderColor: "divider",
           cursor: "pointer",
           userSelect: "none",
+          gap: 1,
         }}
         onClick={() => setOpen((v) => !v)}
       >
-        <Typography variant="caption" color="primary.main" fontWeight={600} sx={{ textTransform: "uppercase", letterSpacing: 0.5 }}>
-          Ver desglose de precios
-        </Typography>
+        {/* Lado izquierdo: label + chips resumen */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, flexWrap: "nowrap", overflow: "hidden" }}>
+          <Typography variant="caption" color="primary.main" fontWeight={600} sx={{ textTransform: "uppercase", letterSpacing: 0.5, whiteSpace: "nowrap" }}>
+            {open ? "Ocultar" : "Ver desglose"}
+          </Typography>
+          {!open && (
+            <>
+              <Typography variant="caption" color="text.disabled" sx={{ whiteSpace: "nowrap" }}>
+                base {fmt(baseMat)}
+              </Typography>
+              {totalAddons > 0 && (
+                <Typography variant="caption" color="text.disabled" sx={{ whiteSpace: "nowrap" }}>
+                  · {totalAddons} extra{totalAddons !== 1 ? "s" : ""}
+                </Typography>
+              )}
+              {hasDiscount && (
+                <Chip
+                  icon={<LocalOfferIcon sx={{ fontSize: "10px !important" }} />}
+                  label={`-${fmt(item.discountAmount)}`}
+                  size="small"
+                  color="success"
+                  variant="outlined"
+                  sx={{ height: 18, fontSize: "0.62rem", "& .MuiChip-label": { px: 0.75 } }}
+                />
+              )}
+            </>
+          )}
+        </Box>
         <ExpandMoreIcon
           fontSize="small"
           sx={{
             color: "primary.main",
             transform: open ? "rotate(180deg)" : "rotate(0deg)",
             transition: "transform 0.2s",
+            flexShrink: 0,
           }}
         />
       </Box>
@@ -80,6 +121,7 @@ function CartItemBreakdown({ item, theme }: { item: any; theme: any }) {
             originalPoints={item.originalPoints ?? item.subtotalPoints}
             subtotalPoints={item.subtotalPoints}
             discountAmount={item.discountAmount ?? 0}
+            appliedRules={item.appliedRules}
           />
         </Box>
       </Collapse>
@@ -248,8 +290,6 @@ export default function Cart() {
 
   // Totales y Desgloses de Ahorro
   const totalOriginalPoints = cart.totalOriginalPoints || cart.items.reduce((sum, item) => sum + (item.originalPoints || item.subtotalPoints), 0);
-  const totalItemDiscounts = cart.items.reduce((sum, item) => sum + (item.discountAmount || 0), 0);
-  const totalGlobalDiscounts = cart.totalDiscount - totalItemDiscounts;
   const totalPoints = cart.totalPoints || totalOriginalPoints - cart.totalDiscount;
 
   return (
@@ -348,39 +388,48 @@ export default function Cart() {
                 sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}
               >
                 <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
-                  {/* Cabecera del ítem */}
-                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", p: 2 }}>
-                    <Box sx={{ display: "flex", gap: 2, flex: 1, minWidth: 0 }}>
-                      <Avatar sx={{ bgcolor: alpha(theme.palette.secondary.main, 0.1), color: theme.palette.secondary.main, borderRadius: 2, flexShrink: 0 }}>
-                        <DescriptionIcon />
-                      </Avatar>
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography variant="subtitle1" fontWeight="bold" noWrap>
-                          {item.customName}
+                  {/* Cabecera del ítem — fila única compacta */}
+                  <Box sx={{ display: "flex", alignItems: "center", px: 1.5, py: 1, gap: 1.5 }}>
+                    {/* Dot identificador */}
+                    <Box sx={{
+                      width: 8, height: 8, borderRadius: "50%", flexShrink: 0,
+                      bgcolor: theme.palette.secondary.main, opacity: 0.7,
+                    }} />
+
+                    {/* Nombre — dato principal */}
+                    <Typography variant="subtitle2" fontWeight={700} noWrap sx={{ flex: "0 0 auto", maxWidth: "30%" }}>
+                      {item.customName}
+                    </Typography>
+
+                    {/* Material + piezas — secundario */}
+                    <Typography variant="caption" color="text.secondary" noWrap sx={{ flex: 1, minWidth: 0 }}>
+                      {item.hydratedContext?.materials?.[0]?.name || item.uiState?.wizardTempMaterial?.materialName || "Config. Personalizada"}
+                      {item.piecesBreakdown && item.piecesBreakdown.length > 0 && (
+                        <Typography component="span" variant="caption" color="text.disabled" sx={{ ml: 0.75 }}>
+                          · {item.piecesBreakdown.length} pieza{item.piecesBreakdown.length !== 1 ? "s" : ""}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {item.hydratedContext?.materials?.[0]?.name || item.uiState?.wizardTempMaterial?.materialName || "Configuración Personalizada"}
-                          {item.piecesBreakdown && item.piecesBreakdown.length > 0 && (
-                            <Typography component="span" variant="caption" color="text.disabled" sx={{ ml: 1 }}>
-                              · {item.piecesBreakdown.length} pieza{item.piecesBreakdown.length !== 1 ? "s" : ""}
-                            </Typography>
-                          )}
-                        </Typography>
-                      </Box>
+                      )}
+                    </Typography>
+
+                    {/* Acciones — peso reducido */}
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, flexShrink: 0 }}>
+                      <Button
+                        size="small"
+                        startIcon={<EditIcon sx={{ fontSize: "14px !important" }} />}
+                        onClick={() => initiateLoad(item)}
+                        sx={{ borderRadius: 1.5, py: 0.25, px: 1, minWidth: 0, fontSize: "0.72rem" }}
+                      >
+                        Editar
+                      </Button>
+                      <IconButton color="error" onClick={() => removeFromCart(item.cartItemId || item._id || item.id || "")} size="small" sx={{ p: 0.5 }}>
+                        <DeleteIcon sx={{ fontSize: 16 }} />
+                      </IconButton>
                     </Box>
-                    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 0.5, ml: 1 }}>
-                      <Box sx={{ display: "flex", gap: 1 }}>
-                        <Button size="small" startIcon={<EditIcon />} onClick={() => initiateLoad(item)} sx={{ borderRadius: 2 }}>
-                          Editar
-                        </Button>
-                        <IconButton color="error" onClick={() => removeFromCart(item.cartItemId || item._id || item.id || "")} size="small">
-                          <DeleteIcon />
-                        </IconButton>
-                      </Box>
-                      <Typography variant="h6" color="primary.main" fontWeight="bold">
-                        {(item.subtotalPoints ?? item.originalPoints)?.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </Typography>
-                    </Box>
+
+                    {/* Precio — dato clave, máxima jerarquía */}
+                    <Typography variant="subtitle1" color="primary.main" fontWeight={800} sx={{ flexShrink: 0, ml: 0.5 }}>
+                      {(item.subtotalPoints ?? item.originalPoints)?.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </Typography>
                   </Box>
 
                   {/* Desglose de precios por pieza */}
@@ -411,63 +460,21 @@ export default function Cart() {
 
             {cart.totalDiscount > 0 && (
               <>
-                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-                  <Typography color="text.secondary">Subtotal bruto:</Typography>
+                {/* Subtotal bruto (si hay descuentos) */}
+                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+                  <Typography color="text.secondary" fontWeight={500}>Subtotal bruto:</Typography>
                   <Typography fontWeight="medium">{totalOriginalPoints.toLocaleString()} </Typography>
                 </Box>
 
-                {/* Ahorro en Ítems (si existe) */}
-                {totalItemDiscounts > 0 && (
-                  <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
-                    <Typography color="success.main" variant="body2">
-                      Ahorro en ítems:
-                    </Typography>
-                    <Typography color="success.main" variant="body2" fontWeight="medium">
-                      - {totalItemDiscounts.toLocaleString()}
-                    </Typography>
-                  </Box>
-                )}
+                <Divider sx={{ my: 1.5 }} />
 
-                {/* Ahorro Global (si existe) */}
-                {totalGlobalDiscounts > 0 && (
-                  <>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
-                      <Typography color="success.main" variant="body2">
-                        Descuentos globales:
-                      </Typography>
-                      <Typography color="success.main" variant="body2" fontWeight="medium">
-                        - {totalGlobalDiscounts.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                      </Typography>
-                    </Box>
+                {/* Desglose detallado de descuentos (items + globales) */}
+                <CartSummaryDiscountBreakdown
+                  items={cart.items}
+                  appliedGlobalRules={cart.appliedGlobalRules}
+                />
 
-                    {/* Desglose de Reglas Globales */}
-                    {cart.appliedGlobalRules && cart.appliedGlobalRules.length > 0 && (
-                      <Box sx={{ mb: 1, pl: 2, borderLeft: "2px solid", borderColor: alpha(theme.palette.success.main, 0.2) }}>
-                        {cart.appliedGlobalRules.map((rule, i) => (
-                          <Box key={i} sx={{ display: "flex", justifyContent: "space-between", mb: 0.2 }}>
-                            <Typography variant="caption" color="text.secondary" sx={{ fontStyle: "italic" }}>
-                              • {rule.ruleName}
-                            </Typography>
-                            <Typography variant="caption" color="success.main">
-                              -{rule.discountAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                            </Typography>
-                          </Box>
-                        ))}
-                      </Box>
-                    )}
-                  </>
-                )}
-
-                <Divider sx={{ my: 1, borderStyle: "dashed" }} />
-
-                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-                  <Typography color="success.main" fontWeight="bold">
-                    Ahorro total:
-                  </Typography>
-                  <Typography color="success.main" fontWeight="bold">
-                    - {cart.totalDiscount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
-                  </Typography>
-                </Box>
+                <Divider sx={{ my: 1.5, borderStyle: "dashed" }} />
               </>
             )}
 

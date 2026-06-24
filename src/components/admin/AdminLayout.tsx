@@ -6,6 +6,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import CalculateIcon from "@mui/icons-material/Calculate";
 import { useAuth } from "@/context/AuthProvider";
 import { useFactorySettings } from "@/context/FactorySettingsContext";
+import { VersionBadge } from "@/components/common/VersionBadge";
 
 import AdminSidebar from "./components/AdminSidebar";
 
@@ -64,6 +65,8 @@ const AdminLayout: React.FC = () => {
               Panel de Administración
             </Typography>
           </Box>
+
+          <VersionBadge />
 
           {/* User Menu */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>

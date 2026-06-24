@@ -136,15 +136,15 @@ export const put = <R, B = any>(endpoint: string, id: string | number, data: B, 
  * Realiza una petición DELETE.
  * Soporta borrado individual (por URL) o masivo (por Body).
  */
-export const remove = (endpoint: string, ids: string[], config?: AxiosRequestConfig): Promise<any> => {
+export const remove = (endpoint: string, ids: string[], config?: AxiosRequestConfig, bodyKey = "ids"): Promise<any> => {
   // Borrado individual: DELETE /api/recurso/123
   if (ids.length === 1) {
     return apiClient.delete(`${endpoint}/${ids[0]}`, config).then((res) => res.data);
   }
 
-  // Borrado múltiple: DELETE /api/recurso (Body: { customerIds: [...] })
-  // Nota: Axios requiere que el body en DELETE vaya dentro de la propiedad `data`.
-  return apiClient.delete(endpoint, { ...config, data: { customerIds: ids } }).then((res) => res.data);
+  // Borrado múltiple: DELETE /api/recurso (Body: { [bodyKey]: [...] })
+  // Axios requiere que el body en DELETE vaya dentro de la propiedad `data`.
+  return apiClient.delete(endpoint, { ...config, data: { [bodyKey]: ids } }).then((res) => res.data);
 };
 
 // Exportamos la instancia por si se requiere acceso directo avanzado
