@@ -2,6 +2,21 @@ import { useMemo } from "react";
 import { shapeVariations } from "../pages/public/common/shapes-step2";
 import type { EncimeraGrid, EncimeraPreviewPiece } from "../interfases/shape-variation.interfase";
 
+/**
+ * @react-pdf/renderer no soporta WEBP (solo JPG/PNG). Si el logo viene de
+ * Cloudinary en WEBP, forzamos conversión a PNG vía transformación de URL.
+ */
+const toPdfCompatibleImageUrl = (url?: string | null): string | undefined => {
+  if (!url) return undefined;
+  if (!/\.webp(\?.*)?$/i.test(url)) return url;
+
+  if (/res\.cloudinary\.com/i.test(url)) {
+    return url.replace("/upload/", "/upload/f_png/");
+  }
+
+  return url;
+};
+
 export interface ExtractedAddon {
   code: string;
   measurementsMap: Record<string, number | undefined>;
@@ -261,7 +276,7 @@ export const mapCartToPdfModel = (
     customerAddress: customer?.address?.addressLine1 ? `${customer.address.addressLine1}${customer.address.city ? `, ${customer.address.city}` : ""}` : "",
     userName: user?.name,
     userRole: user?.roles?.[0] || "Gestor",
-    logoStr: logoUrl || undefined,
+    logoStr: toPdfCompatibleImageUrl(logoUrl),
     footerText: footerText || undefined,
     validityDays: validityDays ?? undefined,
   };
