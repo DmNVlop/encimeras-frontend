@@ -395,7 +395,7 @@ export default function Cart() {
                     {/* Mini preview visual de la forma */}
                     {item.uiState?.selectedShapeId &&
                       (() => {
-                        const shape = shapeVariations.find((s) => s.id === item.uiState.selectedShapeId);
+                        const shape = shapeVariations.find((s) => s.id === item.uiState?.selectedShapeId);
                         if (!shape) return null;
                         return (
                           <Box
@@ -433,7 +433,7 @@ export default function Cart() {
                       {item.hydratedContext?.materials?.[0]?.name || item.uiState?.wizardTempMaterial?.materialName || "Config. Personalizada"}
                       {item.uiState?.selectedShapeId && (
                         <Typography component="span" variant="caption" color="text.disabled" sx={{ ml: 0.75 }}>
-                          · {shapeVariations.find((s) => s.id === item.uiState.selectedShapeId)?.name || "Forma personalizada"}
+                          · {shapeVariations.find((s) => s.id === item.uiState?.selectedShapeId)?.name || "Forma personalizada"}
                         </Typography>
                       )}
                       {item.piecesBreakdown && item.piecesBreakdown.length > 0 && (
