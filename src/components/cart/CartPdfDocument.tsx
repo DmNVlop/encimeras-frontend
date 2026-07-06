@@ -105,6 +105,26 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#0f172a",
   },
+  itemShape: {
+    fontSize: 9,
+    color: "#64748b",
+    marginTop: 2,
+  },
+  shapePreviewBox: {
+    width: 42,
+    height: 28,
+    position: "relative",
+    borderWidth: 1,
+    borderColor: "#94a3b8",
+    borderRadius: 2,
+    backgroundColor: "#f1f5f9",
+  },
+  shapePreviewPiece: {
+    position: "absolute",
+    backgroundColor: "#cbd5e1",
+    borderWidth: 0.5,
+    borderColor: "#64748b",
+  },
   itemSubtotalBox: {
     flexDirection: "row",
     alignItems: "baseline",
@@ -365,6 +385,42 @@ interface CartPdfDocumentProps {
   data: PdfData;
 }
 
+/**
+ * Replica en primitivas react-pdf (View posicionadas en %) el grid CSS
+ * que usa EncimeraPreview en el wizard, ya que react-pdf no soporta CSS Grid.
+ */
+const ShapePreviewPdf: React.FC<{ grid: PdfData["items"][number]["shapeGrid"]; pieces: PdfData["items"][number]["shapePieces"] }> = ({
+  grid,
+  pieces,
+}) => {
+  if (!grid || !pieces || pieces.length === 0) return null;
+
+  const colCount = grid.columns.trim().split(/\s+/).length;
+  const rowCount = grid.rows.trim().split(/\s+/).length;
+
+  return (
+    <View style={styles.shapePreviewBox}>
+      {pieces.map((piece, idx) => {
+        const [rowStart, colStart, rowEnd, colEnd] = piece.area.split("/").map((n) => parseInt(n.trim(), 10));
+        const left = ((colStart - 1) / colCount) * 100;
+        const top = ((rowStart - 1) / rowCount) * 100;
+        const width = ((colEnd - colStart) / colCount) * 100;
+        const height = ((rowEnd - rowStart) / rowCount) * 100;
+
+        return (
+          <View
+            key={piece.id || idx}
+            style={[
+              styles.shapePreviewPiece,
+              { left: `${left}%`, top: `${top}%`, width: `${width}%`, height: `${height}%` },
+            ]}
+          />
+        );
+      })}
+    </View>
+  );
+};
+
 export const CartPdfDocument: React.FC<CartPdfDocumentProps> = ({ data }) => {
   const formatCode = (code: string) =>
     code
@@ -480,7 +536,13 @@ export const CartPdfDocument: React.FC<CartPdfDocumentProps> = ({ data }) => {
           <View key={item.cartItemId} style={styles.itemContainer}>
             {/* Cabecera de la estancia */}
             <View style={styles.itemHeader}>
-              <Text style={styles.itemTitle}>{item.name}</Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <ShapePreviewPdf grid={item.shapeGrid} pieces={item.shapePieces} />
+                <View>
+                  <Text style={styles.itemTitle}>{item.name}</Text>
+                  {item.shapeName && <Text style={styles.itemShape}>Forma: {item.shapeName}</Text>}
+                </View>
+              </View>
               <View style={styles.itemSubtotalBox}>
                 <Text style={styles.itemSubtotalLabel}>Total estancia:</Text>
                 <Text style={styles.itemSubtotal}>{item.subtotal.toFixed(2)} pts</Text>

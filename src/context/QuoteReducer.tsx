@@ -68,8 +68,7 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
     case "SET_SHAPE_VARIATION_AND_CREATE_PIECES": {
       const { count, defaultMeasurements, piecesLayout, variationCode } = action.payload;
 
-      // Safety checks (same as before)
-      if (state.mainPieces.length > 0 || !state.wizardTempMaterial) {
+      if (!state.wizardTempMaterial) {
         return state;
       }
       // Check if measurements match count
@@ -80,14 +79,20 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
 
       const newPieces: MainPiece[] = [];
       const { materialId, selectedAttributes } = state.wizardTempMaterial;
+      const existingPieces = state.mainPieces;
 
       for (let i = 0; i < count; i++) {
-        const newPiece = createDefaultPiece();
-        newPiece.materialId = materialId;
-        newPiece.selectedAttributes = selectedAttributes;
-        // --- ASSIGN DEFAULT MEASUREMENTS ---
-        newPiece.measurements = defaultMeasurements[i];
-        // ------------------------------------
+        const existingPiece = existingPieces[i];
+        // Si ya existe una pieza en este índice (cambio de forma), conservamos su material/medidas.
+        const newPiece: MainPiece = existingPiece ? { ...existingPiece } : createDefaultPiece();
+
+        if (!existingPiece) {
+          newPiece.materialId = materialId;
+          newPiece.selectedAttributes = selectedAttributes;
+          // --- ASSIGN DEFAULT MEASUREMENTS ---
+          newPiece.measurements = defaultMeasurements[i];
+          // ------------------------------------
+        }
 
         // INTELIGENCIA 3D
         if (piecesLayout && piecesLayout[i]) {

@@ -1,4 +1,6 @@
 import { useMemo } from "react";
+import { shapeVariations } from "../pages/public/common/shapes-step2";
+import type { EncimeraGrid, EncimeraPreviewPiece } from "../interfases/shape-variation.interfase";
 
 export interface ExtractedAddon {
   code: string;
@@ -29,6 +31,9 @@ export interface PdfPieceBreakdown {
 export interface ExtractedItem {
   cartItemId: string;
   name: string;
+  shapeName?: string;
+  shapeGrid?: EncimeraGrid;
+  shapePieces?: EncimeraPreviewPiece[];
   subtotal: number;
   pieces: ExtractedPiece[];
   piecesBreakdown?: PdfPieceBreakdown[];
@@ -111,6 +116,7 @@ export const mapCartToPdfModel = (
   customer?: any,
   footerText?: string,
   validityDays?: number | null,
+  logoUrl?: string | null,
 ): PdfData | null => {
   if (!cartOrOrder) return null;
 
@@ -205,9 +211,15 @@ export const mapCartToPdfModel = (
       finalPricePoints: pb.finalPricePoints ?? 0,
     }));
 
+    const shapeId = item.uiState?.selectedShapeId;
+    const shape = shapeId ? shapeVariations.find((s) => s.id === shapeId) : undefined;
+
     return {
       cartItemId: item.cartItemId || `item-${itemIndex}`,
       name: isOrder ? item.cartItemName || "Estancia de Presupuesto" : item.customName || "Estancia sin nombre",
+      shapeName: shape?.name,
+      shapeGrid: shape?.grid,
+      shapePieces: shape?.pieces,
       // En CARRITO: subtotalPoints (precio con descuento de línea)
       // En ORDEN:   originalPoints - discountAmount (subtotalPoints no viene del backend de órdenes)
       subtotal: item.subtotalPoints != null ? item.subtotalPoints : (item.originalPoints ?? 0) - (item.discountAmount ?? 0),
@@ -249,7 +261,7 @@ export const mapCartToPdfModel = (
     customerAddress: customer?.address?.addressLine1 ? `${customer.address.addressLine1}${customer.address.city ? `, ${customer.address.city}` : ""}` : "",
     userName: user?.name,
     userRole: user?.roles?.[0] || "Gestor",
-    logoStr: "/logos/kuuk-logo.png", // Usualmente es mejor en base64 para pdf pero react-pdf acepta URLs absolutas/relativas del public folder
+    logoStr: logoUrl || undefined,
     footerText: footerText || undefined,
     validityDays: validityDays ?? undefined,
   };
@@ -258,9 +270,16 @@ export const mapCartToPdfModel = (
 /**
  * Custom Hook que memoriza el cálculo del PDF
  */
-export const usePdfData = (cartOrOrder: any | null | undefined, user?: any, customer?: any, footerText?: string, validityDays?: number | null) => {
+export const usePdfData = (
+  cartOrOrder: any | null | undefined,
+  user?: any,
+  customer?: any,
+  footerText?: string,
+  validityDays?: number | null,
+  logoUrl?: string | null,
+) => {
   return useMemo(
-    () => mapCartToPdfModel(cartOrOrder, user, customer, footerText, validityDays ?? undefined),
-    [cartOrOrder, user, customer, footerText, validityDays],
+    () => mapCartToPdfModel(cartOrOrder, user, customer, footerText, validityDays ?? undefined, logoUrl),
+    [cartOrOrder, user, customer, footerText, validityDays, logoUrl],
   );
 };

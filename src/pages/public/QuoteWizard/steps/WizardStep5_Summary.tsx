@@ -13,7 +13,7 @@ import { SummaryActions } from "./components/step5/SummaryActions";
 // COMPONENTE WizardStep5_Summary
 // =============================================================================
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Dialog, DialogTitle, IconButton, DialogContent, Snackbar, Alert, Typography } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
@@ -24,8 +24,9 @@ import { validateAssemblies } from "@/utils/quoteValidation";
 import { useQuoteState, useQuoteDispatch } from "@/context/QuoteContext";
 import { useAuth } from "@/context/AuthProvider";
 import { useCart } from "@/context/CartContext"; // Nuevo
-import { post } from "@/services/api.service";
+import { get, post } from "@/services/api.service";
 import { draftsApi } from "@/services/drafts.service";
+import type { Material } from "@/interfases/materials.interfase";
 
 // --- COMPONENTES COMUNES ---
 import { ApiErrorFeedback } from "@/pages/public/common/ApiErrorFeedback";
@@ -64,6 +65,21 @@ export const WizardStep5_Summary: React.FC<WizardStep5_SummaryProps> = ({ onRese
 
   // ESTADO PARA EL MODAL 3D
   const [open3D, setOpen3D] = useState(false);
+
+  // --- MATERIALES (para resolver nombre/imagen real por pieza en el desglose) ---
+  const [materialsList, setMaterialsList] = useState<Material[]>([]);
+
+  useEffect(() => {
+    const fetchMaterials = async () => {
+      try {
+        const data = await get<Material[]>("/materials");
+        setMaterialsList(data);
+      } catch (error) {
+        console.error("Error al cargar materiales:", error);
+      }
+    };
+    fetchMaterials();
+  }, []);
 
   // --- MODAL GUARDAR BORRADOR ---
   const [openSaveModal, setOpenSaveModal] = useState(false);
@@ -261,6 +277,7 @@ export const WizardStep5_Summary: React.FC<WizardStep5_SummaryProps> = ({ onRese
         calculationResult={calculationResult as CalculationResponse}
         wizardTempMaterial={wizardTempMaterial}
         mainPieces={mainPieces}
+        materialsList={materialsList}
         selectedShapeId={selectedShapeId}
       />
 
