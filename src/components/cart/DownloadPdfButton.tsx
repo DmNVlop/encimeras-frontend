@@ -7,6 +7,9 @@ import { usePdfData } from "../../utils/pdfAdapter";
 import type { Cart } from "../../interfases/cart.interfase";
 import type { ICustomer } from "../../interfases/customer.interfase";
 import { documentSettingsService, type IDocumentSettings } from "@/services/document-settings.service";
+import { useFactorySettings } from "@/context/FactorySettingsContext";
+import { resolveImageUrl } from "@/pages/public/common/ImageUploader/utils/urlUtils";
+import { config } from "@/config";
 
 interface DownloadPdfButtonProps {
   cart: Cart;
@@ -21,6 +24,7 @@ const DEFAULT_FOOTER_TEXT =
 const DownloadPdfButton: React.FC<DownloadPdfButtonProps> = ({ cart, user, customer, disabled }) => {
   const [isClient, setIsClient] = useState(false);
   const [docSettings, setDocSettings] = useState<IDocumentSettings | null>(null);
+  const { logoUrl } = useFactorySettings();
 
   useEffect(() => {
     setIsClient(true);
@@ -37,7 +41,8 @@ const DownloadPdfButton: React.FC<DownloadPdfButtonProps> = ({ cart, user, custo
   const footerText = docSettings?.footerText || DEFAULT_FOOTER_TEXT;
   const validityDays = docSettings?.validityDays ?? null;
 
-  const pdfData = usePdfData(cart, user, customer, footerText, validityDays);
+  const resolvedLogoUrl = logoUrl ? resolveImageUrl(logoUrl, config.assets.baseUrl) : null;
+  const pdfData = usePdfData(cart, user, customer, footerText, validityDays, resolvedLogoUrl);
 
   // Evita errores de hidratación en SSR y asegura que estamos en el navegador
   useEffect(() => {

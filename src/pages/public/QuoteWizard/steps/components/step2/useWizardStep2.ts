@@ -53,6 +53,10 @@ export const useWizardStep2 = () => {
           piecesLayout: variation.piecesLayout,
         },
       });
+
+      // Volver a la vista de medidas tras confirmar la nueva forma
+      setBackupMainPieces(null);
+      setIsShapeSelectionPending(false);
     },
     [dispatch, wizardTempMaterial],
   );

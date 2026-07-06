@@ -39,6 +39,8 @@ import { CartSummaryDiscountBreakdown } from "@/components/cart/CartSummaryDisco
 import type { ICustomer } from "@/interfases/customer.interfase";
 import { get } from "@/services/api.service";
 import { useAuth } from "@/context/AuthProvider";
+import { shapeVariations } from "@/pages/public/common/shapes-step2";
+import EncimeraPreview from "@/pages/public/common/EncimeraPreview/encimera-preview";
 
 // Importación diferida (Lazy Load) del módulo pesado PDF
 const LazyDownloadPdfButton = lazy(() => import("@/components/cart/DownloadPdfButton"));
@@ -390,6 +392,31 @@ export default function Cart() {
                 <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
                   {/* Cabecera del ítem — fila única compacta */}
                   <Box sx={{ display: "flex", alignItems: "center", px: 1.5, py: 1, gap: 1.5 }}>
+                    {/* Mini preview visual de la forma */}
+                    {item.uiState?.selectedShapeId &&
+                      (() => {
+                        const shape = shapeVariations.find((s) => s.id === item.uiState.selectedShapeId);
+                        if (!shape) return null;
+                        return (
+                          <Box
+                            sx={{
+                              width: 36,
+                              height: 24,
+                              flexShrink: 0,
+                              borderRadius: 1,
+                              border: "1px solid",
+                              borderColor: "divider",
+                              overflow: "hidden",
+                              display: "flex",
+                              "& .encimera-preview-container": { minHeight: "unset", height: "100%", width: "100%", p: 0.4 },
+                              "& .encimera-pieza": { backgroundSize: "6px 6px" },
+                            }}
+                          >
+                            <EncimeraPreview config={{ id: shape.id, name: shape.name, grid: shape.grid, pieces: shape.pieces }} />
+                          </Box>
+                        );
+                      })()}
+
                     {/* Dot identificador */}
                     <Box sx={{
                       width: 8, height: 8, borderRadius: "50%", flexShrink: 0,
@@ -401,9 +428,14 @@ export default function Cart() {
                       {item.customName}
                     </Typography>
 
-                    {/* Material + piezas — secundario */}
+                    {/* Material + forma + piezas — secundario */}
                     <Typography variant="caption" color="text.secondary" noWrap sx={{ flex: 1, minWidth: 0 }}>
                       {item.hydratedContext?.materials?.[0]?.name || item.uiState?.wizardTempMaterial?.materialName || "Config. Personalizada"}
+                      {item.uiState?.selectedShapeId && (
+                        <Typography component="span" variant="caption" color="text.disabled" sx={{ ml: 0.75 }}>
+                          · {shapeVariations.find((s) => s.id === item.uiState.selectedShapeId)?.name || "Forma personalizada"}
+                        </Typography>
+                      )}
                       {item.piecesBreakdown && item.piecesBreakdown.length > 0 && (
                         <Typography component="span" variant="caption" color="text.disabled" sx={{ ml: 0.75 }}>
                           · {item.piecesBreakdown.length} pieza{item.piecesBreakdown.length !== 1 ? "s" : ""}
