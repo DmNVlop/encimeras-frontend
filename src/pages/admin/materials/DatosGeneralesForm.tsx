@@ -37,11 +37,13 @@ interface DatosGeneralesFormProps {
   handleAddRecipe: () => void;
   handleRemoveRecipe: (index: number) => void;
   handleRecipeChange: (index: number, field: string, value: string | string[]) => void;
+  saving?: boolean;
 }
 
 const DatosGeneralesForm: React.FC<DatosGeneralesFormProps> = ({
   currentMaterial,
   attributes,
+  saving,
   handleSubmit,
   handleTextChange,
   handleSelectChange,
@@ -209,8 +211,8 @@ const DatosGeneralesForm: React.FC<DatosGeneralesFormProps> = ({
 
       <FormControlLabel control={<Switch checked={currentMaterial.isActive ?? true} name="isActive" onChange={handleSwitchChange} />} label="Activo" />
 
-      <Button type="submit" fullWidth variant="contained" sx={{ mt: 3 }}>
-        Guardar Cambios
+      <Button type="submit" fullWidth variant="contained" sx={{ mt: 3 }} disabled={saving}>
+        {saving ? "Guardando..." : "Guardar Cambios"}
       </Button>
     </Box>
   );
