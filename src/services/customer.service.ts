@@ -45,7 +45,15 @@ export const linkCustomerToUser = (customerId: string, userId: string): Promise<
 };
 
 export const batchDeleteCustomers = (customerIds: string[]): Promise<any> => {
-  return remove(`${ENDPOINT}/batch`, customerIds, undefined, "customerIds");
+  // No reutilizar remove(`${ENDPOINT}/batch`, ...): a diferencia de otros módulos,
+  // Customers tiene un path de batch distinto al singular (/customers/batch vs
+  // /customers/:id, no el mismo endpoint para ambos casos) — con 1 solo id, remove()
+  // arma "/customers/batch/<id>" (bug real detectado 2026-07-14: 404, borrado individual
+  // desde la barra de selección no funcionaba). Con 1 id, pegarle directo a /customers/:id.
+  if (customerIds.length === 1) {
+    return remove(ENDPOINT, customerIds);
+  }
+  return apiClient.delete(`${ENDPOINT}/batch`, { data: { customerIds } }).then((res) => res.data);
 };
 
 export const batchAssignSales = (customerIds: string[], salesUserIds: string[]): Promise<any> => {
