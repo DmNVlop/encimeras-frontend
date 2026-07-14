@@ -26,7 +26,7 @@ import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import type { Attribute } from "@/interfases/attribute.interfase";
 
 // --- Interfaces específicas para este componente ---
-interface ValidCombination {
+export interface ValidCombination {
   _id: string;
   materialId: string;
   attributes: Record<string, string>;

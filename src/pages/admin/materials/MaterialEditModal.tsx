@@ -4,9 +4,10 @@ import { Box, Modal, Typography, Tabs, Tab, IconButton, type SelectChangeEvent }
 import CloseIcon from "@mui/icons-material/Close";
 import DatosGeneralesForm from "./DatosGeneralesForm";
 import CombinacionesValidasTab from "./CombinacionesValidasTab";
-import { get, create, update } from "@/services/api.service";
+import { get, create, update, remove } from "@/services/api.service";
 import type { Material } from "@/interfases/materials.interfase";
 import type { Attribute } from "@/interfases/attribute.interfase";
+import type { ValidCombination } from "./CombinacionesValidasTab";
 
 // --- Interfaz para el "paquete" de atributos ---
 export interface AttributesBundle {
@@ -23,6 +24,7 @@ interface MaterialEditModalProps {
   material: Partial<Material> | null;
   isEditMode: boolean;
   onSave: () => void;
+  combosToClone?: ValidCombination[];
 }
 
 const modalStyle = {
@@ -54,9 +56,10 @@ function TabPanel(props: { children?: React.ReactNode; index: number; value: num
 // COMPONENTE PRINCIPAL: MaterialEditModal
 // =============================================================================
 
-const MaterialEditModal: React.FC<MaterialEditModalProps> = ({ open, onClose, material, isEditMode, onSave }) => {
+const MaterialEditModal: React.FC<MaterialEditModalProps> = ({ open, onClose, material, isEditMode, onSave, combosToClone = [] }) => {
   const [tabIndex, setTabIndex] = useState(0);
   const [currentMaterial, setCurrentMaterial] = useState<Partial<Material>>(material || {});
+  const [saving, setSaving] = useState(false);
 
   // Estado que contendrá todas las listas de opciones para los formularios
   const [attributes, setAttributes] = useState<AttributesBundle>({
@@ -100,14 +103,48 @@ const MaterialEditModal: React.FC<MaterialEditModalProps> = ({ open, onClose, ma
   // --- Lógica de guardado que se pasará al formulario ---
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (saving) return;
     const data = { ...currentMaterial };
 
-    if (isEditMode) {
-      await update("/materials", currentMaterial._id!, data);
-    } else {
-      await create("/materials", data);
+    setSaving(true);
+    try {
+      if (isEditMode) {
+        await update("/materials", currentMaterial._id!, data);
+      } else if (combosToClone.length > 0) {
+        await createMaterialWithClonedCombos(data);
+      } else {
+        await create("/materials", data);
+      }
+      onSave(); // Avisa al padre (MaterialsPage) para que recargue los datos
+    } catch (error) {
+      console.error("Error al guardar el material:", error);
+      alert("No se pudo guardar el material. Revisa la consola.");
+    } finally {
+      setSaving(false);
     }
-    onSave(); // Avisa al padre (MaterialsPage) para que recargue los datos
+  };
+
+  // Crea el material duplicado y sus combinaciones válidas clonadas.
+  // Si alguna combinación falla, se revierte todo (material + combos ya creadas) para no dejar datos a medias.
+  const createMaterialWithClonedCombos = async (data: Partial<Material>) => {
+    const newMaterial = await create<Material>("/materials", data);
+    const createdComboIds: string[] = [];
+
+    try {
+      for (const combo of combosToClone) {
+        const created = await create<{ _id: string }>("/valid-combinations", {
+          materialId: newMaterial._id,
+          attributes: combo.attributes,
+        });
+        createdComboIds.push(created._id);
+      }
+    } catch (error) {
+      if (createdComboIds.length > 0) {
+        await remove("/valid-combinations", createdComboIds).catch(() => {});
+      }
+      await remove("/materials", [newMaterial._id]).catch(() => {});
+      throw error;
+    }
   };
 
   // --- Manejadores de eventos que se pasarán al formulario ---
@@ -182,6 +219,7 @@ const MaterialEditModal: React.FC<MaterialEditModalProps> = ({ open, onClose, ma
           <DatosGeneralesForm
             currentMaterial={currentMaterial}
             attributes={attributes}
+            saving={saving}
             handleSubmit={handleSubmit}
             handleTextChange={handleTextChange}
             handleSelectChange={handleSelectChange}
