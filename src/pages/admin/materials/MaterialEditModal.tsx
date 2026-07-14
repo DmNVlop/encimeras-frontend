@@ -132,7 +132,10 @@ const MaterialEditModal: React.FC<MaterialEditModalProps> = ({ open, onClose, ma
 
     try {
       for (const combo of combosToClone) {
-        const created = await create<{ _id: string }>("/valid-combinations", {
+        const created = await create<
+          { _id: string },
+          { materialId: string; attributes: Record<string, string> }
+        >("/valid-combinations", {
           materialId: newMaterial._id,
           attributes: combo.attributes,
         });
