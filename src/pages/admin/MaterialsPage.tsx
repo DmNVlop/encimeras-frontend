@@ -1,16 +1,58 @@
 // src/pages/admin/MaterialsPage.tsx
 import React, { useState, useEffect, useRef } from "react";
 import { Box, Button, CircularProgress, Chip } from "@mui/material";
-import { DataGrid, type GridColDef, GridActionsCellItem, type GridRowId, type GridRowSelectionModel } from "@mui/x-data-grid";
+import {
+  DataGrid,
+  type GridColDef,
+  GridActionsCellItem,
+  type GridRowId,
+  type GridRowSelectionModel,
+  type GridFilterModel,
+  useGridApiRef,
+  gridFilteredSortedRowIdsSelector,
+} from "@mui/x-data-grid";
 import { esES } from "@mui/x-data-grid/locales";
 import { create, get, remove } from "@/services/api.service";
+import type { ValidCombination } from "./materials/CombinacionesValidasTab";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
+import DownloadIcon from "@mui/icons-material/Download";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import type { Material, PricingRecipe } from "@/interfases/materials.interfase";
 import MaterialEditModal from "./materials/MaterialEditModal";
 import AdminPageTitle from "./components/AdminPageTitle";
+import ExportCsvDialog, { type ExportCsvScope, describeGridFilterModel } from "./components/ExportCsvDialog";
+import { parseCsv, buildCsv, downloadCsv, arrayToCsvField, csvFieldToArray, boolToCsvField, csvFieldToBool } from "@/utils/csv.util";
+import { getPageSizeOptions } from "@/utils/dataGrid.util";
+
+// =============================================================================
+// MAPEO DE COLUMNAS CSV — mismo objeto usado para import y export (Tarea 2.1/2.2)
+// =============================================================================
+
+const MATERIAL_CSV_COLUMNS: {
+  header: string;
+  get: (m: Material) => string;
+  set: (row: any, v: string) => void;
+}[] = [
+  { header: "ref", get: (m) => m.ref ?? "", set: (row, v) => (row.ref = v) },
+  { header: "name", get: (m) => m.name ?? "", set: (row, v) => (row.name = v) },
+  { header: "description", get: (m) => m.description ?? "", set: (row, v) => (row.description = v) },
+  { header: "category", get: (m) => m.category ?? "", set: (row, v) => (row.category = v) },
+  { header: "type", get: (m) => m.type ?? "", set: (row, v) => (row.type = v) },
+  { header: "isActive", get: (m) => boolToCsvField(m.isActive), set: (row, v) => (row.isActive = csvFieldToBool(v)) },
+  {
+    header: "selectableAttributes",
+    get: (m) => arrayToCsvField(m.selectableAttributes),
+    set: (row, v) => (row.selectableAttributes = csvFieldToArray(v)),
+  },
+  {
+    header: "pricingRecipes",
+    get: (m) => JSON.stringify(m.pricingRecipes ?? []),
+    set: (row, v) => (row.pricingRecipes = v ? JSON.parse(v) : []),
+  },
+];
 
 // =============================================================================
 // COMPONENTE PRINCIPAL: MaterialsPage
@@ -27,8 +69,12 @@ const MaterialsPage: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedMaterial, setSelectedMaterial] = useState<Partial<Material> | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [combosToClone, setCombosToClone] = useState<ValidCombination[]>([]);
+  const [filterModel, setFilterModel] = useState<GridFilterModel>({ items: [] });
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const apiRef = useGridApiRef();
 
   // =============================================================================
   // SECCIÓN DE LÓGICA DE DATOS
@@ -57,12 +103,28 @@ const MaterialsPage: React.FC = () => {
   const handleOpenModal = (material?: Material) => {
     setIsEditMode(!!material);
     setSelectedMaterial(material || null);
+    setCombosToClone([]);
     setModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setModalOpen(false);
     setSelectedMaterial(null);
+    setCombosToClone([]);
+  };
+
+  const handleDuplicate = async (material: Material) => {
+    const { _id, validCombinationsCount, ...rest } = material;
+    setIsEditMode(false);
+    setSelectedMaterial({ ...rest, name: `${material.name} (copia)`, ref: "" });
+    try {
+      const combos = await get<ValidCombination[]>("/valid-combinations", { params: { materialId: material._id } });
+      setCombosToClone(combos);
+    } catch (error) {
+      console.error("Error al cargar combinaciones para duplicar:", error);
+      setCombosToClone([]);
+    }
+    setModalOpen(true);
   };
 
   // Esta función es llamada por el Modal cuando termina de guardar
@@ -94,32 +156,21 @@ const MaterialsPage: React.FC = () => {
     const reader = new FileReader();
     reader.onload = async (e) => {
       const text = e.target?.result as string;
-      const lines = text.split("\n").filter((line) => line.trim());
-      const headerLine = lines.shift();
-      if (!headerLine) return alert("El archivo CSV está vacío o no tiene cabecera.");
+      const rows = parseCsv(text, ";");
+      const headerRow = rows.shift();
+      if (!headerRow) return alert("El archivo CSV está vacío o no tiene cabecera.");
 
-      const headers = headerLine.trim().split(";");
+      const missingHeaders = MATERIAL_CSV_COLUMNS.filter((col) => !headerRow.includes(col.header));
+      if (missingHeaders.length > 0) {
+        return alert(`Faltan columnas requeridas en el CSV: ${missingHeaders.map((c) => c.header).join(", ")}`);
+      }
+
       const materialsToCreate = [];
-
-      for (const line of lines) {
-        const values = line.trim().split(";");
+      for (const values of rows) {
         const materialData: any = {};
-        headers.forEach((header, index) => {
-          const value = values[index]?.trim();
-          if (["thicknesses", "finishes", "faces", "groups"].includes(header)) {
-            materialData[header] = value
-              ? value
-                  .split(",")
-                  .map((s) => s.trim())
-                  .filter((s) => s)
-              : [];
-          } else if (header === "pricePerSquareMeter") {
-            // Ignoramos el precio
-          } else if (header === "isActive") {
-            materialData[header] = value ? value.toLowerCase() === "true" : false;
-          } else if (value) {
-            materialData[header] = value;
-          }
+        MATERIAL_CSV_COLUMNS.forEach((col) => {
+          const index = headerRow.indexOf(col.header);
+          col.set(materialData, values[index] ?? "");
         });
         materialsToCreate.push(create("/materials", materialData));
       }
@@ -135,6 +186,35 @@ const MaterialsPage: React.FC = () => {
     };
     reader.readAsText(file);
     if (event.target) event.target.value = ""; // Reset input
+  };
+
+  const exportMaterials = (materialsToExport: Material[]) => {
+    const headers = MATERIAL_CSV_COLUMNS.map((col) => col.header);
+    const rows = materialsToExport.map((m) => {
+      const row: Record<string, string> = {};
+      MATERIAL_CSV_COLUMNS.forEach((col) => (row[col.header] = col.get(m)));
+      return row;
+    });
+    downloadCsv("materials.csv", buildCsv(headers, rows));
+  };
+
+  const handleConfirmExport = (scope: ExportCsvScope) => {
+    if (scope === "all") {
+      exportMaterials(materials);
+      return;
+    }
+
+    const filteredIds = gridFilteredSortedRowIdsSelector(apiRef);
+    const filteredMaterials = filteredIds.map((id) => materials.find((m) => m._id === id)).filter((m): m is Material => !!m);
+
+    if (scope === "filtered") {
+      exportMaterials(filteredMaterials);
+      return;
+    }
+
+    // scope === "page": recorta a la página actual sobre el resultado ya filtrado
+    const { page, pageSize } = paginationModel;
+    exportMaterials(filteredMaterials.slice(page * pageSize, page * pageSize + pageSize));
   };
 
   // =============================================================================
@@ -201,9 +281,10 @@ const MaterialsPage: React.FC = () => {
       field: "actions",
       type: "actions",
       headerName: "Acciones",
-      width: 100,
+      width: 130,
       getActions: (params) => [
         <GridActionsCellItem icon={<EditIcon />} label="Editar" onClick={() => handleOpenModal(params.row)} />,
+        <GridActionsCellItem icon={<ContentCopyIcon />} label="Duplicar" onClick={() => handleDuplicate(params.row)} />,
         <GridActionsCellItem icon={<DeleteIcon />} label="Eliminar" onClick={() => handleDelete(params.id as string)} />,
       ],
     },
@@ -213,6 +294,8 @@ const MaterialsPage: React.FC = () => {
   // SECCIÓN DE RENDERIZADO (JSX)
   // =============================================================================
 
+  const filteredCount = apiRef.current ? gridFilteredSortedRowIdsSelector(apiRef).length : materials.length;
+
   return (
     <Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
@@ -221,6 +304,9 @@ const MaterialsPage: React.FC = () => {
           <input type="file" accept=".csv" ref={fileInputRef} style={{ display: "none" }} onChange={handleFileUpload} />
           <Button variant="outlined" startIcon={<UploadFileIcon />} onClick={() => fileInputRef.current?.click()} sx={{ mr: 1 }}>
             Importar CSV
+          </Button>
+          <Button variant="outlined" startIcon={<DownloadIcon />} onClick={() => setExportDialogOpen(true)} sx={{ mr: 1 }}>
+            Exportar CSV
           </Button>
           {selectionModel.ids.size > 0 && (
             <Button variant="contained" color="error" startIcon={<DeleteIcon />} onClick={handleDeleteSelected} sx={{ mr: 1 }}>
@@ -237,6 +323,7 @@ const MaterialsPage: React.FC = () => {
           <CircularProgress />
         ) : (
           <DataGrid
+            apiRef={apiRef}
             rows={materials}
             columns={columns}
             getRowId={(row) => row._id}
@@ -246,14 +333,35 @@ const MaterialsPage: React.FC = () => {
             rowSelectionModel={selectionModel}
             paginationModel={paginationModel}
             onPaginationModelChange={setPaginationModel}
-            pageSizeOptions={[10, 25, 50]}
+            filterModel={filterModel}
+            onFilterModelChange={setFilterModel}
+            pageSizeOptions={getPageSizeOptions(materials.length)}
             rowHeight={60}
           />
         )}
       </Box>
 
       {/* --- Renderizamos el nuevo componente Modal --- */}
-      {modalOpen && <MaterialEditModal open={modalOpen} onClose={handleCloseModal} material={selectedMaterial} isEditMode={isEditMode} onSave={handleSave} />}
+      {modalOpen && (
+        <MaterialEditModal
+          open={modalOpen}
+          onClose={handleCloseModal}
+          material={selectedMaterial}
+          isEditMode={isEditMode}
+          onSave={handleSave}
+          combosToClone={combosToClone}
+        />
+      )}
+
+      <ExportCsvDialog
+        open={exportDialogOpen}
+        onClose={() => setExportDialogOpen(false)}
+        onConfirm={handleConfirmExport}
+        pageCount={Math.max(0, Math.min(paginationModel.pageSize, filteredCount - paginationModel.page * paginationModel.pageSize))}
+        filteredCount={filteredCount}
+        totalCount={materials.length}
+        filterDescription={describeGridFilterModel(filterModel)}
+      />
     </Box>
   );
 };
