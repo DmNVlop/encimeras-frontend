@@ -1,6 +1,5 @@
-import React, { useState } from "react";
-import { Box, Typography, Stack, Chip, IconButton, useTheme, alpha, Paper, Checkbox, Avatar, Tooltip, Menu, MenuItem as MuiMenuItem, ListItemIcon, ListItemText } from "@mui/material";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
+import React from "react";
+import { Box, Typography, Stack, Chip, IconButton, useTheme, alpha, Paper, Checkbox, Avatar, Tooltip } from "@mui/material";
 import BusinessIcon from "@mui/icons-material/Business";
 import PersonIcon from "@mui/icons-material/Person";
 import EmailIcon from "@mui/icons-material/Email";
@@ -22,7 +21,6 @@ interface CustomerItemProps {
 
 const CustomerItem: React.FC<CustomerItemProps> = ({ customer, selected, salesUsers, showAuthor = false, onClick, onSelect, onOpenDrawer }) => {
   const theme = useTheme();
-  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const isCompany = customer.type === CustomerType.COMPANY;
 
   const assignedUsers = salesUsers.filter((u) => customer.assignedUserIds?.includes(u._id));
@@ -37,18 +35,8 @@ const CustomerItem: React.FC<CustomerItemProps> = ({ customer, selected, salesUs
     onClick(customer, e);
   };
 
-  const handleMenuOpen = (e: React.MouseEvent<HTMLElement>) => {
-    e.stopPropagation();
-    setMenuAnchor(e.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setMenuAnchor(null);
-  };
-
   const handleOpenDrawer = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setMenuAnchor(null);
     onOpenDrawer(customer);
   };
 
@@ -57,27 +45,26 @@ const CustomerItem: React.FC<CustomerItemProps> = ({ customer, selected, salesUs
       elevation={0}
       onClick={handleRowClick}
       sx={{
-        p: 2.5,
-        mb: 1.5,
-        borderRadius: 4,
+        p: 0.75,
+        mb: 0.5,
+        borderRadius: 2.5,
         border: `1px solid ${selected ? alpha(theme.palette.primary.main, 0.5) : alpha(theme.palette.divider, 0.08)}`,
         background: selected ? alpha(theme.palette.primary.main, 0.04) : alpha(theme.palette.background.paper, 0.5),
         backdropFilter: "blur(10px)",
-        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+        transition: "border-color 0.2s, background-color 0.2s",
         cursor: "pointer",
         userSelect: "none",
         display: "flex",
         alignItems: "center",
         "&:hover": {
-          transform: "translateY(-4px)",
-          boxShadow: `0 12px 24px -10px ${alpha(theme.palette.common.black, 0.1)}`,
           borderColor: alpha(theme.palette.primary.main, 0.2),
           background: theme.palette.background.paper,
         },
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", mr: 2 }}>
+      <Box sx={{ display: "flex", alignItems: "center", mr: 1 }}>
         <Checkbox
+          size="small"
           checked={selected}
           onClick={handleCheckboxClick}
           sx={{
@@ -94,10 +81,10 @@ const CustomerItem: React.FC<CustomerItemProps> = ({ customer, selected, salesUs
       <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center" }}>
         {/* Info Column */}
         <Box sx={{ flex: 2 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "text.primary" }}>
+          <Typography variant="body2" sx={{ fontWeight: 800, color: "text.primary", lineHeight: 1.3 }}>
             {customer.officialName}
           </Typography>
-          <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 600, opacity: 0.7 }}>
+          <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 600, opacity: 0.7, fontSize: "0.7rem", lineHeight: 1.2 }}>
             {customer.nif || "Sin NIF"}
           </Typography>
         </Box>
@@ -105,12 +92,13 @@ const CustomerItem: React.FC<CustomerItemProps> = ({ customer, selected, salesUs
         {/* Type Column */}
         <Box sx={{ flex: 1, textAlign: "center" }}>
           <Chip
-            icon={isCompany ? <BusinessIcon sx={{ fontSize: "1rem !important" }} /> : <PersonIcon sx={{ fontSize: "1rem !important" }} />}
+            icon={isCompany ? <BusinessIcon sx={{ fontSize: "0.9rem !important" }} /> : <PersonIcon sx={{ fontSize: "0.9rem !important" }} />}
             label={isCompany ? "Empresa" : "Particular"}
             size="small"
             sx={{
+              height: 22,
               fontWeight: 700,
-              fontSize: "0.75rem",
+              fontSize: "0.7rem",
               borderRadius: "8px",
               backgroundColor: isCompany ? alpha(theme.palette.primary.main, 0.1) : alpha(theme.palette.success.main, 0.1),
               color: isCompany ? theme.palette.primary.main : theme.palette.success.main,
@@ -121,19 +109,19 @@ const CustomerItem: React.FC<CustomerItemProps> = ({ customer, selected, salesUs
 
         {/* Contact Column */}
         <Box sx={{ flex: 2 }}>
-          <Stack spacing={0.5}>
+          <Stack spacing={0.1}>
             {customer.contact.email && (
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <EmailIcon sx={{ fontSize: 14, color: "text.secondary", opacity: 0.5 }} />
-                <Typography variant="body2" sx={{ color: "text.secondary", fontWeight: 500, fontSize: "0.85rem" }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                <EmailIcon sx={{ fontSize: 13, color: "text.secondary", opacity: 0.5 }} />
+                <Typography variant="body2" sx={{ color: "text.secondary", fontWeight: 500, fontSize: "0.78rem", lineHeight: 1.3 }}>
                   {customer.contact.email}
                 </Typography>
               </Box>
             )}
             {customer.contact.phone && (
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <PhoneIcon sx={{ fontSize: 14, color: "text.secondary", opacity: 0.5 }} />
-                <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 600, opacity: 0.6 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                <PhoneIcon sx={{ fontSize: 13, color: "text.secondary", opacity: 0.5 }} />
+                <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 600, opacity: 0.6, fontSize: "0.7rem", lineHeight: 1.2 }}>
                   {customer.contact.phone}
                 </Typography>
               </Box>
@@ -152,9 +140,9 @@ const CustomerItem: React.FC<CustomerItemProps> = ({ customer, selected, salesUs
               >
                 <Avatar
                   sx={{
-                    width: 28,
-                    height: 28,
-                    fontSize: "0.7rem",
+                    width: 22,
+                    height: 22,
+                    fontSize: "0.65rem",
                     fontWeight: 700,
                     backgroundColor: alpha(theme.palette.warning.main, 0.15),
                     color: theme.palette.warning.dark,
@@ -194,9 +182,9 @@ const CustomerItem: React.FC<CustomerItemProps> = ({ customer, selected, salesUs
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <Avatar
                     sx={{
-                      width: 26,
-                      height: 26,
-                      fontSize: "0.65rem",
+                      width: 22,
+                      height: 22,
+                      fontSize: "0.62rem",
                       fontWeight: 700,
                       backgroundColor: alpha(theme.palette.info.main, 0.12),
                       color: theme.palette.info.dark,
@@ -241,46 +229,11 @@ const CustomerItem: React.FC<CustomerItemProps> = ({ customer, selected, salesUs
 
         {/* Actions */}
         <Box>
-          <IconButton
-            size="small"
-            onClick={handleMenuOpen}
-            sx={{
-              color: "text.secondary",
-              transition: "all 0.2s",
-              "&:hover": { backgroundColor: alpha(theme.palette.primary.main, 0.05), color: theme.palette.primary.main },
-            }}
-          >
-            <MoreVertIcon />
-          </IconButton>
-          <Menu
-            anchorEl={menuAnchor}
-            open={Boolean(menuAnchor)}
-            onClose={handleMenuClose}
-            onClick={(e) => e.stopPropagation()}
-            slotProps={{
-              paper: {
-                elevation: 4,
-                sx: {
-                  borderRadius: 3,
-                  minWidth: 180,
-                  border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-                  backdropFilter: "blur(20px)",
-                  background: alpha(theme.palette.background.paper, 0.95),
-                  overflow: "visible",
-                  mt: 0.5,
-                },
-              },
-            }}
-            transformOrigin={{ horizontal: "right", vertical: "top" }}
-            anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-          >
-            <MuiMenuItem onClick={handleOpenDrawer} sx={{ borderRadius: 2, mx: 0.5, my: 0.25 }}>
-              <ListItemIcon>
-                <OpenInFullIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText primary="Ver / Editar" primaryTypographyProps={{ fontWeight: 700, fontSize: "0.9rem" }} />
-            </MuiMenuItem>
-          </Menu>
+          <Tooltip title="Ver / Editar">
+            <IconButton size="small" onClick={handleOpenDrawer}>
+              <OpenInFullIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
         </Box>
       </Box>
     </Paper>

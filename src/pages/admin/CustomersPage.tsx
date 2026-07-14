@@ -24,6 +24,9 @@ import {
   Alert,
   Slide,
   Chip,
+  TablePagination,
+  Tooltip,
+  IconButton,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
@@ -31,15 +34,120 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import CloseIcon from "@mui/icons-material/Close";
 
+import DownloadIcon from "@mui/icons-material/Download";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
 import AdminPageTitle from "./components/AdminPageTitle";
 import CustomerList from "./customers/CustomerList";
 import CustomerDrawer from "./customers/CustomerDrawer";
-import { type ICustomer } from "@/interfases/customer.interfase";
+import ExportCsvDialog, { type ExportCsvScope } from "./components/ExportCsvDialog";
+import ImportCsvPreviewDialog from "./components/ImportCsvPreviewDialog";
+import { type ICustomer, type ICustomerCreate } from "@/interfases/customer.interfase";
 import type { User } from "@/interfases/user.interfase";
-import { getCustomers, batchDeleteCustomers, batchAssignSales } from "@/services/customer.service";
+import { getCustomers, batchDeleteCustomers, batchAssignSales, createCustomer, updateCustomer } from "@/services/customer.service";
 import { getUsers } from "@/services/user.service";
 import { useAuth } from "@/context/AuthProvider";
 import { useFactorySettings } from "@/context/FactorySettingsContext";
+import { getPageSizeOptions } from "@/utils/dataGrid.util";
+import { parseCsv, buildCsv, downloadCsv, boolToCsvField, csvFieldToBool } from "@/utils/csv.util";
+
+// =============================================================================
+// MAPEO DE COLUMNAS CSV — mismo objeto usado para export (3a) e import (3c-1).
+// Aplanado: contact.*/address.* con prefijo.
+// =============================================================================
+const CUSTOMER_CSV_COLUMNS: {
+  header: string;
+  get: (c: ICustomer) => string;
+  set: (row: any, v: string) => void;
+}[] = [
+  { header: "type", get: (c) => c.type ?? "", set: (row, v) => (row.type = v) },
+  { header: "officialName", get: (c) => c.officialName ?? "", set: (row, v) => (row.officialName = v) },
+  { header: "firstName", get: (c) => c.firstName ?? "", set: (row, v) => (row.firstName = v) },
+  { header: "lastName", get: (c) => c.lastName ?? "", set: (row, v) => (row.lastName = v) },
+  { header: "commercialName", get: (c) => c.commercialName ?? "", set: (row, v) => (row.commercialName = v) },
+  { header: "description", get: (c) => c.description ?? "", set: (row, v) => (row.description = v) },
+  { header: "nif", get: (c) => c.nif ?? "", set: (row, v) => (row.nif = v) },
+  { header: "isActive", get: (c) => boolToCsvField(c.isActive), set: (row, v) => (row.isActive = csvFieldToBool(v)) },
+  { header: "contact_phone", get: (c) => c.contact?.phone ?? "", set: (row, v) => (row.contact.phone = v) },
+  { header: "contact_email", get: (c) => c.contact?.email ?? "", set: (row, v) => (row.contact.email = v) },
+  { header: "contact_website", get: (c) => c.contact?.website ?? "", set: (row, v) => (row.contact.website = v) },
+  { header: "address_country", get: (c) => c.address?.country ?? "", set: (row, v) => (row.address.country = v) },
+  { header: "address_fullName", get: (c) => c.address?.fullName ?? "", set: (row, v) => (row.address.fullName = v) },
+  { header: "address_addressLine1", get: (c) => c.address?.addressLine1 ?? "", set: (row, v) => (row.address.addressLine1 = v) },
+  { header: "address_addressLine2", get: (c) => c.address?.addressLine2 ?? "", set: (row, v) => (row.address.addressLine2 = v) },
+  { header: "address_city", get: (c) => c.address?.city ?? "", set: (row, v) => (row.address.city = v) },
+  { header: "address_region", get: (c) => c.address?.region ?? "", set: (row, v) => (row.address.region = v) },
+  { header: "address_cp", get: (c) => c.address?.cp ?? "", set: (row, v) => (row.address.cp = v) },
+];
+
+// Campos ofrecidos como "key" de match para decidir crear vs actualizar en el import (3c-1).
+export type CustomerImportKey = "nif" | "officialName" | "contact_email";
+
+export const CUSTOMER_IMPORT_KEY_OPTIONS: { value: CustomerImportKey; label: string; getValue: (c: ICustomer) => string }[] = [
+  { value: "nif", label: "NIF/CIF", getValue: (c) => (c.nif ?? "").trim().toLowerCase() },
+  { value: "officialName", label: "Nombre oficial", getValue: (c) => (c.officialName ?? "").trim().toLowerCase() },
+  { value: "contact_email", label: "Email de contacto", getValue: (c) => (c.contact?.email ?? "").trim().toLowerCase() },
+];
+
+export type CustomerImportRowAction = "create" | "update" | "ambiguous";
+
+export interface CustomerImportRow {
+  rowIndex: number; // índice de fila dentro del CSV (1-based, sin contar header), para mensajes de error legibles
+  data: Partial<ICustomer>;
+  keyValue: string;
+  action: CustomerImportRowAction;
+  matchedCustomer?: ICustomer; // solo si action === "update"
+  matchCount: number; // 0 = create, 1 = update, 2+ = ambiguous
+}
+
+/**
+ * Clasifica en memoria cada fila del CSV parseado contra los customers ya cargados,
+ * sin llamar al backend (3c-1). keyOption determina qué campo compara. Filas con
+ * keyValue vacío siempre se tratan como alta nueva (no hay forma de matchear "vacío"
+ * de forma no ambigua contra potenciales otros vacíos).
+ */
+export function classifyCustomerImportRows(headerRow: string[], dataRows: string[][], existingCustomers: ICustomer[], keyOption: CustomerImportKey): CustomerImportRow[] {
+  const keyConfig = CUSTOMER_IMPORT_KEY_OPTIONS.find((k) => k.value === keyOption)!;
+
+  return dataRows.map((values, i) => {
+    const data: any = { contact: {}, address: {} };
+    CUSTOMER_CSV_COLUMNS.forEach((col) => {
+      const idx = headerRow.indexOf(col.header);
+      if (idx !== -1) col.set(data, values[idx] ?? "");
+    });
+
+    // Campos opcionales vacíos se omiten en vez de mandar "" — el backend valida
+    // formato (IsUrl/IsEmail) sobre el valor presente, y "" no pasa esas validaciones
+    // aunque el campo sea @IsOptional (IsOptional solo exime undefined/null).
+    (["firstName", "lastName", "commercialName", "description", "nif"] as const).forEach((field) => {
+      if (data[field] === "") delete data[field];
+    });
+    (["phone", "email", "website"] as const).forEach((field) => {
+      if (data.contact[field] === "") delete data.contact[field];
+    });
+    (["country", "fullName", "addressLine1", "addressLine2", "city", "region", "cp"] as const).forEach((field) => {
+      if (data.address[field] === "") delete data.address[field];
+    });
+    if (Object.keys(data.contact).length === 0) delete data.contact;
+    if (Object.keys(data.address).length === 0) delete data.address;
+
+    const keyValue = keyConfig.getValue(data as ICustomer);
+    const matches = keyValue ? existingCustomers.filter((c) => keyConfig.getValue(c) === keyValue) : [];
+
+    let action: CustomerImportRowAction;
+    if (!keyValue || matches.length === 0) action = "create";
+    else if (matches.length === 1) action = "update";
+    else action = "ambiguous";
+
+    return {
+      rowIndex: i + 1,
+      data,
+      keyValue,
+      action,
+      matchedCustomer: matches.length === 1 ? matches[0] : undefined,
+      matchCount: matches.length,
+    };
+  });
+}
 
 const CustomersPage: React.FC = () => {
   const theme = useTheme();
@@ -50,6 +158,19 @@ const CustomersPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("ALL");
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(50);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+
+  // Import CSV state (3c-1/3c-2: parseo + clasificación en memoria + preview, sin llamar
+  // al backend todavía — la ejecución real queda para 3c-3).
+  const [importKey, setImportKey] = useState<CustomerImportKey>("nif");
+  const [importRows, setImportRows] = useState<CustomerImportRow[] | null>(null);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [importExecuting, setImportExecuting] = useState(false);
+  const [importFileHeaderRow, setImportFileHeaderRow] = useState<string[] | null>(null);
+  const [importFileDataRows, setImportFileDataRows] = useState<string[][] | null>(null);
+  const importFileInputRef = useRef<HTMLInputElement>(null);
 
   // Selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -130,7 +251,10 @@ const CustomersPage: React.FC = () => {
       return matchesSearch && matchesType;
     });
     setFilteredCustomers(filtered);
+    setPage(0);
   }, [search, typeFilter, customers]);
+
+  const pagedCustomers = filteredCustomers.slice(page * pageSize, page * pageSize + pageSize);
 
   const handleCreateNew = () => {
     setSelectedCustomer(null);
@@ -159,8 +283,11 @@ const CustomersPage: React.FC = () => {
   }, []);
 
   const handleRowClick = useCallback(
-    (customer: ICustomer, index: number, event: React.MouseEvent) => {
+    (customer: ICustomer, _pagedIndex: number, event: React.MouseEvent) => {
       const id = customer._id || "";
+      // índice absoluto dentro de filteredCustomers (no relativo a la página actual)
+      // para que el shift-range tenga sentido aunque el rango cruce límites de página.
+      const index = filteredCustomers.findIndex((c) => (c._id || "") === id);
 
       if (event.ctrlKey || event.metaKey) {
         handleSelect(customer, !selectedIds.has(id));
@@ -185,13 +312,13 @@ const CustomersPage: React.FC = () => {
   const handleSelectAll = useCallback(
     (selectAll: boolean, visibleOnly: boolean) => {
       if (selectAll) {
-        const idsToSelect = visibleOnly ? filteredCustomers.map((c) => c._id || "") : customers.map((c) => c._id || "");
+        const idsToSelect = visibleOnly ? pagedCustomers.map((c) => c._id || "") : customers.map((c) => c._id || "");
         setSelectedIds(new Set(idsToSelect));
       } else {
         setSelectedIds(new Set());
       }
     },
-    [filteredCustomers, customers],
+    [pagedCustomers, customers],
   );
 
   // Batch actions
@@ -254,6 +381,111 @@ const CustomersPage: React.FC = () => {
     }
   };
 
+  // Sin apiRef/GridFilterModel (no hay DataGrid) — se arma a mano a partir de search/typeFilter.
+  const filterDescription: string | null = (() => {
+    const parts: string[] = [];
+    if (search.trim()) parts.push(`búsqueda contiene "${search.trim()}"`);
+    if (typeFilter !== "ALL") parts.push(`tipo = "${typeFilter}"`);
+    return parts.length > 0 ? parts.join(" Y ") : null;
+  })();
+
+  const exportCustomers = (customersToExport: ICustomer[], selectedHeaders: string[]) => {
+    const columns = CUSTOMER_CSV_COLUMNS.filter((col) => selectedHeaders.includes(col.header));
+    const headers = columns.map((col) => col.header);
+    const rows = customersToExport.map((c) => {
+      const row: Record<string, string> = {};
+      columns.forEach((col) => (row[col.header] = col.get(c)));
+      return row;
+    });
+    downloadCsv("clientes.csv", buildCsv(headers, rows));
+  };
+
+  const handleConfirmExport = (scope: ExportCsvScope, selectedHeaders: string[]) => {
+    const source = scope === "all" ? customers : scope === "filtered" ? filteredCustomers : pagedCustomers;
+    exportCustomers(source, selectedHeaders);
+  };
+
+  // Import CSV (3c-1/3c-2): parsea el archivo, clasifica cada fila (crear/actualizar/
+  // ambiguo) en memoria contra `customers` ya cargados y abre el modal de preview.
+  // No llama al backend todavía — eso es 3c-3, pendiente.
+  const handleImportFileSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      const rows = parseCsv(text, ";");
+      const headerRow = rows.shift();
+      if (!headerRow) {
+        alert("El archivo CSV está vacío o no tiene cabecera.");
+        return;
+      }
+
+      setImportFileHeaderRow(headerRow);
+      setImportFileDataRows(rows);
+      setImportRows(classifyCustomerImportRows(headerRow, rows, customers, importKey));
+      setImportDialogOpen(true);
+    };
+    reader.readAsText(file);
+    if (event.target) event.target.value = ""; // Reset input
+  };
+
+  const handleImportKeyChange = (key: CustomerImportKey) => {
+    setImportKey(key);
+    if (importFileHeaderRow && importFileDataRows) {
+      setImportRows(classifyCustomerImportRows(importFileHeaderRow, importFileDataRows, customers, key));
+    }
+  };
+
+  const handleCloseImportDialog = () => {
+    setImportDialogOpen(false);
+    setImportRows(null);
+    setImportFileHeaderRow(null);
+    setImportFileDataRows(null);
+  };
+
+  // 3c-3: ejecución real. Ambiguous ya viene resuelto como "create" desde 3c-1
+  // (nunca se actualiza a ciegas ante match ambiguo). Errores por fila no abortan
+  // el resto — se reportan todos al final (Promise.allSettled, mismo patrón que Materials).
+  const handleConfirmImport = async () => {
+    if (!importRows || importRows.length === 0) return;
+    setImportExecuting(true);
+
+    const results = await Promise.allSettled(
+      importRows.map((row) => {
+        if (row.action === "update" && row.matchedCustomer?._id) {
+          return updateCustomer(row.matchedCustomer._id, row.data);
+        }
+        return createCustomer(row.data as ICustomerCreate);
+      }),
+    );
+
+    const succeeded = results.filter((r) => r.status === "fulfilled").length;
+    const failed = results
+      .map((r, i) => ({ r, row: importRows[i] }))
+      .filter(({ r }) => r.status === "rejected") as { r: PromiseRejectedResult; row: CustomerImportRow }[];
+
+    setImportExecuting(false);
+    handleCloseImportDialog();
+    fetchData();
+
+    if (failed.length === 0) {
+      setSnackbar({ open: true, message: `Importación completa: ${succeeded} clientes procesados.`, severity: "success" });
+    } else {
+      const detail = failed.map(({ row }) => `fila ${row.rowIndex}`).join(", ");
+      setSnackbar({
+        open: true,
+        message: `Importación parcial: ${succeeded} ok, ${failed.length} con error (${detail}). Ver consola.`,
+        severity: "error",
+      });
+      console.error(
+        "Errores en import CSV de Customers:",
+        failed.map(({ row, r }) => ({ rowIndex: row.rowIndex, error: (r as PromiseRejectedResult).reason })),
+      );
+    }
+  };
+
   const getUserRoleBadge = (user: User) => {
     const isSales = user.roles?.includes("SALES");
     const isManager = user.roles?.includes("MANAGER");
@@ -270,30 +502,22 @@ const CustomersPage: React.FC = () => {
   return (
     <Box sx={{ pb: 8 }}>
       {/* Header Section */}
-      <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" alignItems={{ xs: "stretch", md: "flex-end" }} sx={{ mb: 5 }} spacing={3}>
+      <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" alignItems={{ xs: "stretch", md: "flex-end" }} sx={{ mb: 2 }} spacing={1.5}>
         <Box>
           <AdminPageTitle>Directorio de Clientes</AdminPageTitle>
-          <Typography variant="body1" color="text.secondary" sx={{ mt: 1, opacity: 0.8 }}>
+          <Typography variant="body1" color="text.secondary" sx={{ mt: 0.5, opacity: 0.8 }}>
             Gestiona empresas y particulares activos.
           </Typography>
         </Box>
 
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ xs: "stretch", sm: "center" }} sx={{ width: { xs: "100%", md: "auto" } }}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems={{ xs: "stretch", sm: "center" }} sx={{ width: { xs: "100%", md: "auto" } }}>
           {/* Type Filter */}
-          <Box sx={{ width: { xs: "100%", sm: 160 } }}>
+          <Box sx={{ width: { xs: "100%", sm: 140 } }}>
             <Select
               fullWidth
               size="small"
               value={typeFilter}
               onChange={(e: SelectChangeEvent) => setTypeFilter(e.target.value)}
-              sx={{
-                borderRadius: "12px",
-                backgroundColor: theme.palette.background.paper,
-                border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-                "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-                height: "48px",
-                fontWeight: 600,
-              }}
             >
               <MenuItem value="ALL">Todos</MenuItem>
               <MenuItem value="COMPANY">Empresas</MenuItem>
@@ -302,7 +526,7 @@ const CustomersPage: React.FC = () => {
           </Box>
 
           {/* Filter Bar */}
-          <Box sx={{ width: { xs: "100%", sm: 250, md: 350 } }}>
+          <Box sx={{ width: { xs: "100%", sm: 220, md: 300 } }}>
             <TextField
               fullWidth
               size="small"
@@ -312,39 +536,31 @@ const CustomersPage: React.FC = () => {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <SearchIcon sx={{ color: "text.secondary", opacity: 0.5 }} />
+                    <SearchIcon sx={{ color: "text.secondary", opacity: 0.5, fontSize: "1.1rem" }} />
                   </InputAdornment>
                 ),
-                sx: {
-                  borderRadius: "12px",
-                  backgroundColor: theme.palette.background.paper,
-                  border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-                  "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-                  height: "48px",
-                },
               }}
             />
           </Box>
 
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleCreateNew}
-            sx={{
-              borderRadius: 3,
-              fontWeight: 800,
-              px: 4,
-              height: "48px",
-              backgroundColor: "#222",
-              "&:hover": { backgroundColor: "#000" },
-              boxShadow: `0 8px 16px -4px ${alpha(theme.palette.common.black, 0.3)}`,
-              textTransform: "none",
-              fontSize: "1rem",
-              whiteSpace: "nowrap",
-            }}
-          >
-            Nuevo Cliente
-          </Button>
+          <Tooltip title="Exportar clientes a CSV">
+            <Button size="small" variant="outlined" startIcon={<DownloadIcon />} onClick={() => setExportDialogOpen(true)} sx={{ whiteSpace: "nowrap" }}>
+              Exportar CSV
+            </Button>
+          </Tooltip>
+
+          <input ref={importFileInputRef} type="file" accept=".csv" hidden onChange={handleImportFileSelected} />
+          <Tooltip title="Importar clientes desde CSV">
+            <Button size="small" variant="outlined" startIcon={<UploadFileIcon />} onClick={() => importFileInputRef.current?.click()} sx={{ whiteSpace: "nowrap" }}>
+              Importar CSV
+            </Button>
+          </Tooltip>
+
+          <Tooltip title="Crear un nuevo cliente">
+            <Button size="small" variant="contained" startIcon={<AddIcon />} onClick={handleCreateNew} sx={{ whiteSpace: "nowrap" }}>
+              Nuevo Cliente
+            </Button>
+          </Tooltip>
         </Stack>
       </Stack>
 
@@ -352,15 +568,15 @@ const CustomersPage: React.FC = () => {
       <Paper
         elevation={0}
         sx={{
-          p: 3,
-          borderRadius: 6,
+          p: 2,
+          borderRadius: 4,
           border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
           background: alpha(theme.palette.background.paper, 0.3),
           backdropFilter: "blur(20px)",
         }}
       >
         <CustomerList
-          customers={filteredCustomers}
+          customers={pagedCustomers}
           loading={loading}
           selectedIds={selectedIds}
           salesUsers={salesOnlyUsers}
@@ -376,6 +592,21 @@ const CustomersPage: React.FC = () => {
           onSelect={handleSelect}
           onSelectAll={handleSelectAll}
         />
+
+        <TablePagination
+          component="div"
+          count={filteredCustomers.length}
+          page={page}
+          onPageChange={(_e, newPage) => setPage(newPage)}
+          rowsPerPage={pageSize}
+          onRowsPerPageChange={(e) => {
+            setPageSize(parseInt(e.target.value, 10));
+            setPage(0);
+          }}
+          rowsPerPageOptions={getPageSizeOptions(filteredCustomers.length)}
+          labelRowsPerPage="Clientes por página:"
+          labelDisplayedRows={({ from, to, count }) => `${from}–${to} de ${count}`}
+        />
       </Paper>
 
       {/* Batch Actions Bar */}
@@ -387,80 +618,48 @@ const CustomersPage: React.FC = () => {
             bottom: 24,
             left: "50%",
             transform: "translateX(-50%)",
-            px: 4,
-            py: 2,
-            borderRadius: 4,
+            px: 2,
+            py: 1,
+            borderRadius: 3,
             background: alpha(theme.palette.background.paper, 0.95),
             backdropFilter: "blur(20px)",
             border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
             boxShadow: `0 12px 40px -12px ${alpha(theme.palette.common.black, 0.4)}`,
             display: "flex",
             alignItems: "center",
-            gap: 3,
+            gap: 1.5,
             zIndex: 1200,
           }}
         >
           <Chip
+            size="small"
             label={`${selectedCount} cliente${selectedCount !== 1 ? "s" : ""} seleccionado${selectedCount !== 1 ? "s" : ""}`}
             sx={{
               fontWeight: 700,
-              fontSize: "0.9rem",
-              py: 2.5,
-              px: 1,
               backgroundColor: alpha(theme.palette.primary.main, 0.1),
               color: theme.palette.primary.main,
               border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
             }}
           />
-          <Box sx={{ display: "flex", gap: 1.5 }}>
+          <Box sx={{ display: "flex", gap: 1 }}>
             {isAdminOrOwner && (
-              <Button
-                variant="outlined"
-                startIcon={<PersonAddIcon />}
-                onClick={() => setAssignDialogOpen(true)}
-                sx={{
-                  borderRadius: 2,
-                  fontWeight: 700,
-                  borderColor: alpha(theme.palette.primary.main, 0.3),
-                  color: theme.palette.primary.main,
-                  "&:hover": {
-                    borderColor: theme.palette.primary.main,
-                    backgroundColor: alpha(theme.palette.primary.main, 0.05),
-                  },
-                }}
-              >
-                Asignar Usuario
-              </Button>
+              <Tooltip title="Asignar usuario a los clientes seleccionados">
+                <Button size="small" variant="outlined" startIcon={<PersonAddIcon />} onClick={() => setAssignDialogOpen(true)}>
+                  Asignar Usuario
+                </Button>
+              </Tooltip>
             )}
-            <Button
-              variant="outlined"
-              startIcon={<DeleteOutlineIcon />}
-              onClick={() => setDeleteDialogOpen(true)}
-              sx={{
-                borderRadius: 2,
-                fontWeight: 700,
-                borderColor: alpha(theme.palette.error.main, 0.3),
-                color: theme.palette.error.main,
-                "&:hover": {
-                  borderColor: theme.palette.error.main,
-                  backgroundColor: alpha(theme.palette.error.main, 0.05),
-                },
-              }}
-            >
-              Eliminar
-            </Button>
+            <Tooltip title="Eliminar clientes seleccionados">
+              <Button size="small" variant="outlined" color="error" startIcon={<DeleteOutlineIcon />} onClick={() => setDeleteDialogOpen(true)}>
+                Eliminar
+              </Button>
+            </Tooltip>
           </Box>
-          <Button
-            onClick={() => setSelectedIds(new Set())}
-            sx={{
-              minWidth: "auto",
-              p: 1,
-              color: "text.secondary",
-              "&:hover": { backgroundColor: alpha(theme.palette.action.hover, 0.1) },
-            }}
-          >
-            <CloseIcon />
-          </Button>
+          <Tooltip title="Cerrar selección">
+            <IconButton size="small" onClick={() => setSelectedIds(new Set())} sx={{ color: "text.secondary" }}>
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
         </Paper>
       </Slide>
 
@@ -548,26 +747,17 @@ const CustomersPage: React.FC = () => {
             </Select>
           </FormControl>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 3 }}>
+        <DialogActions sx={{ px: 2, pb: 2 }}>
           <Button
+            size="small"
             onClick={() => {
               setAssignDialogOpen(false);
               setSelectedAssignedUsers([]);
             }}
-            sx={{ fontWeight: 700 }}
           >
             Cancelar
           </Button>
-          <Button
-            variant="contained"
-            onClick={handleBatchAssign}
-            disabled={selectedAssignedUsers.length === 0}
-            sx={{
-              fontWeight: 700,
-              backgroundColor: theme.palette.primary.main,
-              "&:hover": { backgroundColor: theme.palette.primary.dark },
-            }}
-          >
+          <Button size="small" variant="contained" onClick={handleBatchAssign} disabled={selectedAssignedUsers.length === 0}>
             Asignar
           </Button>
         </DialogActions>
@@ -595,19 +785,11 @@ const CustomersPage: React.FC = () => {
             ¿Estás seguro de que quieres eliminar <strong>{selectedCount}</strong> cliente{selectedCount !== 1 ? "s" : ""}? Esta acción no se puede deshacer.
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 3 }}>
-          <Button onClick={() => setDeleteDialogOpen(false)} sx={{ fontWeight: 700 }}>
+        <DialogActions sx={{ px: 2, pb: 2 }}>
+          <Button size="small" onClick={() => setDeleteDialogOpen(false)}>
             Cancelar
           </Button>
-          <Button
-            variant="contained"
-            onClick={handleBatchDelete}
-            sx={{
-              fontWeight: 700,
-              backgroundColor: theme.palette.error.main,
-              "&:hover": { backgroundColor: theme.palette.error.dark },
-            }}
-          >
+          <Button size="small" variant="contained" color="error" onClick={handleBatchDelete}>
             Eliminar
           </Button>
         </DialogActions>
@@ -624,6 +806,29 @@ const CustomersPage: React.FC = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      {/* Export CSV Dialog */}
+      <ExportCsvDialog
+        open={exportDialogOpen}
+        onClose={() => setExportDialogOpen(false)}
+        onConfirm={handleConfirmExport}
+        pageCount={pagedCustomers.length}
+        filteredCount={filteredCustomers.length}
+        totalCount={customers.length}
+        filterDescription={filterDescription}
+        availableColumns={CUSTOMER_CSV_COLUMNS.map((col) => col.header)}
+      />
+
+      {/* Import CSV Preview Dialog (3c-1/3c-2) */}
+      <ImportCsvPreviewDialog
+        open={importDialogOpen}
+        onClose={handleCloseImportDialog}
+        onConfirm={handleConfirmImport}
+        importKey={importKey}
+        onImportKeyChange={handleImportKeyChange}
+        rows={importRows}
+        executing={importExecuting}
+      />
 
       {/* Details Drawer */}
       <CustomerDrawer open={drawerOpen} customer={selectedCustomer} isNew={isNew} onClose={handleCloseDrawer} onRefresh={fetchData} />

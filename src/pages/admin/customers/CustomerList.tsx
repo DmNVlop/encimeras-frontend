@@ -43,21 +43,22 @@ const CustomerList: React.FC<CustomerListProps> = ({ customers, loading, selecte
   }
 
   return (
-    <Box sx={{ mt: 2 }}>
+    <Box sx={{ mt: 1 }}>
       {/* List Header with Selection */}
       <Box
         sx={{
-          px: 2.5,
-          py: 1.5,
-          mb: 1,
+          px: 1.5,
+          py: 0.75,
+          mb: 0.5,
           display: "flex",
           alignItems: "center",
-          borderRadius: 3,
+          borderRadius: 2,
           backgroundColor: alpha(theme.palette.background.paper, 0.5),
           border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
         }}
       >
         <Checkbox
+          size="small"
           indeterminate={someSelected && !allVisibleSelected}
           checked={allVisibleSelected}
           onChange={(e) => onSelectAll(e.target.checked, true)}
