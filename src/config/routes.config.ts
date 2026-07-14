@@ -68,7 +68,7 @@ export const appRoutes: AppRouteConfig[] = [
     component: AdminLayout,
     allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER, UserRole.SALES],
     children: [
-      { path: "dashboard", component: DashboardPage, allowedRoles: [UserRole.ADMIN] },
+      { path: "dashboard", component: DashboardPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER, UserRole.SALES] },
       { path: "orders", component: OrdersPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER, UserRole.SALES] },
       { path: "users", component: UsersPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER] },
       { path: "customers", component: CustomersPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER, UserRole.SALES] },

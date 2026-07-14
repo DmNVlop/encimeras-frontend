@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTheme } from "@mui/material";
 import { getAnalyticsSummary, type AnalyticsSummaryResponse, type AnalyticsFilters } from "@/services/analytics.service";
+import { shapeVariations } from "@/pages/public/common/shapes-step2";
+
+const shapeIdToGroup = new Map(shapeVariations.map((s) => [s.id, s.group]));
 
 export const useDashboard = () => {
   const theme = useTheme();
@@ -74,26 +77,29 @@ export const useDashboard = () => {
     [data, theme],
   );
 
-  const shapesData = useMemo(
-    () =>
-      data?.charts.shapes.map((s, index) => ({
-        id: s.id,
-        value: s.value,
-        label: s.label
-          .split("_")
-          .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-          .join(" "),
-        color: [
-          theme.palette.primary.light,
-          theme.palette.secondary.light,
-          theme.palette.success.light,
-          theme.palette.warning.light,
-          theme.palette.info.light,
-          theme.palette.error.light,
-        ][index % 6],
-      })) || [],
-    [data, theme],
-  );
+  const shapesData = useMemo(() => {
+    if (!data?.charts.shapes) return [];
+
+    const groupTotals = new Map<string, number>();
+    data.charts.shapes.forEach((s) => {
+      const group = shapeIdToGroup.get(s.id) || "Otras";
+      groupTotals.set(group, (groupTotals.get(group) || 0) + s.value);
+    });
+
+    return Array.from(groupTotals.entries()).map(([group, value], index) => ({
+      id: group,
+      value,
+      label: group,
+      color: [
+        theme.palette.primary.light,
+        theme.palette.secondary.light,
+        theme.palette.success.light,
+        theme.palette.warning.light,
+        theme.palette.info.light,
+        theme.palette.error.light,
+      ][index % 6],
+    }));
+  }, [data, theme]);
 
   const addonsData = useMemo(
     () =>
