@@ -8,10 +8,7 @@
     "dev": "vite --port 80 --host localhost",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "deploy:patch": "node scripts/deploy.mjs patch",
-    "deploy:minor": "node scripts/deploy.mjs minor",
-    "deploy:major": "node scripts/deploy.mjs major"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@babylonjs/core": "^8.38.0",

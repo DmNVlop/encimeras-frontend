@@ -110,7 +110,7 @@ const CustomerItem: React.FC<CustomerItemProps> = ({ customer, selected, salesUs
         {/* Contact Column */}
         <Box sx={{ flex: 2 }}>
           <Stack spacing={0.1}>
-            {customer.contact.email && (
+            {customer.contact?.email && (
               <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
                 <EmailIcon sx={{ fontSize: 13, color: "text.secondary", opacity: 0.5 }} />
                 <Typography variant="body2" sx={{ color: "text.secondary", fontWeight: 500, fontSize: "0.78rem", lineHeight: 1.3 }}>
@@ -118,7 +118,7 @@ const CustomerItem: React.FC<CustomerItemProps> = ({ customer, selected, salesUs
                 </Typography>
               </Box>
             )}
-            {customer.contact.phone && (
+            {customer.contact?.phone && (
               <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
                 <PhoneIcon sx={{ fontSize: 13, color: "text.secondary", opacity: 0.5 }} />
                 <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 600, opacity: 0.6, fontSize: "0.7rem", lineHeight: 1.2 }}>
