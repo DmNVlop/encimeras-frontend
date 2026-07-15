@@ -254,6 +254,13 @@ const CustomersPage: React.FC = () => {
     setPage(0);
   }, [search, typeFilter, customers]);
 
+  useEffect(() => {
+    const validOptions = getPageSizeOptions(filteredCustomers.length);
+    if (!validOptions.includes(pageSize)) {
+      setPageSize(validOptions[0]);
+    }
+  }, [filteredCustomers.length, pageSize]);
+
   const pagedCustomers = filteredCustomers.slice(page * pageSize, page * pageSize + pageSize);
 
   const handleCreateNew = () => {
