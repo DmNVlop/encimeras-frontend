@@ -1,6 +1,6 @@
 // src/pages/admin/MaterialsPage.tsx
 import React, { useState, useEffect, useRef } from "react";
-import { Box, Button, CircularProgress, Chip } from "@mui/material";
+import { Box, Button, CircularProgress, Chip, Tooltip, IconButton, Typography } from "@mui/material";
 import {
   DataGrid,
   type GridColDef,
@@ -24,6 +24,7 @@ import type { Material, PricingRecipe } from "@/interfases/materials.interfase";
 import MaterialEditModal from "./materials/MaterialEditModal";
 import AdminPageTitle from "./components/AdminPageTitle";
 import ExportCsvDialog, { type ExportCsvScope, describeGridFilterModel } from "./components/ExportCsvDialog";
+import CsvHelpButton from "./components/CsvHelpButton";
 import { parseCsv, buildCsv, downloadCsv, arrayToCsvField, csvFieldToArray, boolToCsvField, csvFieldToBool } from "@/utils/csv.util";
 import { getPageSizeOptions } from "@/utils/dataGrid.util";
 
@@ -302,12 +303,39 @@ const MaterialsPage: React.FC = () => {
         <AdminPageTitle>Gestión de Materiales</AdminPageTitle>
         <Box>
           <input type="file" accept=".csv" ref={fileInputRef} style={{ display: "none" }} onChange={handleFileUpload} />
-          <Button variant="outlined" startIcon={<UploadFileIcon />} onClick={() => fileInputRef.current?.click()} sx={{ mr: 1 }}>
-            Importar CSV
-          </Button>
-          <Button variant="outlined" startIcon={<DownloadIcon />} onClick={() => setExportDialogOpen(true)} sx={{ mr: 1 }}>
-            Exportar CSV
-          </Button>
+          <Tooltip title="Importar materiales desde CSV">
+            <IconButton onClick={() => fileInputRef.current?.click()} sx={{ mr: 0.5 }}>
+              <UploadFileIcon />
+            </IconButton>
+          </Tooltip>
+          <CsvHelpButton title="Importar / Exportar Materiales">
+            <Typography variant="body2">
+              <strong>Exportar</strong> descarga un CSV de los materiales visibles (página, filtrado o todo) con todas las columnas: referencia,
+              nombre, descripción, categoría, tipo, activo, atributos seleccionables del wizard y recetas de precio.
+            </Typography>
+            <Typography variant="body2">
+              <strong>Importar</strong> lee un CSV separado por <code>;</code> con las columnas <code>ref, name, description, category, type,
+              isActive, selectableAttributes, pricingRecipes</code>. Todas son requeridas en el header (aunque el valor pueda ir vacío).
+            </Typography>
+            <Typography variant="body2">
+              <strong>selectableAttributes</strong> es una lista separada por comas dentro de la misma celda, ej:{" "}
+              <code>MAT_COLOR,MAT_ACABADO</code>.
+            </Typography>
+            <Typography variant="body2">
+              <strong>pricingRecipes</strong> es un array JSON completo dentro de la celda (con las comillas internas duplicadas según el
+              estándar CSV), ej: <code>[&#123;&quot;productType&quot;:&quot;ENCIMERA&quot;,&quot;unit&quot;:&quot;m2&quot;,&quot;pricingAttributes&quot;:[]&#125;]</code>
+              . Es más fácil exportar un material existente, editar esa celda en un editor de texto/Excel y reimportar, que escribirlo desde
+              cero.
+            </Typography>
+            <Typography variant="body2">
+              Cada fila del CSV crea un material nuevo — el import no actualiza materiales existentes por referencia.
+            </Typography>
+          </CsvHelpButton>
+          <Tooltip title="Exportar materiales a CSV">
+            <IconButton onClick={() => setExportDialogOpen(true)} sx={{ mr: 0.5 }}>
+              <DownloadIcon />
+            </IconButton>
+          </Tooltip>
           {selectionModel.ids.size > 0 && (
             <Button variant="contained" color="error" startIcon={<DeleteIcon />} onClick={handleDeleteSelected} sx={{ mr: 1 }}>
               Borrar ({selectionModel.ids.size})

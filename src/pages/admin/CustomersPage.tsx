@@ -41,6 +41,7 @@ import CustomerList from "./customers/CustomerList";
 import CustomerDrawer from "./customers/CustomerDrawer";
 import ExportCsvDialog, { type ExportCsvScope } from "./components/ExportCsvDialog";
 import ImportCsvPreviewDialog from "./components/ImportCsvPreviewDialog";
+import CsvHelpButton from "./components/CsvHelpButton";
 import { type ICustomer, type ICustomerCreate } from "@/interfases/customer.interfase";
 import type { User } from "@/interfases/user.interfase";
 import { getCustomers, batchDeleteCustomers, batchAssignSales, createCustomer, updateCustomer } from "@/services/customer.service";
@@ -550,17 +551,50 @@ const CustomersPage: React.FC = () => {
             />
           </Box>
 
-          <Tooltip title="Exportar clientes a CSV">
-            <Button size="small" variant="outlined" startIcon={<DownloadIcon />} onClick={() => setExportDialogOpen(true)} sx={{ whiteSpace: "nowrap" }}>
-              Exportar CSV
-            </Button>
-          </Tooltip>
-
           <input ref={importFileInputRef} type="file" accept=".csv" hidden onChange={handleImportFileSelected} />
           <Tooltip title="Importar clientes desde CSV">
-            <Button size="small" variant="outlined" startIcon={<UploadFileIcon />} onClick={() => importFileInputRef.current?.click()} sx={{ whiteSpace: "nowrap" }}>
-              Importar CSV
-            </Button>
+            <IconButton size="small" onClick={() => importFileInputRef.current?.click()}>
+              <UploadFileIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+
+          <CsvHelpButton title="Importar / Exportar Clientes">
+            <Typography variant="body2">
+              <strong>Exportar</strong> descarga un CSV de los clientes visibles (según el alcance elegido: página, filtrado o todo) con las
+              columnas que selecciones — por defecto todas: tipo, nombre oficial, nombre/apellido, nombre comercial, descripción, NIF, activo,
+              y datos de contacto/dirección aplanados con prefijo (<code>contact_email</code>, <code>address_city</code>, etc).
+            </Typography>
+            <Typography variant="body2">
+              <strong>Importar</strong> lee un CSV separado por <code>;</code> con las mismas columnas. No hace falta traer todas: los campos
+              opcionales vacíos simplemente no se envían.
+            </Typography>
+            <Typography variant="body2">
+              <strong>Crear vs actualizar:</strong> antes de ejecutar nada se muestra una vista previa que clasifica cada fila comparándola
+              contra los clientes ya existentes por una clave elegible (NIF/CIF, nombre oficial o email de contacto). Si el valor de esa
+              columna coincide con un cliente existente, la fila se marca para <strong>actualizar</strong> ese registro; si no coincide con
+              ninguno, se marca para <strong>crear</strong> uno nuevo. Si coincide con más de uno, la fila queda ambigua y se trata como alta
+              nueva (nunca actualiza a ciegas).
+            </Typography>
+            <Typography variant="body2">
+              Podés cambiar la clave de comparación en el propio modal de vista previa antes de confirmar — la clasificación se recalcula al
+              instante.
+            </Typography>
+            <Typography variant="body2">
+              Al confirmar, cada fila se procesa de forma independiente: si alguna falla (ej. email con formato inválido), las demás se siguen
+              creando/actualizando igual — al final se informa cuántas salieron bien y el número de fila de cada una que falló.
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Ejemplo de fila (alta nueva, sin NIF existente) — orden de columnas:{" "}
+              <code>type;officialName;firstName;lastName;commercialName;description;nif;isActive;contact_phone;contact_email;...</code>
+              <br />
+              <code>COMPANY;Mi Empresa SL;;;;;B12345678;true;600111222;info@miempresa.com</code>
+            </Typography>
+          </CsvHelpButton>
+
+          <Tooltip title="Exportar clientes a CSV">
+            <IconButton size="small" onClick={() => setExportDialogOpen(true)}>
+              <DownloadIcon fontSize="small" />
+            </IconButton>
           </Tooltip>
 
           <Tooltip title="Crear un nuevo cliente">

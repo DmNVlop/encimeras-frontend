@@ -1,5 +1,5 @@
 // src/pages/admin/UsersPage.tsx
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Box, Button, Chip, TextField, InputAdornment, Typography, Stack, Paper, Snackbar, Alert, Tooltip, IconButton, Tab, Tabs, Badge } from "@mui/material";
 import { DataGrid, type GridColDef, GridActionsCellItem, type GridRowId, type GridRowSelectionModel } from "@mui/x-data-grid";
 import { esES } from "@mui/x-data-grid/locales";
@@ -16,6 +16,8 @@ import SellIcon from "@mui/icons-material/Sell";
 import EngineeringIcon from "@mui/icons-material/Engineering";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
+import DownloadIcon from "@mui/icons-material/Download";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
 
 import { useSearchParams } from "react-router-dom";
 import { Role, type User } from "@/interfases/user.interfase";
@@ -23,9 +25,32 @@ import AdminPageTitle from "./components/AdminPageTitle";
 import UserModal from "./components/users/UserModal";
 import AssignManagerDialog from "./components/users/AssignManagerDialog";
 import ConfirmDeleteDialog from "./components/users/ConfirmDeleteDialog";
+import ExportCsvDialog, { type ExportCsvScope } from "./components/ExportCsvDialog";
+import CsvHelpButton from "./components/CsvHelpButton";
 import { ApiErrorFeedback } from "../public/common/ApiErrorFeedback";
 import { useAuth } from "@/context/AuthProvider";
 import { getUsers, getManagedUsers, deleteUser, batchDeleteUsers, createUser, updateUser } from "@/services/user.service";
+import { arrayToCsvField, buildCsv, downloadCsv, parseCsv, csvFieldToArray } from "@/utils/csv.util";
+
+// =============================================================================
+// MAPEO DE COLUMNAS CSV — mismo objeto usado para import y export (paridad con Materials)
+// =============================================================================
+
+export const USER_CSV_COLUMNS: {
+  header: string;
+  get: (u: User) => string;
+}[] = [
+  { header: "username", get: (u) => u.username ?? "" },
+  { header: "name", get: (u) => u.name ?? "" },
+  { header: "email", get: (u) => u.email ?? "" },
+  { header: "phone", get: (u) => u.phone ?? "" },
+  { header: "roles", get: (u) => arrayToCsvField(u.roles) },
+  { header: "managerId", get: (u) => u.managerId ?? "" },
+  { header: "ownerId", get: (u) => u.ownerId ?? "" },
+  { header: "factoryId", get: (u) => u.factoryId ?? "" },
+  { header: "createdAt", get: (u) => u.createdAt ?? "" },
+  { header: "createdBy", get: (u) => u.createdBy ?? "" },
+];
 
 const ROLE_TAB_CONFIG = [
   {
@@ -72,6 +97,8 @@ const UsersPage: React.FC = () => {
 
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "success" | "error" }>({
     open: false,
@@ -95,6 +122,15 @@ const UsersPage: React.FC = () => {
   const isAdmin = currentRoles.includes("ADMIN");
   const isOwner = currentRoles.includes("OWNER");
   const isManager = currentRoles.includes("MANAGER");
+
+  // Roles que el usuario actual puede crear/importar — mismo criterio que UserModal
+  const importableRoles: Role[] = isAdmin
+    ? Object.values(Role)
+    : isOwner
+      ? [Role.MANAGER, Role.SALES, Role.WORKER, Role.USER]
+      : isManager
+        ? [Role.SALES, Role.WORKER, Role.USER]
+        : [Role.USER];
 
   // ADMIN: todos los tabs. OWNER: Manager/Sales/Worker/User + "Todos". MANAGER: Sales + "Todos". Resto: solo "Todos".
   const OWNER_TABS = new Set([Role.MANAGER, Role.SALES, Role.WORKER, Role.USER] as string[]);
@@ -152,6 +188,139 @@ const UsersPage: React.FC = () => {
   const countByRole = (role: string) => {
     if (role === "ALL") return users.length;
     return users.filter((u) => u.roles.includes(role as Role)).length;
+  };
+
+  const filterParts: string[] = [];
+  if (search) filterParts.push(`búsqueda "${search}"`);
+  if (roleTab !== "ALL") filterParts.push(`rol ${roleTab}`);
+  const filterDescription = filterParts.length > 0 ? filterParts.join(" Y ") : null;
+
+  const exportUsers = (usersToExport: User[]) => {
+    const headers = USER_CSV_COLUMNS.map((col) => col.header);
+    const rows = usersToExport.map((u) => {
+      const row: Record<string, string> = {};
+      USER_CSV_COLUMNS.forEach((col) => (row[col.header] = col.get(u)));
+      return row;
+    });
+    downloadCsv("users.csv", buildCsv(headers, rows));
+  };
+
+  const handleConfirmExport = (scope: ExportCsvScope) => {
+    if (scope === "all") {
+      exportUsers(users);
+      return;
+    }
+    if (scope === "filtered") {
+      exportUsers(filteredUsers);
+      return;
+    }
+    const { page, pageSize } = paginationModel;
+    exportUsers(filteredUsers.slice(page * pageSize, page * pageSize + pageSize));
+  };
+
+  const IMPORT_DEFAULT_PASSWORD = "12345678";
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const text = e.target?.result as string;
+      const rows = parseCsv(text, ";");
+      const headerRow = rows.shift();
+      if (!headerRow) return alert("El archivo CSV está vacío o no tiene cabecera.");
+
+      const requiredHeaders = ["username", "roles"];
+      const missingHeaders = requiredHeaders.filter((h) => !headerRow.includes(h));
+      if (missingHeaders.length > 0) {
+        return alert(`Faltan columnas requeridas en el CSV: ${missingHeaders.join(", ")}`);
+      }
+
+      const getField = (values: string[], header: string) => {
+        const index = headerRow.indexOf(header);
+        return index === -1 ? "" : values[index] ?? "";
+      };
+
+      const toCreate: { label: string; user: Partial<User> }[] = [];
+      const skipped: string[] = [];
+
+      rows.forEach((values, i) => {
+        const username = getField(values, "username");
+        const rowRoles = csvFieldToArray(getField(values, "roles")) as Role[];
+        const rowLabel = username || `fila ${i + 2}`;
+
+        if (rowRoles.length === 0) {
+          skipped.push(`${rowLabel}: sin roles`);
+          return;
+        }
+
+        const disallowedRoles = rowRoles.filter((r) => !importableRoles.includes(r));
+        if (disallowedRoles.length > 0) {
+          skipped.push(`${rowLabel}: rol(es) fuera de tu alcance (${disallowedRoles.join(", ")})`);
+          return;
+        }
+
+        let managerId = getField(values, "managerId") || undefined;
+        if (rowRoles.includes(Role.SALES) && !managerId) {
+          if (isManager && currentAuthUser?._id) {
+            managerId = currentAuthUser._id;
+          } else {
+            skipped.push(`${rowLabel}: usuario SALES requiere managerId`);
+            return;
+          }
+        }
+
+        const ownerId = getField(values, "ownerId") || undefined;
+        if (rowRoles.includes(Role.MANAGER) && !rowRoles.includes(Role.OWNER) && isAdmin && !ownerId) {
+          skipped.push(`${rowLabel}: usuario MANAGER requiere ownerId`);
+          return;
+        }
+
+        // factoryId del CSV se ignora deliberadamente: el backend lo infiere de quien importa
+        toCreate.push({
+          label: rowLabel,
+          user: {
+            username,
+            name: getField(values, "name") || undefined,
+            email: getField(values, "email") || undefined,
+            phone: getField(values, "phone") || undefined,
+            roles: rowRoles,
+            managerId,
+            ownerId,
+            password: IMPORT_DEFAULT_PASSWORD,
+          } as Partial<User>,
+        });
+      });
+
+      const results = await Promise.allSettled(toCreate.map((item) => createUser(item.user)));
+
+      const created: string[] = [];
+      const failed: string[] = [];
+      results.forEach((result, i) => {
+        const { label } = toCreate[i];
+        if (result.status === "fulfilled") {
+          created.push(label);
+        } else {
+          const backendError = result.reason as any;
+          const backendMessage = Array.isArray(backendError?.message) ? backendError.message.join(". ") : backendError?.message;
+          failed.push(`${label}: ${backendMessage || "error desconocido"}`);
+        }
+      });
+
+      const parts = [`Creados: ${created.length}`];
+      if (failed.length > 0) parts.push(`Fallidos: ${failed.length}`);
+      if (skipped.length > 0) parts.push(`Omitidos: ${skipped.length}`);
+      let message = parts.join(" | ");
+      if (failed.length > 0) message += `\n\nFallidos (rechazados por el servidor):\n${failed.join("\n")}`;
+      if (skipped.length > 0) message += `\n\nOmitidos (no se enviaron, ver motivo):\n${skipped.join("\n")}`;
+      alert(message);
+
+      if (failed.length > 0) console.error("Filas fallidas al importar usuarios:", failed);
+      if (created.length > 0) loadUsers();
+    };
+    reader.readAsText(file);
+    if (event.target) event.target.value = "";
   };
 
   const handleOpen = (user?: User) => {
@@ -348,9 +517,54 @@ const UsersPage: React.FC = () => {
     <Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
         <AdminPageTitle>Gestión de Usuarios</AdminPageTitle>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpen()}>
-          Añadir Usuario
-        </Button>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <input type="file" accept=".csv" ref={fileInputRef} style={{ display: "none" }} onChange={handleFileUpload} />
+          <Tooltip title="Importar usuarios desde CSV">
+            <IconButton onClick={() => fileInputRef.current?.click()}>
+              <UploadFileIcon />
+            </IconButton>
+          </Tooltip>
+          <CsvHelpButton title="Importar / Exportar Usuarios">
+            <Typography variant="body2">
+              <strong>Exportar</strong> descarga un CSV con todos los datos de los usuarios visibles según tu alcance de permisos (username,
+              nombre, email, teléfono, roles, managerId, ownerId, factoryId, fecha de alta y quién lo creó).
+            </Typography>
+            <Typography variant="body2">
+              <strong>Importar</strong> lee un CSV separado por <code>;</code> con al menos las columnas <code>username</code> y{" "}
+              <code>roles</code>. Columnas opcionales: <code>name</code>, <code>email</code>, <code>phone</code>, <code>managerId</code>,{" "}
+              <code>ownerId</code>. La columna <code>factoryId</code> se ignora aunque esté presente: siempre se asigna la fábrica del usuario
+              que importa.
+            </Typography>
+            <Typography variant="body2">
+              <strong>Roles múltiples</strong> van separados por coma en la misma celda, ej: <code>SALES,USER</code>. Solo podés importar roles
+              dentro de tu propio alcance (igual que al crear un usuario manualmente): un OWNER puede importar MANAGER/SALES/WORKER/USER, un
+              MANAGER solo SALES/WORKER/USER.
+            </Typography>
+            <Typography variant="body2">
+              <strong>Usuarios SALES</strong> necesitan <code>managerId</code> en el CSV si los importa un ADMIN u OWNER. Si los importa un
+              MANAGER, se asignan automáticamente a sí mismo.
+            </Typography>
+            <Typography variant="body2">
+              Todos los usuarios importados quedan con la contraseña provisional <code>12345678</code> — deberán cambiarla en su primer acceso.
+            </Typography>
+            <Typography variant="body2">
+              Al finalizar se muestra un resumen con 3 categorías: <strong>Creados</strong> (se guardaron bien), <strong>Fallidos</strong> (el
+              servidor los rechazó, ej. email inválido) y <strong>Omitidos</strong> (no se enviaron por estar fuera de tu alcance o faltarles un
+              dato obligatorio) — cada fila con su motivo.
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Ejemplo de fila válida: <code>juan.perez;Juan Pérez;juan@empresa.com;600111222;USER;;;</code>
+            </Typography>
+          </CsvHelpButton>
+          <Tooltip title="Exportar usuarios a CSV">
+            <IconButton onClick={() => setExportDialogOpen(true)}>
+              <DownloadIcon />
+            </IconButton>
+          </Tooltip>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpen()}>
+            Añadir Usuario
+          </Button>
+        </Stack>
       </Box>
 
       <ApiErrorFeedback error={error} title="Error en Gestión de Usuarios" onRetry={loadUsers} />
@@ -481,6 +695,16 @@ const UsersPage: React.FC = () => {
         title="Confirmar Eliminación Masiva"
         message={`¿Estás seguro de que quieres eliminar ${selectionModel.ids.size} usuario(s)? Esta acción no se puede deshacer.`}
         count={selectionModel.ids.size}
+      />
+
+      <ExportCsvDialog
+        open={exportDialogOpen}
+        onClose={() => setExportDialogOpen(false)}
+        onConfirm={handleConfirmExport}
+        pageCount={Math.max(0, Math.min(paginationModel.pageSize, filteredUsers.length - paginationModel.page * paginationModel.pageSize))}
+        filteredCount={filteredUsers.length}
+        totalCount={users.length}
+        filterDescription={filterDescription}
       />
 
       <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
