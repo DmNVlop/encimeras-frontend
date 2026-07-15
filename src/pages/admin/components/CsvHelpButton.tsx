@@ -3,7 +3,7 @@
 // Icon button entre los botones "Importar CSV" / "Exportar CSV"; al click abre un
 // popover con explicación de columnas, formato y ejemplos concretos del módulo.
 import React from "react";
-import { IconButton, Tooltip, Popover, Box, Typography, Divider, Stack } from "@mui/material";
+import { IconButton, Tooltip, Popover, Typography, Divider, Stack } from "@mui/material";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 
 interface CsvHelpButtonProps {
