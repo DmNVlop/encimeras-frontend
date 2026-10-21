@@ -218,8 +218,6 @@ const UsersPage: React.FC = () => {
     exportUsers(filteredUsers.slice(page * pageSize, page * pageSize + pageSize));
   };
 
-  const IMPORT_DEFAULT_PASSWORD = "12345678";
-
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -288,7 +286,7 @@ const UsersPage: React.FC = () => {
             roles: rowRoles,
             managerId,
             ownerId,
-            password: IMPORT_DEFAULT_PASSWORD,
+            generatePassword: true,
           } as Partial<User>,
         });
       });
@@ -297,10 +295,12 @@ const UsersPage: React.FC = () => {
 
       const created: string[] = [];
       const failed: string[] = [];
+      const credentials: Record<string, string>[] = [];
       results.forEach((result, i) => {
         const { label } = toCreate[i];
         if (result.status === "fulfilled") {
           created.push(label);
+          credentials.push({ username: result.value.username, password: result.value.generatedPassword ?? "" });
         } else {
           const backendError = result.reason as any;
           const backendMessage = Array.isArray(backendError?.message) ? backendError.message.join(". ") : backendError?.message;
@@ -314,6 +314,11 @@ const UsersPage: React.FC = () => {
       let message = parts.join(" | ");
       if (failed.length > 0) message += `\n\nFallidos (rechazados por el servidor):\n${failed.join("\n")}`;
       if (skipped.length > 0) message += `\n\nOmitidos (no se enviaron, ver motivo):\n${skipped.join("\n")}`;
+      if (credentials.length > 0) {
+        // Las contraseñas generadas solo llegan en esta respuesta: se descargan ya para no perderlas
+        downloadCsv(`credenciales-usuarios-${new Date().toISOString().slice(0, 10)}.csv`, buildCsv(["username", "password"], credentials));
+        message += `\n\nSe ha descargado un CSV con las contraseñas generadas (solo se muestran esta vez). Entrégalas de forma segura y borra el fichero después.`;
+      }
       alert(message);
 
       if (failed.length > 0) console.error("Filas fallidas al importar usuarios:", failed);
@@ -545,7 +550,8 @@ const UsersPage: React.FC = () => {
               MANAGER, se asignan automáticamente a sí mismo.
             </Typography>
             <Typography variant="body2">
-              Todos los usuarios importados quedan con la contraseña provisional <code>12345678</code> — deberán cambiarla en su primer acceso.
+              Cada usuario importado recibe una contraseña aleatoria generada por el servidor. Al terminar se descarga un CSV
+              (<code>username;password</code>) con ellas: solo se muestran esa vez, entrégalas de forma segura y borra el fichero.
             </Typography>
             <Typography variant="body2">
               Al finalizar se muestra un resumen con 3 categorías: <strong>Creados</strong> (se guardaron bien), <strong>Fallidos</strong> (el

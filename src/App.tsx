@@ -5,6 +5,7 @@ import { Box, CircularProgress } from "@mui/material";
 
 import type { AppRouteConfig } from "./types/auth.types";
 import { AuthProvider } from "./context/AuthProvider";
+import { SocketProvider } from "./context/SocketContext";
 import { CartProvider } from "./context/CartContext";
 import { QuoteProvider } from "./context/QuoteContext";
 import { FactorySettingsProvider } from "./context/FactorySettingsContext";
@@ -93,15 +94,17 @@ function App() {
   return (
     <VersionProvider>
       <AuthProvider>
-        <FactorySettingsProvider>
-          <CartProvider>
-            <QuoteProvider>
-              <AppErrorBoundary>
-                <AppRouter />
-              </AppErrorBoundary>
-            </QuoteProvider>
-          </CartProvider>
-        </FactorySettingsProvider>
+        <SocketProvider>
+          <FactorySettingsProvider>
+            <CartProvider>
+              <QuoteProvider>
+                <AppErrorBoundary>
+                  <AppRouter />
+                </AppErrorBoundary>
+              </QuoteProvider>
+            </CartProvider>
+          </FactorySettingsProvider>
+        </SocketProvider>
       </AuthProvider>
     </VersionProvider>
   );

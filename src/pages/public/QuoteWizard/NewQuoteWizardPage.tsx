@@ -46,7 +46,7 @@ const WizardContent: React.FC<{ activeStep: number; onReset?: () => void }> = ({
 const WizardStepperContent: React.FC = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [validationError, setValidationError] = useState<string | null>(null);
-  const { wizardTempMaterial, mainPieces, selectedShapeId, currentDraftId, currentDraftName } = useQuoteState();
+  const { wizardTempMaterial, mainPieces, selectedShapeId, currentDraftId, currentDraftName, quoteTraceId } = useQuoteState();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -97,12 +97,16 @@ const WizardStepperContent: React.FC = () => {
         throw new Error("El borrador no existe o está vacío.");
       }
 
+      // Borrador ajeno (equipo/cliente): se carga como copia, sin id ni traza, y guardar crea uno propio
+      const isCopy = data.isOwn === false;
+
       // Despachamos al reducer
       dispatch({
         type: "LOAD_SAVED_PROJECT",
         payload: {
           ...data.data, // El objeto configuración guardado
-          _id: id, // Aseguramos que el ID venga
+          _id: isCopy ? undefined : id, // Aseguramos que el ID venga
+          quoteTraceId: isCopy ? undefined : data.data.quoteTraceId,
           recalculated: data.status === "EXPIRED_RECALCULATED",
         },
       });
@@ -113,7 +117,7 @@ const WizardStepperContent: React.FC = () => {
       }
 
       // NUEVO: Verificar si es parte de un grupo
-      if ((data.data as any).cartGroupId) {
+      if (!isCopy && (data.data as any).cartGroupId) {
         setPendingGroupId((data.data as any).cartGroupId);
         setShowGroupLoader(true);
       }
@@ -232,6 +236,8 @@ const WizardStepperContent: React.FC = () => {
       const state = { wizardTempMaterial, mainPieces, selectedShapeId } as any;
       const payload = {
         name: nameToSave || currentDraftName,
+        // Con borrador cargado es una copia = presupuesto nuevo: sin id, el backend le da uno propio
+        quoteTraceId: currentDraftId ? undefined : quoteTraceId,
         core: mapStateToCoreDto(state),
         uiState: mapStateToUiState(state),
       };
@@ -257,6 +263,7 @@ const WizardStepperContent: React.FC = () => {
       const state = { wizardTempMaterial, mainPieces, selectedShapeId } as any;
       const payload = {
         name: nameToSave || currentDraftName,
+        quoteTraceId,
         core: mapStateToCoreDto(state),
         uiState: mapStateToUiState(state),
       };

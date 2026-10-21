@@ -16,16 +16,16 @@ export const TrendsChart: React.FC<TrendsChartProps> = ({ data, loading }) => {
     <Paper
       elevation={0}
       sx={{
-        p: { xs: 2, md: 4 },
-        borderRadius: 6,
+        p: 2,
+        borderRadius: 3,
         border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
         background: `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 0.8)} 0%, ${theme.palette.background.paper} 100%)`,
         boxShadow: "0 15px 35px -10px rgba(0,0,0,0.03)",
       }}
     >
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 900, letterSpacing: -0.5, fontSize: "1.4rem" }}>
+          <Typography variant="h6" sx={{ fontWeight: 900, letterSpacing: -0.5, fontSize: "1.1rem" }}>
             Evolución Temporal
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
@@ -39,7 +39,7 @@ export const TrendsChart: React.FC<TrendsChartProps> = ({ data, loading }) => {
         </Tooltip>
       </Stack>
 
-      <Box sx={{ height: 450, width: "100%", mt: 2 }}>
+      <Box sx={{ height: 300, width: "100%" }}>
         {loading ? (
           <Skeleton variant="rectangular" height="100%" sx={{ borderRadius: 4 }} />
         ) : data.length > 0 ? (
@@ -75,8 +75,8 @@ export const TrendsChart: React.FC<TrendsChartProps> = ({ data, loading }) => {
               { id: "orders-axis", label: "Cantidad" },
               { id: "points-axis", position: "right", label: "Puntos" },
             ]}
-            height={400}
-            margin={{ top: 20, bottom: 50, left: 60, right: 80 }}
+            height={300}
+            margin={{ top: 20, bottom: 30, left: 60, right: 80 }}
             sx={{
               "& .MuiLineElement-root:nth-of-type(2)": {
                 strokeWidth: 3,
@@ -102,7 +102,7 @@ export const TrendsChart: React.FC<TrendsChartProps> = ({ data, loading }) => {
               border: `2px dashed ${alpha(theme.palette.divider, 0.2)}`,
             }}
           >
-            <CalendarTodayIcon sx={{ fontSize: 48, color: "text.disabled", mb: 2, opacity: 0.5 }} />
+            <CalendarTodayIcon sx={{ fontSize: 36, color: "text.disabled", mb: 1, opacity: 0.5 }} />
             <Typography color="text.secondary" sx={{ fontWeight: 500 }}>
               No hay suficientes datos para el rango seleccionado
             </Typography>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { Box, Drawer, List, ListItem, ListItemText, ListItemIcon, ListItemButton, Divider, Collapse, ListSubheader, Toolbar } from "@mui/material";
+import { Box, Drawer, List, useMediaQuery, useTheme, ListItem, ListItemText, ListItemIcon, ListItemButton, Divider, Collapse, ListSubheader, Toolbar } from "@mui/material";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -55,10 +55,14 @@ const menuConfig: NavItem[] = [
 
 interface AdminSidebarProps {
   drawerWidth: number;
+  /** Solo bajo `md` (tablet vertical / móvil): el menú es un drawer temporal controlado por el layout. */
+  mobileOpen: boolean;
+  onMobileClose: () => void;
 }
 
-const AdminSidebar: React.FC<AdminSidebarProps> = ({ drawerWidth }) => {
+const AdminSidebar: React.FC<AdminSidebarProps> = ({ drawerWidth, mobileOpen, onMobileClose }) => {
   const location = useLocation();
+  const isCompact = useMediaQuery(useTheme().breakpoints.down("md"));
   const { user } = useAuth(); // Inyectamos el usuario
   const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({
     Configuración: true,
@@ -79,15 +83,24 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ drawerWidth }) => {
     }
   }, [location.pathname]);
 
+  // En modo temporal, navegar cierra el menú
+  useEffect(() => {
+    onMobileClose();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
   const toggleMenu = (text: string) => {
     setOpenMenus((prev) => ({ ...prev, [text]: !prev[text] }));
   };
 
   return (
     <Drawer
-      variant="permanent"
+      variant={isCompact ? "temporary" : "permanent"}
+      open={isCompact ? mobileOpen : true}
+      onClose={onMobileClose}
+      ModalProps={{ keepMounted: true }}
       sx={{
-        width: drawerWidth,
+        width: isCompact ? 0 : drawerWidth,
         flexShrink: 0,
         [`& .MuiDrawer-paper`]: {
           width: drawerWidth,

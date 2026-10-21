@@ -2,13 +2,10 @@
 import { createRoot } from "react-dom/client";
 import "./index.css";
 
-import { SocketProvider } from "./context/SocketContext.tsx";
 import App from "./App.tsx";
 
 createRoot(document.getElementById("root")!).render(
   // <StrictMode>
-  <SocketProvider>
-    <App />
-  </SocketProvider>,
+  <App />,
   // </StrictMode>,
 );

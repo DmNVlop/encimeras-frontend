@@ -35,8 +35,7 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({ filters, loa
     <Paper
       elevation={0}
       sx={{
-        p: 2,
-        px: 3,
+        p: 1.5,
         borderRadius: 5,
         border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
         backgroundColor: alpha(theme.palette.background.paper, 0.6),
@@ -61,6 +60,7 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({ filters, loa
           </FormControl>
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          {/* Entre md y xl la columna es estrecha: sin icono para que la fecha no se corte */}
           <TextField
             fullWidth
             size="small"
@@ -71,7 +71,7 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({ filters, loa
             InputLabelProps={{ shrink: true }}
             InputProps={{
               startAdornment: (
-                <InputAdornment position="start">
+                <InputAdornment position="start" sx={{ display: { md: "none", xl: "flex" } }}>
                   <CalendarTodayIcon fontSize="small" sx={{ color: "primary.main", opacity: 0.7 }} />
                 </InputAdornment>
               ),
@@ -90,7 +90,7 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({ filters, loa
             InputLabelProps={{ shrink: true }}
             InputProps={{
               startAdornment: (
-                <InputAdornment position="start">
+                <InputAdornment position="start" sx={{ display: { md: "none", xl: "flex" } }}>
                   <CalendarTodayIcon fontSize="small" sx={{ color: "primary.main", opacity: 0.7 }} />
                 </InputAdornment>
               ),
@@ -110,7 +110,10 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({ filters, loa
               sx={{
                 borderRadius: 3,
                 fontWeight: 700,
-                py: 1.2,
+                py: 1,
+                whiteSpace: "nowrap",
+                // Entre md y xl la columna es estrecha (tablet apaisada y portátil): sin icono para que el texto quepa
+                "& .MuiButton-startIcon": { display: { md: "none", xl: "inherit" } },
                 boxShadow: `0 4px 14px 0 ${alpha(theme.palette.primary.main, 0.3)}`,
               }}
             >

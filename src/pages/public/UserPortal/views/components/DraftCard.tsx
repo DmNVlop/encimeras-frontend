@@ -55,6 +55,9 @@ export default function DraftCard({ draft, onDelete }: DraftCardProps) {
   if (mainPieces.length > 0) progress += 40;
   if (draft.currentPricePoints > 0) progress = 90;
 
+  // Borrador ajeno (equipo/cliente): sin borrar; al abrirlo se trabaja sobre una copia propia
+  const isForeign = draft.isOwn === false;
+
   const handleContinue = () => {
     navigate(`/quote?draftId=${draft._id || (draft as any).id}`);
   };
@@ -147,9 +150,11 @@ export default function DraftCard({ draft, onDelete }: DraftCardProps) {
             </Tooltip>
           )}
 
-          <IconButton size="small" sx={{ color: "error.main" }} onClick={handleDeleteClick}>
-            <DeleteOutlineIcon fontSize="small" />
-          </IconButton>
+          {!isForeign && (
+            <IconButton size="small" sx={{ color: "error.main" }} onClick={handleDeleteClick}>
+              <DeleteOutlineIcon fontSize="small" />
+            </IconButton>
+          )}
         </Box>
 
         <Typography
@@ -170,6 +175,12 @@ export default function DraftCard({ draft, onDelete }: DraftCardProps) {
         {draft.name && (
           <Typography variant="body2" color="text.secondary" fontWeight="500" sx={{ mb: 1 }}>
             {materialCategory}
+          </Typography>
+        )}
+
+        {isForeign && (
+          <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
+            De {draft.ownerName || "otro usuario"} · se abre como copia
           </Typography>
         )}
 
@@ -266,7 +277,7 @@ export default function DraftCard({ draft, onDelete }: DraftCardProps) {
             },
           }}
         >
-          Continuar Editando
+          {isForeign ? "Abrir como copia" : "Continuar Editando"}
         </Button>
       </Box>
       <Dialog open={openConfirm} onClose={handleCloseConfirm} aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description">

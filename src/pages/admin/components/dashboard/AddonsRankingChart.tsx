@@ -15,8 +15,8 @@ export const AddonsRankingChart: React.FC<AddonsRankingChartProps> = ({ data, lo
     <Paper
       elevation={0}
       sx={{
-        p: 5,
-        borderRadius: 7,
+        p: 2,
+        borderRadius: 3,
         border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
         background: `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 0.8)} 0%, ${theme.palette.background.paper} 100%)`,
         boxShadow: "0 25px 50px -20px rgba(0,0,0,0.06)",
@@ -25,27 +25,27 @@ export const AddonsRankingChart: React.FC<AddonsRankingChartProps> = ({ data, lo
       <Typography
         variant="h6"
         sx={{
-          mb: 5,
+          mb: 1,
           fontWeight: 950,
-          fontSize: "1.5rem",
+          fontSize: "1.1rem",
           letterSpacing: -0.8,
           display: "flex",
           alignItems: "center",
-          gap: 1.5,
+          gap: 1,
         }}
       >
         Ranking de Mecanizados y Accesorios
         <Tooltip title="Muestra los extras (fregaderos, taladros, encastres, etc.) más frecuentes para identificar tendencias en el equipamiento de cocinas.">
-          <InfoOutlinedIcon sx={{ fontSize: 20, color: "text.secondary", opacity: 0.5, cursor: "help" }} />
+          <InfoOutlinedIcon sx={{ fontSize: 18, color: "text.secondary", opacity: 0.5, cursor: "help" }} />
         </Tooltip>
       </Typography>
-      <Box sx={{ height: 450 }}>
+      <Box sx={{ height: 320 }}>
         {loading ? (
-          <Stack spacing={3} sx={{ mt: 2 }}>
+          <Stack spacing={1.5}>
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Box key={i} sx={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <Skeleton variant="text" width={180} height={32} sx={{ borderRadius: 1 }} />
-                <Skeleton variant="rectangular" width={`${Math.max(40, 100 - i * 10)}%`} height={36} sx={{ borderRadius: 2 }} />
+              <Box key={i} sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <Skeleton variant="text" width={180} height={24} sx={{ borderRadius: 1 }} />
+                <Skeleton variant="rectangular" width={`${Math.max(40, 100 - i * 10)}%`} height={28} sx={{ borderRadius: 2 }} />
               </Box>
             ))}
           </Stack>
@@ -67,8 +67,8 @@ export const AddonsRankingChart: React.FC<AddonsRankingChartProps> = ({ data, lo
               },
             ]}
             layout="horizontal"
-            height={450}
-            margin={{ left: 200, right: 60, top: 40, bottom: 50 }}
+            height={320}
+            margin={{ left: 200, right: 60, top: 30, bottom: 30 }}
             borderRadius={10}
             slotProps={{
               legend: {

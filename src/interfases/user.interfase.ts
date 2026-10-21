@@ -24,4 +24,6 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   password?: string; // Opcional para creación/edición
+  generatePassword?: boolean; // Alta: el backend genera la contraseña (import CSV)
+  generatedPassword?: string; // Respuesta del alta: contraseña generada, solo se recibe una vez
 }

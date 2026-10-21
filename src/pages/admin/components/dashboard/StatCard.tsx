@@ -24,11 +24,11 @@ export const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, icon
         height: "100%",
         background: `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.9)} 0%, ${alpha(theme.palette.background.paper, 0.95)} 100%)`,
         backdropFilter: "blur(12px)",
-        borderRadius: 5,
+        borderRadius: 3,
         border: `1px solid ${alpha(color || theme.palette.divider, 0.12)}`,
         transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
         "&:hover": {
-          transform: "translateY(-8px)",
+          transform: "translateY(-2px)",
           boxShadow: `0 24px 48px -12px ${alpha(
             color || theme.palette.common.black,
             0.2,
@@ -55,16 +55,16 @@ export const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, icon
           zIndex: 0,
         }}
       />
-      <CardContent sx={{ p: 3.5, position: "relative", zIndex: 1 }}>
+      <CardContent sx={{ p: 2, "&:last-child": { pb: 2 }, position: "relative", zIndex: 1 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
           <Box sx={{ flexGrow: 1 }}>
-            <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 1.5 }}>
+            <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.5 }}>
               <Typography
                 variant="overline"
                 color="text.secondary"
                 sx={{
                   fontWeight: 800,
-                  letterSpacing: 1.5,
+                  letterSpacing: 0.8,
                   display: "block",
                   opacity: 0.7,
                   textTransform: "uppercase",
@@ -87,13 +87,13 @@ export const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, icon
               )}
             </Stack>
             {loading ? (
-              <Skeleton width="80%" height={56} sx={{ my: 0.5, borderRadius: 2 }} />
+              <Skeleton width="80%" height={40} sx={{ my: 0.5, borderRadius: 2 }} />
             ) : (
               <Typography
                 variant="h3"
                 sx={{
                   fontWeight: 900,
-                  fontSize: "2.2rem",
+                  fontSize: "1.6rem",
                   color: color,
                   letterSpacing: "-0.03em",
                   mb: 0.5,
@@ -108,7 +108,7 @@ export const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, icon
                 sx={{
                   display: "flex",
                   alignItems: "center",
-                  mt: 1.5,
+                  mt: 0.5,
                   fontWeight: 600,
                   color: "text.secondary",
                   opacity: 0.8,
@@ -125,9 +125,9 @@ export const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, icon
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              width: 60,
-              height: 60,
-              borderRadius: 4,
+              width: 44,
+              height: 44,
+              borderRadius: 2.5,
               background: `linear-gradient(135deg, ${alpha(
                 color || theme.palette.primary.main,
                 0.2,
@@ -137,7 +137,7 @@ export const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, icon
               transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
           >
-            {React.cloneElement(icon as React.ReactElement<any>, { sx: { fontSize: 32 } })}
+            {React.cloneElement(icon as React.ReactElement<any>, { sx: { fontSize: 24 } })}
           </Box>
         </Stack>
       </CardContent>

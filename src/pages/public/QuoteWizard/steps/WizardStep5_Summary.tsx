@@ -50,6 +50,7 @@ export const WizardStep5_Summary: React.FC<WizardStep5_SummaryProps> = ({ onRese
     error,
     currentDraftId,
     currentDraftName,
+    quoteTraceId,
     wizardTempMaterial,
     currentCartItemId,
     currentCartItemName,
@@ -115,6 +116,7 @@ export const WizardStep5_Summary: React.FC<WizardStep5_SummaryProps> = ({ onRese
         })),
       })),
       customerId: selectedCustomer?._id || null,
+      quoteTraceId,
     };
   };
 
@@ -167,6 +169,7 @@ export const WizardStep5_Summary: React.FC<WizardStep5_SummaryProps> = ({ onRese
     const state = { mainPieces, selectedShapeId, wizardTempMaterial } as any;
     const payload = {
       name: nameToSave,
+      quoteTraceId,
       core: mapStateToCoreDto(state),
       uiState: mapStateToUiState(state),
     };
@@ -214,6 +217,7 @@ export const WizardStep5_Summary: React.FC<WizardStep5_SummaryProps> = ({ onRese
         core: mapStateToCoreDto(state),
         uiState: mapStateToUiState(state),
         draftId: currentDraftId || undefined,
+        quoteTraceId,
       };
 
       if (currentCartItemId) {

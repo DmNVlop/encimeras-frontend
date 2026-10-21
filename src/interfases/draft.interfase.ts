@@ -18,12 +18,16 @@ export interface IDraft {
   expirationDate: string; // ISO Date string
   isConverted: boolean;
   cartGroupId?: string; // Nuevo: ID para agrupar borradores
+  quoteTraceId?: string; // Id de trazabilidad del presupuesto (estable en draft → cart → order)
+  isOwn?: boolean; // GET /drafts: false = ajeno dentro del alcance (equipo/cliente), se abre como copia
+  ownerName?: string; // GET /drafts: nombre del dueño si es ajeno
   createdAt?: string;
   updatedAt?: string;
 }
 
 export interface CreateDraftPayload {
   name?: string;
+  quoteTraceId?: string; // Trazabilidad; si falta (copia), el backend genera uno nuevo
   core: CoreEntityDto;
   uiState?: UIStateDto;
 }
@@ -39,4 +43,5 @@ export interface GetDraftResponse {
   message: string;
   data: IDraft;
   newPrice?: number;
+  isOwn?: boolean; // false = borrador ajeno en alcance: se carga como copia (guardar crea uno propio)
 }

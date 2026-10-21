@@ -14,16 +14,17 @@ export const DistributionCharts: React.FC<DistributionChartsProps> = ({ material
   const theme = useTheme();
 
   return (
-    <Grid container spacing={4}>
+    <Grid container spacing={2}>
       {/* Materials Distribution */}
       <Grid size={{ xs: 12, md: 6 }}>
         <Paper
           elevation={0}
           sx={{
-            p: 4,
-            borderRadius: 7,
+            p: 2,
+            borderRadius: 3,
             border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
             height: "100%",
+            boxSizing: "border-box",
             background: `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.8)} 0%, ${theme.palette.background.paper} 100%)`,
             boxShadow: "0 20px 40px -15px rgba(0,0,0,0.05)",
             overflow: "hidden",
@@ -33,9 +34,9 @@ export const DistributionCharts: React.FC<DistributionChartsProps> = ({ material
           <Typography
             variant="h6"
             sx={{
-              mb: 4,
+              mb: 1,
               fontWeight: 900,
-              fontSize: "1.3rem",
+              fontSize: "1.1rem",
               letterSpacing: -0.5,
               display: "flex",
               alignItems: "center",
@@ -49,22 +50,22 @@ export const DistributionCharts: React.FC<DistributionChartsProps> = ({ material
           </Typography>
           <Box
             sx={{
-              height: 420,
+              height: 300,
               display: "flex",
               justifyContent: "center",
               position: "relative",
             }}
           >
             {loading ? (
-              <Skeleton variant="circular" height={280} width={280} sx={{ mx: "auto" }} />
+              <Skeleton variant="circular" height={200} width={200} sx={{ mx: "auto" }} />
             ) : materialsData.length > 0 ? (
               <>
                 <PieChart
                   series={[
                     {
                       data: materialsData,
-                      innerRadius: 85,
-                      outerRadius: 130,
+                      innerRadius: 65,
+                      outerRadius: 100,
                       paddingAngle: 4,
                       cornerRadius: 12,
                       highlightScope: { fade: "global", highlight: "item" },
@@ -72,7 +73,7 @@ export const DistributionCharts: React.FC<DistributionChartsProps> = ({ material
                       cy: "45%",
                     },
                   ]}
-                  height={400}
+                  height={300}
                   slotProps={{
                     legend: {
                       direction: "row",
@@ -98,7 +99,7 @@ export const DistributionCharts: React.FC<DistributionChartsProps> = ({ material
                   }}
                 >
                   <Typography
-                    variant="h3"
+                    variant="h4"
                     sx={{
                       fontWeight: 950,
                       color: theme.palette.text.primary,
@@ -148,10 +149,11 @@ export const DistributionCharts: React.FC<DistributionChartsProps> = ({ material
         <Paper
           elevation={0}
           sx={{
-            p: 4,
-            borderRadius: 7,
+            p: 2,
+            borderRadius: 3,
             border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
             height: "100%",
+            boxSizing: "border-box",
             background: `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.8)} 0%, ${theme.palette.background.paper} 100%)`,
             boxShadow: "0 20px 40px -15px rgba(0,0,0,0.05)",
             overflow: "hidden",
@@ -160,9 +162,9 @@ export const DistributionCharts: React.FC<DistributionChartsProps> = ({ material
           <Typography
             variant="h6"
             sx={{
-              mb: 4,
+              mb: 1,
               fontWeight: 900,
-              fontSize: "1.3rem",
+              fontSize: "1.1rem",
               letterSpacing: -0.5,
               display: "flex",
               alignItems: "center",
@@ -176,21 +178,21 @@ export const DistributionCharts: React.FC<DistributionChartsProps> = ({ material
           </Typography>
           <Box
             sx={{
-              height: 420,
+              height: 300,
               display: "flex",
               justifyContent: "center",
               position: "relative",
             }}
           >
             {loading ? (
-              <Skeleton variant="circular" height={280} width={280} sx={{ mx: "auto" }} />
+              <Skeleton variant="circular" height={200} width={200} sx={{ mx: "auto" }} />
             ) : shapesData.length > 0 ? (
               <PieChart
                 series={[
                   {
                     data: shapesData,
-                    innerRadius: 40,
-                    outerRadius: 130,
+                    innerRadius: 30,
+                    outerRadius: 100,
                     paddingAngle: 2,
                     cornerRadius: 8,
                     highlightScope: { fade: "global", highlight: "item" },
@@ -198,7 +200,7 @@ export const DistributionCharts: React.FC<DistributionChartsProps> = ({ material
                     cy: "45%",
                   },
                 ]}
-                height={400}
+                height={300}
                 slotProps={{
                   legend: {
                     direction: "row",

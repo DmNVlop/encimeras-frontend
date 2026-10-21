@@ -543,7 +543,7 @@ export default function Cart() {
                   </Button>
                 }
               >
-                <LazyDownloadPdfButton cart={cart} user={user} customer={selectedCustomer} disabled={isProcessingCheckout || isDirty || isAssigning} />
+                <LazyDownloadPdfButton cart={cart} user={user} customer={selectedCustomer} disabled={isProcessingCheckout || isDirty || isAssigning} pdfSource={{ source: "cart" }} />
               </Suspense>
             </Box>
           </Paper>

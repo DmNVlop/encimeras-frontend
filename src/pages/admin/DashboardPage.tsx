@@ -16,6 +16,7 @@ import { StatCard } from "./components/dashboard/StatCard";
 import { TrendsChart } from "./components/dashboard/TrendsChart";
 import { DistributionCharts } from "./components/dashboard/DistributionCharts";
 import { AddonsRankingChart } from "./components/dashboard/AddonsRankingChart";
+import { ActivitySection } from "./components/dashboard/ActivitySection";
 
 const DashboardPage: React.FC = () => {
   const theme = useTheme();
@@ -38,7 +39,7 @@ const DashboardPage: React.FC = () => {
     return (
       <Box
         sx={{
-          p: 4,
+          p: 2,
           textAlign: "center",
           display: "flex",
           flexDirection: "column",
@@ -50,7 +51,7 @@ const DashboardPage: React.FC = () => {
         <Typography variant="h6" color="error" gutterBottom>
           {error}
         </Typography>
-        <Button variant="contained" onClick={fetchData} startIcon={<RefreshIcon />} sx={{ mt: 2, borderRadius: 3, px: 4, py: 1.5 }}>
+        <Button variant="contained" onClick={fetchData} startIcon={<RefreshIcon />} sx={{ mt: 2, borderRadius: 3 }}>
           Reintentar Carga
         </Button>
       </Box>
@@ -58,9 +59,9 @@ const DashboardPage: React.FC = () => {
   }
 
   return (
-    <Box sx={{ pb: 8 }}>
+    <Box sx={{ pb: 2 }}>
       {/* Header Section */}
-      <Stack direction={{ xs: "column", lg: "row" }} justifyContent="space-between" alignItems={{ xs: "stretch", lg: "flex-end" }} sx={{ mb: 5 }} spacing={3}>
+      <Stack direction={{ xs: "column", lg: "row" }} justifyContent="space-between" alignItems={{ xs: "stretch", lg: "flex-end" }} sx={{ mb: 2 }} spacing={2}>
         <DashboardHeader lastUpdated={lastUpdated} loading={loading} />
 
         {/* Filter Bar */}
@@ -73,7 +74,7 @@ const DashboardPage: React.FC = () => {
         />
       </Stack>
 
-      <Grid container spacing={4}>
+      <Grid container spacing={2}>
         {/* Top KPIs Row */}
         <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4 }}>
           <StatCard
@@ -141,6 +142,9 @@ const DashboardPage: React.FC = () => {
             info="Promedio de piezas físicas que componen cada presupuesto. A mayor número, mayor complejidad técnica y logística del proyecto."
           />
         </Grid>
+
+        {/* Actividad de presupuestos (quote_events) */}
+        <ActivitySection filters={filters} />
 
         {/* Trends Chart Section */}
         <Grid size={{ xs: 12 }}>

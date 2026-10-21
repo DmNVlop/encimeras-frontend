@@ -4,6 +4,7 @@ import React, { createContext, useContext, useReducer, type Dispatch } from "rea
 import type { MainPiece, QuoteState } from "./QuoteInterfases";
 import type { QuoteAction } from "./QuoteActions";
 import { quoteReducer } from "./QuoteReducer";
+import { newQuoteTraceId } from "@/utils/quoteTrace.util";
 
 /**
  * Genera una nueva pieza vacío por defecto.
@@ -29,6 +30,7 @@ export const initialState: QuoteState = {
   calculationResult: null,
   error: null,
   currentDraftId: null,
+  quoteTraceId: "", // Se genera al montar el provider (initQuoteState): nunca se comparte entre sesiones
   currentDraftName: "",
   isDraftRecalculated: false,
   currentCartItemId: null,
@@ -37,11 +39,13 @@ export const initialState: QuoteState = {
 };
 
 // --- 5. CONTEXTO, PROVIDER Y HOOKS (Sin cambios) ---
+const initQuoteState = (state: QuoteState): QuoteState => ({ ...state, quoteTraceId: newQuoteTraceId() });
+
 const QuoteStateContext = createContext<QuoteState | undefined>(undefined);
 const QuoteDispatchContext = createContext<Dispatch<QuoteAction> | undefined>(undefined);
 
 export const QuoteProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [state, dispatch] = useReducer(quoteReducer, initialState);
+  const [state, dispatch] = useReducer(quoteReducer, initialState, initQuoteState);
   return (
     <QuoteStateContext.Provider value={state}>
       <QuoteDispatchContext.Provider value={dispatch}>{children}</QuoteDispatchContext.Provider>

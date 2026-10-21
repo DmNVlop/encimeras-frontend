@@ -1,3 +1,4 @@
+import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 import React, { useState, useEffect, Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -36,6 +37,7 @@ import { useAuth } from "@/context/AuthProvider";
 import type { Order, OrderLineItem } from "@/interfases/orders.interfase";
 import type { ICustomer } from "@/interfases/customer.interfase";
 import PriceBreakdownPanel from "@/components/cart/PriceBreakdownPanel";
+import { ORDER_STATUS_META, type OrderStatusColor } from "@/utils/orderStatus.util";
 
 // Lazy load del botón PDF — igual que en el carrito, para no penalizar el bundle inicial
 const LazyDownloadPdfButton = React.lazy(() => import("@/components/cart/DownloadPdfButton"));
@@ -44,12 +46,15 @@ const LazyDownloadPdfButton = React.lazy(() => import("@/components/cart/Downloa
 // HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
 
-const STATUS_CONFIG: Record<string, { label: string; color: "warning" | "info" | "primary" | "success" | "error"; icon: React.ReactElement }> = {
-  PENDING: { label: "Pendiente de Confirmación", color: "warning", icon: <HourglassEmptyIcon fontSize="small" /> },
-  MANUFACTURING: { label: "En Producción", color: "info", icon: <BuildIcon fontSize="small" /> },
-  SHIPPED: { label: "Enviado", color: "primary", icon: <LocalShippingIcon fontSize="small" /> },
-  INSTALLED: { label: "Entregado", color: "success", icon: <CheckCircleIcon fontSize="small" /> },
-  CANCELLED: { label: "Cancelado", color: "error", icon: <HomeIcon fontSize="small" /> },
+const STATUS_CONFIG: Record<string, { label: string; color: OrderStatusColor; icon: React.ReactElement }> = {
+  PENDING: { ...ORDER_STATUS_META.PENDING, icon: <HourglassEmptyIcon fontSize="small" /> },
+  REVIEWED: { ...ORDER_STATUS_META.REVIEWED, icon: <HourglassEmptyIcon fontSize="small" /> },
+  APPROVED: { ...ORDER_STATUS_META.APPROVED, icon: <CheckCircleIcon fontSize="small" /> },
+  REJECTED: { ...ORDER_STATUS_META.REJECTED, icon: <HighlightOffIcon fontSize="small" /> },
+  MANUFACTURING: { ...ORDER_STATUS_META.MANUFACTURING, icon: <BuildIcon fontSize="small" /> },
+  SHIPPED: { ...ORDER_STATUS_META.SHIPPED, icon: <LocalShippingIcon fontSize="small" /> },
+  INSTALLED: { ...ORDER_STATUS_META.INSTALLED, icon: <CheckCircleIcon fontSize="small" /> },
+  CANCELLED: { ...ORDER_STATUS_META.CANCELLED, icon: <HomeIcon fontSize="small" /> },
 };
 
 const formatDate = (d: Date | string | undefined) => {
@@ -376,7 +381,7 @@ function TotalsPanel({ order, customer, user }: { order: Order; customer: ICusto
             </Button>
           }
         >
-          <LazyDownloadPdfButton cart={order as any} user={user} customer={customer} />
+          <LazyDownloadPdfButton cart={order as any} user={user} customer={customer} pdfSource={{ source: "order", orderId: order._id }} />
         </Suspense>
       </CardContent>
     </Card>

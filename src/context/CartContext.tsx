@@ -31,7 +31,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
   const [lastCreatedOrder, setLastCreatedOrder] = useState<OrderHeader | null>(null); // Nuevo
   const { socket } = useSocket();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const currentUserId = user?._id || user?.id;
 
   const refreshCart = useCallback(async () => {
     try {
@@ -57,8 +58,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (!socket) return;
 
+    // OWNER/ADMIN/comerciales reciben también órdenes de otros: solo cuenta la propia
     const handleOrderSuccess = (order: OrderHeader) => {
-      console.log("Order created successfully:", order);
+      if (String(order.userId) !== String(currentUserId)) return;
       setLastCreatedOrder(order); // Nuevo
       setIsProcessingCheckout(false);
       setCart(null); // Clear cart on success
@@ -77,7 +79,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       socket.off("orders:new", handleOrderSuccess);
       socket.off("orders:fail", handleOrderFail);
     };
-  }, [socket]);
+  }, [socket, currentUserId]);
 
   const addToCart = async (payload: AddToCartPayload) => {
     try {

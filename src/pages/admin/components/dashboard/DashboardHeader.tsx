@@ -12,10 +12,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ lastUpdated, l
     <Box>
       <AdminPageTitle>Dashboard Operativo</AdminPageTitle>
       <Typography
-        variant="body1"
+        variant="body2"
         color="text.secondary"
         sx={{
-          mt: 1,
+          mt: 0.5,
           opacity: 0.8,
           fontStyle: "italic",
           display: "flex",
