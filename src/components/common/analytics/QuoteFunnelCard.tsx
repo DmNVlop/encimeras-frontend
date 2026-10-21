@@ -83,6 +83,7 @@ export const QuoteFunnelCard: React.FC<QuoteFunnelCardProps> = ({ funnel, tracke
           {trackedSince
             ? `Cálculos y descargas de PDF se miden desde el ${formatDate(trackedSince)}; lo anterior solo incluye pedidos y borradores.`
             : "Todavía no hay actividad registrada en vivo: solo se muestran pedidos y borradores anteriores."}
+          {" Pedidos = presupuestos pedidos (una orden puede incluir varios); en carrito incluye los ya pedidos."}
         </Typography>
       )}
     </Paper>
