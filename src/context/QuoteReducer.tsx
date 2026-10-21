@@ -2,6 +2,7 @@ import type { QuoteAction } from "./QuoteActions";
 import { createDefaultPiece } from "./QuoteContext";
 import type { MainPiece, QuoteState } from "./QuoteInterfases";
 import { mapBackendDataToState } from "@/utils/coreMapper";
+import { newQuoteTraceId } from "@/utils/quoteTrace.util";
 
 /**
  * EL REDUCER (CON NUEVA LÓGICA)
@@ -369,8 +370,9 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
         ...state,
         ...hydratedState,
 
-        // Restauramos identidad y alertas
+        // Restauramos identidad y alertas (borradores anteriores a la trazabilidad: id nuevo)
         currentDraftId: _id,
+        quoteTraceId: action.payload.quoteTraceId || newQuoteTraceId(),
         currentDraftName: name || "",
         isDraftRecalculated: recalculated || false,
         calculationResult: currentPricePoints ? { totalPoints: currentPricePoints } : null,
@@ -401,6 +403,7 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
         currentCartItemId: cartItemId,
         currentCartItemName: customName,
         currentDraftId: action.payload.draftId || null,
+        quoteTraceId: action.payload.quoteTraceId || newQuoteTraceId(),
         calculationResult: subtotalPoints ? { totalPoints: subtotalPoints } : null,
         // Hidratamos el cliente desde el core del item del carrito
         selectedCustomer: (action.payload.core?.customerId as any) || state.selectedCustomer,
@@ -423,6 +426,7 @@ export const quoteReducer = (state: QuoteState, action: QuoteAction): QuoteState
         calculationResult: null,
         error: null,
         currentDraftId: null,
+        quoteTraceId: newQuoteTraceId(), // Presupuesto nuevo = traza nueva
         currentDraftName: "",
         isDraftRecalculated: false,
         currentCartItemId: null,

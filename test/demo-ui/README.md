@@ -34,6 +34,7 @@ npm run test:demo -- users factory=DEMO visual    # verlo en directo (ventana + 
 | `materials` | `ui_csv_import.py` | Import CSV de Materials (CRLF/BOM/comillas, mapeo único de columnas, `pricingRecipes` JSON en celda) |
 | | `ui_csv_export.py` | Export CSV de Materials por `ExportCsvDialog` (sin selector de columnas), cabeceras y formato |
 | | `ui_export_csv_dialog.py` | `ExportCsvDialog` compartido: sin filtro los 3 conteos = total; con filtro de columna «Página» y «Filtrado» se achican y «Todo» no |
+| `quote-events` | `ui_pdf_trace.py` | Trazabilidad: clic en «Descargar resumen PDF» del carrito → `POST /quote-events/pdf-download {source: "cart"}` (sin ids) → 1 evento PDF_DOWNLOADED enlazado al `quoteTraceId` y `cartItemId` del ítem; limpieza con purga ADMIN. `OMITIDO` si el carrito del USER no está vacío |
 | `users` | `ui_csv_export.py` | Export CSV de Users: modal + cabeceras `username;name;email;phone;roles;managerId;ownerId;factoryId;createdAt;createdBy` |
 | | `ui_csv_import.py` | Import CSV de Users: scope de roles por importador, contraseña aleatoria del BE, CSV de credenciales descargado y login con ella, informe Creados / Fallidos / Omitidos, `factoryId` del CSV ignorado |
 | | `ui_csv_full_cycle.py` | Ciclo caja negra + caja blanca: 2 filas válidas creadas; 4 inválidas (2 fallidas en BE, 2 omitidas en FE) con su motivo; comprobación por `GET /users`; búsqueda en la grilla; limpieza con 0 residuos |

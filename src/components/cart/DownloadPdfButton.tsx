@@ -10,18 +10,20 @@ import { documentSettingsService, type IDocumentSettings } from "@/services/docu
 import { useFactorySettings } from "@/context/FactorySettingsContext";
 import { resolveImageUrl } from "@/pages/public/common/ImageUploader/utils/urlUtils";
 import { config } from "@/config";
+import { quoteEventsApi, type PdfDownloadSource } from "@/services/quote-events.service";
 
 interface DownloadPdfButtonProps {
   cart: Cart;
   user?: any;
   customer?: ICustomer | null;
   disabled?: boolean;
+  pdfSource: PdfDownloadSource; // De dónde sale el PDF, para la trazabilidad de presupuestos
 }
 
 const DEFAULT_FOOTER_TEXT =
   "Este documento es informativo y no constituye una factura legal. Los precios están expresados en puntos internos de la plataforma sujetos a las condiciones de venta. Para su aprobación, póngase en contacto con su comercial o apruebe este borrador directamente en el portal online.";
 
-const DownloadPdfButton: React.FC<DownloadPdfButtonProps> = ({ cart, user, customer, disabled }) => {
+const DownloadPdfButton: React.FC<DownloadPdfButtonProps> = ({ cart, user, customer, disabled, pdfSource }) => {
   const [isClient, setIsClient] = useState(false);
   const [docSettings, setDocSettings] = useState<IDocumentSettings | null>(null);
   const { logoUrl } = useFactorySettings();
@@ -81,6 +83,17 @@ const DownloadPdfButton: React.FC<DownloadPdfButtonProps> = ({ cart, user, custo
         document={<CartPdfDocument data={pdfData} />}
         fileName={`Presupuesto_${pdfData.orderId.slice(-6).toUpperCase()}.pdf`}
         style={{ textDecoration: "none", width: "100%", display: "block" }}
+        // `instance` opcional: el tipo de react-pdf 4 cruza el handler nativo (1 argumento) con el suyo (2)
+        onClick={(event: React.MouseEvent<HTMLAnchorElement>, instance?: { url: string | null }) => {
+          // El Button deshabilitado no recibe el clic (pointer-events: none) y este llega al <a>: sin esto, descargaba igual
+          if (disabled) {
+            event.preventDefault();
+            return;
+          }
+          // Solo cuenta si el documento está listo (la descarga ocurre); el registro nunca bloquea la descarga
+          if (!instance?.url) return;
+          quoteEventsApi.recordPdfDownload(pdfSource).catch((err) => console.error("No se pudo registrar la descarga del PDF:", err));
+        }}
       >
         {({ loading, error }) => (
           <Button

@@ -21,6 +21,8 @@ Cómo se lanza y cómo se añade un test: `README.md`.
 | Token desde el navegador | `page_token(page)` = `localStorage['auth_token']` | No `token` ni `accessToken` (`frontend/src/utils/token.storage.ts`) |
 | Borrado masivo | `DELETE /<recurso>` o `/<recurso>/batch` con ids en el body | Patrón `remove()` de `api.service.ts`; para limpiar, mejor API que UI |
 | Respuestas | Sin envoltorio `{data}` | No hay interceptor global que envuelva |
+| Pieza con precio real | `GET /materials` (receta `ENCIMERA`) + `GET /price-configs` cuya `combinationKey` (`A:x\|\|B:y`) tenga las mismas claves que `pricingAttributes` | Sin precio para la combinación, `/quotes/calculate` da 404. Helper en `quote-events/ui_pdf_trace.py` |
+| Eventos de trazabilidad | `GET /quote-events?quoteTraceId=` (cronología); limpieza `DELETE /quote-events/:quoteTraceId` (solo ADMIN, 409 si llegó a orden) | Se escriben sin bloquear: con API, esperar al evento por polling |
 
 ## 3. Pantallas y selectores
 
@@ -28,6 +30,7 @@ Cómo se lanza y cómo se añade un test: `README.md`.
 |---|---|---|
 | Login | `/login` | `get_by_label("Usuario / Email")`, `get_by_label("Contraseña")`, botón «Iniciar Sesión» |
 | Admin | `/admin/<módulo>` (`materials`, `customers`, `users`…) | DataGrid MUI: acciones de fila (`GridActionsCellItem`) son `IconButton` con `aria-label` ⇒ `get_by_label()`, no `get_by_role(name=…)` |
+| Carrito | `/cart` (portal, cualquier rol) | Ítem por `get_by_role("heading", name=<customName>, exact=True)`: con `get_by_text` hay 3 coincidencias (tarjeta `h6`, resumen y menú `#menu-cart`) y salta el strict mode; «Editar» abre el wizard; PDF: `get_by_text("Descargar resumen PDF")` (es un `<a>` de react-pdf con un `Button component="span"`; antes dice «Preparando documento...») |
 | Filtro de columna DataGrid | menú de columna → «Filtro» → input «Valor de filtro» | Helper `_lib/apply_column_filter.py` |
 
 ## 4. Trampas conocidas

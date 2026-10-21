@@ -26,6 +26,7 @@ export interface CartItem {
   appliedRules?: AppliedDiscountDto[];
   piecesBreakdown?: PieceBreakdownItem[];
   draftId?: string;
+  quoteTraceId?: string; // Id de trazabilidad del presupuesto (lo asigna el backend si falta)
   createdAt?: string;
   updatedAt?: string;
 }
@@ -49,6 +50,7 @@ export interface AddToCartPayload {
   core: CoreEntityDto;
   uiState?: UIStateDto;
   draftId?: string;
+  quoteTraceId?: string; // Solo cuenta al añadir: un ítem existente conserva el suyo
 }
 
 export interface CheckoutResponse {

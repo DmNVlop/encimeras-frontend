@@ -57,6 +57,8 @@ export const useCartLoadAction = () => {
           core: mapStateToCoreDto(stateToSave),
           uiState: mapStateToUiState(stateToSave),
           draftId: quoteState.currentDraftId || undefined,
+          // Si se estaba editando un ítem del carrito, esto añade otro (copia): el backend le da su propio id
+          quoteTraceId: quoteState.currentCartItemId ? undefined : quoteState.quoteTraceId,
         });
       } else if (action === "SAVE_AS_DRAFT") {
         const stateToSave = {
@@ -67,6 +69,8 @@ export const useCartLoadAction = () => {
 
         await draftsApi.create({
           name: quoteState.currentDraftName || "Borrador Automático",
+          // Con borrador cargado se crea una copia (presupuesto nuevo): el backend le da su propio id
+          quoteTraceId: quoteState.currentDraftId ? undefined : quoteState.quoteTraceId,
           core: mapStateToCoreDto(stateToSave),
           uiState: mapStateToUiState(stateToSave),
         });

@@ -18,12 +18,14 @@ export interface IDraft {
   expirationDate: string; // ISO Date string
   isConverted: boolean;
   cartGroupId?: string; // Nuevo: ID para agrupar borradores
+  quoteTraceId?: string; // Id de trazabilidad del presupuesto (estable en draft → cart → order)
   createdAt?: string;
   updatedAt?: string;
 }
 
 export interface CreateDraftPayload {
   name?: string;
+  quoteTraceId?: string; // Trazabilidad; si falta (copia), el backend genera uno nuevo
   core: CoreEntityDto;
   uiState?: UIStateDto;
 }

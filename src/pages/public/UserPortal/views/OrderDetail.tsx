@@ -376,7 +376,7 @@ function TotalsPanel({ order, customer, user }: { order: Order; customer: ICusto
             </Button>
           }
         >
-          <LazyDownloadPdfButton cart={order as any} user={user} customer={customer} />
+          <LazyDownloadPdfButton cart={order as any} user={user} customer={customer} pdfSource={{ source: "order", orderId: order._id }} />
         </Suspense>
       </CardContent>
     </Card>

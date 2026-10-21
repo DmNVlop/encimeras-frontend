@@ -46,7 +46,7 @@ const WizardContent: React.FC<{ activeStep: number; onReset?: () => void }> = ({
 const WizardStepperContent: React.FC = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [validationError, setValidationError] = useState<string | null>(null);
-  const { wizardTempMaterial, mainPieces, selectedShapeId, currentDraftId, currentDraftName } = useQuoteState();
+  const { wizardTempMaterial, mainPieces, selectedShapeId, currentDraftId, currentDraftName, quoteTraceId } = useQuoteState();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -232,6 +232,8 @@ const WizardStepperContent: React.FC = () => {
       const state = { wizardTempMaterial, mainPieces, selectedShapeId } as any;
       const payload = {
         name: nameToSave || currentDraftName,
+        // Con borrador cargado es una copia = presupuesto nuevo: sin id, el backend le da uno propio
+        quoteTraceId: currentDraftId ? undefined : quoteTraceId,
         core: mapStateToCoreDto(state),
         uiState: mapStateToUiState(state),
       };
@@ -257,6 +259,7 @@ const WizardStepperContent: React.FC = () => {
       const state = { wizardTempMaterial, mainPieces, selectedShapeId } as any;
       const payload = {
         name: nameToSave || currentDraftName,
+        quoteTraceId,
         core: mapStateToCoreDto(state),
         uiState: mapStateToUiState(state),
       };
