@@ -61,7 +61,7 @@ const LoginPage: React.FC = () => {
       } else if (userRoles.includes(UserRole.SALES) || userRoles.includes(UserRole.USER)) {
         navigate("/my-quotes", { replace: true });
       } else if (userRoles.includes(UserRole.WORKER)) {
-        navigate("/factory/queue", { replace: true });
+        navigate("/admin/orders", { replace: true }); // Bandeja de pedidos hasta que exista la app de puesto
       } else {
         navigate("/", { replace: true });
       }

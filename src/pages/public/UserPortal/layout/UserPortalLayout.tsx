@@ -347,6 +347,7 @@ export default function UserPortalLayout() {
         component="main"
         sx={{
           flexGrow: 1,
+          minWidth: 0, // Sin esto el main toma el ancho mínimo de su contenido (pestañas desplazables, tablas) y desborda junto al drawer
           p: 3,
           width: "100%",
           bgcolor: "#f8fafc",

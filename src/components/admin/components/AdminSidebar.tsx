@@ -22,7 +22,7 @@ interface NavItem {
 const menuConfig: NavItem[] = [
   { text: "Dashboard", icon: <DashboardIcon />, path: "/admin/dashboard", type: "item", allowedRoles: ["ADMIN", "OWNER", "MANAGER", "SALES"] },
   { text: "Presupuestador", icon: <CalculateIcon />, path: "/dashboard", type: "item", allowedRoles: ["ADMIN", "OWNER", "MANAGER", "SALES"] },
-  { text: "Ordenes", icon: <ShoppingBagIcon />, path: "/admin/orders", type: "item", allowedRoles: ["ADMIN", "OWNER", "MANAGER", "SALES"] },
+  { text: "Pedidos", icon: <ShoppingBagIcon />, path: "/admin/orders", type: "item", allowedRoles: ["ADMIN", "OWNER", "MANAGER", "SALES", "WORKER"] },
   { text: "divider", type: "divider" },
   { text: "ADMINISTRACIÓN", type: "subheader", allowedRoles: ["ADMIN", "OWNER", "MANAGER", "SALES"] },
   {
@@ -143,7 +143,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ drawerWidth, mobileOpen, on
             const isCollapsible = !!(item.children && item.children.length > 0);
             const isOpen = openMenus[item.text];
             const isChildActive = item.children?.some((child) => location.pathname === child.path);
-            const isParentActive = location.pathname === item.path;
+            const isParentActive = !!item.path && (location.pathname === item.path || location.pathname.startsWith(`${item.path}/`)); // Fichas hijas (p. ej. /admin/orders/:id)
             const isActive = isParentActive || isChildActive;
 
             return (

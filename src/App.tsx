@@ -72,7 +72,7 @@ const AppRouter = () => {
             Si el usuario llega a '/' y está autenticado, lo mandamos al dashboard.
           */}
           {isAuthenticated && (
-            <Route path="/" element={user?.roles.includes("WORKER") ? <Navigate to="/factory-pos" replace /> : <Navigate to="/dashboard" replace />} />
+            <Route path="/" element={user?.roles.includes("WORKER") ? <Navigate to="/admin/orders" replace /> : <Navigate to="/dashboard" replace />} />
           )}
 
           {/* Generar todas las rutas desde la config */}
