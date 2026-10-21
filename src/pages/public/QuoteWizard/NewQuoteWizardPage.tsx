@@ -97,12 +97,16 @@ const WizardStepperContent: React.FC = () => {
         throw new Error("El borrador no existe o está vacío.");
       }
 
+      // Borrador ajeno (equipo/cliente): se carga como copia, sin id ni traza, y guardar crea uno propio
+      const isCopy = data.isOwn === false;
+
       // Despachamos al reducer
       dispatch({
         type: "LOAD_SAVED_PROJECT",
         payload: {
           ...data.data, // El objeto configuración guardado
-          _id: id, // Aseguramos que el ID venga
+          _id: isCopy ? undefined : id, // Aseguramos que el ID venga
+          quoteTraceId: isCopy ? undefined : data.data.quoteTraceId,
           recalculated: data.status === "EXPIRED_RECALCULATED",
         },
       });
@@ -113,7 +117,7 @@ const WizardStepperContent: React.FC = () => {
       }
 
       // NUEVO: Verificar si es parte de un grupo
-      if ((data.data as any).cartGroupId) {
+      if (!isCopy && (data.data as any).cartGroupId) {
         setPendingGroupId((data.data as any).cartGroupId);
         setShowGroupLoader(true);
       }

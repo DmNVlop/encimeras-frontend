@@ -5,6 +5,14 @@ import { shapeVariations } from "@/pages/public/common/shapes-step2";
 
 const shapeIdToGroup = new Map(shapeVariations.map((s) => [s.id, s.group]));
 
+/** Rango por defecto visible en el filtro: últimos 30 días (el mismo que aplica el BE sin fecha), compartido por todas las secciones. */
+const defaultFilters = (): AnalyticsFilters => {
+  const since = new Date();
+  since.setDate(since.getDate() - 30);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return { status: "all", startDate: `${since.getFullYear()}-${pad(since.getMonth() + 1)}-${pad(since.getDate())}`, endDate: "" };
+};
+
 export const useDashboard = () => {
   const theme = useTheme();
   const [data, setData] = useState<AnalyticsSummaryResponse | null>(null);
@@ -13,11 +21,7 @@ export const useDashboard = () => {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   // Filters State
-  const [filters, setFilters] = useState<AnalyticsFilters>({
-    status: "all",
-    startDate: "",
-    endDate: "",
-  });
+  const [filters, setFilters] = useState<AnalyticsFilters>(defaultFilters);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -49,11 +53,7 @@ export const useDashboard = () => {
   };
 
   const handleResetFilters = () => {
-    setFilters({
-      status: "all",
-      startDate: "",
-      endDate: "",
-    });
+    setFilters(defaultFilters());
   };
 
   // Data transformations

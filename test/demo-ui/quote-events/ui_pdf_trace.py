@@ -19,27 +19,10 @@ from playwright.sync_api import sync_playwright, expect
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / '_lib'))
 from factory_env import ENV, BASE, api, login as api_login, credentials, admin_token, assert_factory, check, done
 from pw_common import launch, login
+from test_data import find_priced_piece
 
 CAPTURAS = pathlib.Path(__file__).resolve().parent / 'capturas'
 CAPTURAS.mkdir(parents=True, exist_ok=True)
-
-
-def find_priced_piece(token):
-    """Pieza con precio real: material con receta ENCIMERA + price-config cuya combinación encaje con ella."""
-    _, materials = api('GET', '/materials', token=token)
-    _, prices = api('GET', '/price-configs', token=token)
-    configs = [c for c in (prices or []) if c.get('productType') == 'ENCIMERA']
-    for m in materials or []:
-        recipe = next((r for r in m.get('pricingRecipes') or [] if r.get('productType') == 'ENCIMERA'), None)
-        if not recipe:
-            continue
-        keys = sorted(recipe.get('pricingAttributes') or [])
-        for c in configs:
-            pairs = [kv.split(':', 1) for kv in c['combinationKey'].split('||')]
-            if sorted(k for k, _ in pairs) == keys:
-                return {'materialId': m['_id'], 'selectedAttributes': dict(pairs), 'length_mm': 2000, 'width_mm': 600}
-    return None
-
 
 admin = admin_token()
 assert_factory(admin)

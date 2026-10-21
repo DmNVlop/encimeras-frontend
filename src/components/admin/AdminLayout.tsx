@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 
 import { AppBar, Toolbar, Typography, Box, Avatar, Menu, MenuItem, IconButton, Divider, ListItemIcon } from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/Logout";
 import CalculateIcon from "@mui/icons-material/Calculate";
 import { useAuth } from "@/context/AuthProvider";
@@ -18,6 +19,8 @@ const AdminLayout: React.FC = () => {
   const { user, logout } = useAuth();
   const { logoUrl } = useFactorySettings();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const closeMobileNav = useCallback(() => setMobileNavOpen(false), []);
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -37,6 +40,9 @@ const AdminLayout: React.FC = () => {
     <Box sx={{ display: "flex" }}>
       <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <Toolbar>
+          <IconButton color="inherit" edge="start" aria-label="Abrir menú" onClick={() => setMobileNavOpen(true)} sx={{ mr: 1, display: { md: "none" } }}>
+            <MenuIcon />
+          </IconButton>
           <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center", gap: 2 }}>
             <Box
               component="img"
@@ -129,8 +135,9 @@ const AdminLayout: React.FC = () => {
           </Box>
         </Toolbar>
       </AppBar>
-      <AdminSidebar drawerWidth={drawerWidth} />
-      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+      <AdminSidebar drawerWidth={drawerWidth} mobileOpen={mobileNavOpen} onMobileClose={closeMobileNav} />
+      {/* minWidth 0: sin él, una DataGrid ancha estira el flex item y la página entera hace scroll horizontal */}
+      <Box component="main" sx={{ flexGrow: 1, minWidth: 0, p: { xs: 1.5, md: 3 } }}>
         <Toolbar />
         <Outlet />
       </Box>

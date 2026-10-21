@@ -13,6 +13,7 @@ import { ordersApi } from "@/services/orders.service";
 import { ApiErrorFeedback } from "../public/common/ApiErrorFeedback";
 import { useAuth } from "@/hooks/useAuth";
 import { Role } from "@/interfases/user.interfase";
+import { getOrderStatusMeta } from "@/utils/orderStatus.util";
 
 // Definición de columnas basada en tu OrderHeader [cite: 82]
 const columns: GridColDef[] = [
@@ -26,14 +27,8 @@ const columns: GridColDef[] = [
     headerName: "Estado",
     width: 150,
     renderCell: (params: GridRenderCellParams) => {
-      const colors: any = {
-        PENDING: "warning",
-        APPROVED: "success",
-        REJECTED: "error",
-        MANUFACTURING: "info",
-        SHIPPED: "success",
-      };
-      return <Chip label={params.value} color={colors[params.value] || "default"} size="small" />;
+      const meta = getOrderStatusMeta(params.value);
+      return <Chip label={meta.label} color={meta.color} size="small" />;
     },
   },
 ];
