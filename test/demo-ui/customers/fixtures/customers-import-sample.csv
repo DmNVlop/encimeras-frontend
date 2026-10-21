@@ -1,0 +1,3 @@
+type;officialName;firstName;lastName;commercialName;description;nif;isActive;contact_phone;contact_email;contact_website;address_country;address_fullName;address_addressLine1;address_addressLine2;address_city;address_region;address_cp
+INDIVIDUAL;ZZ Prueba Import Existente;ZZ Prueba Import;Existente;ZZ Prueba Comercial;Actualizado via CSV;ZZPRUEBA-IMP1;true;600000001;zz.prueba.imp1@demo.invalid;;;;Calle Falsa 1;;Valencia;Valencia;46001
+COMPANY;ZZ Prueba Import Nuevo SA;;;;Cliente de prueba import CSV;ZZPRUEBA-IMP2;true;600000002;zz.prueba.imp2@demo.invalid;;;;Calle Falsa 2;;Madrid;Madrid;28001

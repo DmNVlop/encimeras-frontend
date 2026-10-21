@@ -1,0 +1,3 @@
+username;name;email;phone;roles;managerId;ownerId;factoryId
+zz.prueba.valid1@demo.invalid;ZZ Prueba Valido Uno;zz.prueba.valid1@demo.invalid;600111222;USER;;;
+zz.prueba.valid2@demo.invalid;ZZ Prueba Valido Dos;zz.prueba.valid2@demo.invalid;600333444;USER;;;

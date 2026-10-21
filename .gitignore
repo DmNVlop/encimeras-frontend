@@ -34,3 +34,9 @@ RES
 *.njsproj
 *.sln
 *.sw?
+
+# Pruebas UI (test/demo-ui): capturas, descargas y caché de Python
+test/demo-ui/*/capturas/
+__pycache__/
+*.pyc
+*_results.json

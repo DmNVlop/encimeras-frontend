@@ -1,0 +1,4 @@
+username;name;email;phone;roles;managerId;ownerId;factoryId
+zz.prueba.csv1@demo.invalid;ZZ Prueba CSV Usuario;zz.prueba.csv1@demo.invalid;111111111;USER;;;999999999999999999999999
+zz.prueba.bademail@demo.invalid;ZZ Prueba CSV Email Malo;no-es-un-email;222222222;USER;;;999999999999999999999999
+zz.prueba.sales1@demo.invalid;ZZ Prueba CSV Sales Sin Manager;zz.prueba.sales1@demo.invalid;333333333;SALES;;;999999999999999999999999

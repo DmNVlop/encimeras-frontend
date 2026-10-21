@@ -1,0 +1,5 @@
+username;name;email;phone;roles;managerId;ownerId;factoryId
+;ZZ Prueba Sin Username;zz.prueba.nousername@demo.invalid;600555666;USER;;;
+zz.prueba.bademail@demo.invalid;ZZ Prueba Email Malo;esto-no-es-email;600777888;USER;;;
+zz.prueba.noroles@demo.invalid;ZZ Prueba Sin Roles;zz.prueba.noroles@demo.invalid;600999000;;;;
+zz.prueba.badrole@demo.invalid;ZZ Prueba Rol Invalido;zz.prueba.badrole@demo.invalid;600123123;SUPERADMIN;;;
