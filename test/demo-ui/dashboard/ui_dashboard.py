@@ -82,8 +82,8 @@ try:
                 check(f'admin: layout {width}px sin solapes ni scroll horizontal', not issues, '; '.join(issues))
             # Bajo md el menú lateral es un drawer temporal: se abre con la hamburguesa
             page.get_by_role('button', name='Abrir menú').click()
-            expect(page.get_by_role('link', name='Ordenes')).to_be_visible()
-            check('admin móvil: la hamburguesa abre el menú', page.get_by_role('link', name='Ordenes').is_visible())
+            expect(page.get_by_role('link', name='Pedidos')).to_be_visible()
+            check('admin móvil: la hamburguesa abre el menú', page.get_by_role('link', name='Pedidos').is_visible())
             page.close()
 
         browser.close()

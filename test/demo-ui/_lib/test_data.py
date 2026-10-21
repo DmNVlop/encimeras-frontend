@@ -98,3 +98,33 @@ def find_priced_piece(token):
             if sorted(k for k, _ in pairs) == keys:
                 return {'materialId': m['_id'], 'selectedAttributes': dict(pairs), 'length_mm': 2000, 'width_mm': 600}
     return None
+
+
+def create_test_order(user_token, piece, factory_id, label):
+    """Orden «ZZ Prueba <label> <marca>» del usuario, desde un borrador propio (`POST /drafts` + `POST /orders`).
+    Devuelve dict con orderId, draftId, quoteTraceId, name y error. Limpiar SIEMPRE con `purge_test_order`."""
+    import time
+    import uuid
+    created = {'orderId': None, 'draftId': None, 'quoteTraceId': str(uuid.uuid4()), 'name': f'{NAME_PREFIX} {label} {int(time.time())}', 'error': None}
+    status, draft = api('POST', '/drafts', {'name': created['name'], 'core': {'mainPieces': [piece], 'factoryId': str(factory_id)}, 'quoteTraceId': created['quoteTraceId']}, token=user_token)
+    created['draftId'] = (draft or {}).get('id')
+    if not created['draftId']:
+        created['error'] = f'POST /drafts -> {status}'
+        return created
+    status, order = api('POST', '/orders', {'orderName': created['name'], 'draftId': created['draftId']}, token=user_token)
+    created['orderId'] = (order or {}).get('orderId')
+    if not created['orderId']:
+        created['error'] = f'POST /orders -> {status}'
+    return created
+
+
+def purge_test_order(admin_token, user_token, created):
+    """Purga ADMIN de la orden de prueba (`DELETE /orders/:id`, incluye su traza) y su borrador. Devuelve el status de la purga."""
+    status = 200
+    if created.get('orderId'):
+        status, _ = api('DELETE', f"/orders/{created['orderId']}", token=admin_token)
+    if created.get('draftId'):
+        api('DELETE', f"/drafts/{created['draftId']}", token=user_token)
+    if not created.get('orderId'):
+        api('DELETE', f"/quote-events/{created['quoteTraceId']}", token=admin_token)
+    return status

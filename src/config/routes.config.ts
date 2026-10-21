@@ -14,7 +14,8 @@ const EdgeProfilesPage = lazy(() => import("@/pages/admin/EdgeProfilesPage"));
 const CutoutsPage = lazy(() => import("@/pages/admin/CutoutsPage"));
 const PriceConfigsPage = lazy(() => import("@/pages/admin/PriceConfigsPage"));
 const AttributesPage = lazy(() => import("@/pages/admin/AttributesPage"));
-const OrdersPage = lazy(() => import("@/pages/admin/OrdersTable"));
+const OrdersInboxPage = lazy(() => import("@/pages/admin/orders/OrdersInboxPage"));
+const OrderAdminDetailPage = lazy(() => import("@/pages/admin/orders/OrderAdminDetailPage"));
 const UsersPage = lazy(() => import("@/pages/admin/UsersPage"));
 const CustomersPage = lazy(() => import("@/pages/admin/CustomersPage"));
 const DiscountRulesPage = lazy(() => import("@/pages/admin/DiscountRulesPage"));
@@ -62,14 +63,15 @@ export const appRoutes: AppRouteConfig[] = [
     ],
   },
 
-  // 4. PANEL DE ADMIN (ADMIN, OWNER, MANAGER & SALES)
+  // 4. PANEL DE ADMIN (ADMIN, OWNER, MANAGER & SALES; WORKER solo pedidos hasta tener su app de puesto)
   {
     path: "/admin",
     component: AdminLayout,
-    allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER, UserRole.SALES],
+    allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER, UserRole.SALES, UserRole.WORKER],
     children: [
       { path: "dashboard", component: DashboardPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER, UserRole.SALES] },
-      { path: "orders", component: OrdersPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER, UserRole.SALES] },
+      { path: "orders", component: OrdersInboxPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER, UserRole.SALES, UserRole.WORKER] },
+      { path: "orders/:orderId", component: OrderAdminDetailPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER, UserRole.SALES, UserRole.WORKER] },
       { path: "users", component: UsersPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER] },
       { path: "customers", component: CustomersPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER, UserRole.SALES] },
       { path: "discount-rules", component: DiscountRulesPage, allowedRoles: [UserRole.ADMIN, UserRole.OWNER] },

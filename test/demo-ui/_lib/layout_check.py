@@ -16,8 +16,10 @@ _JS = r"""() => {
   const issues = [];
   const docW = document.documentElement.scrollWidth;
   if (docW > innerWidth + 1) issues.push(`scroll horizontal: página ${docW}px en viewport ${innerWidth}px`);
+  // Lo flotante por diseño (avisos Snackbar `fixed`, barras `sticky`) se superpone al hacer scroll: no es un solape de layout
+  const floating = e => { for (let n = e; n && n !== document.body; n = n.parentElement) { const p = getComputedStyle(n).position; if (p === 'fixed' || p === 'sticky') return true; } return false; };
   const cards = [...document.querySelectorAll('main .MuiPaper-root, main .MuiCard-root')]
-    .filter(e => { const r = e.getBoundingClientRect(); return r.width > 20 && r.height > 20; });
+    .filter(e => { const r = e.getBoundingClientRect(); return r.width > 20 && r.height > 20 && !floating(e); });
   const label = e => e.dataset.testid || (e.innerText || '').trim().split('\n')[0].slice(0, 30);
   for (let i = 0; i < cards.length; i++) for (let j = i + 1; j < cards.length; j++) {
     const a = cards[i], b = cards[j];
